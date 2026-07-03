@@ -69,7 +69,14 @@
   input[type=text]:focus,select:focus,textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
   .filters select{min-width:140px;}
-  .search-wrap{position:relative;display:flex;align-items:center;flex:1;min-width:200px;}
+  .dd{position:relative;display:inline-block;}
+  .dd-trigger{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;background:transparent;border:1px solid var(--card-border);color:var(--text);padding:10px 16px;border-radius:3px;cursor:pointer;list-style:none;transition:all .15s;user-select:none;}
+  .dd-trigger::-webkit-details-marker{display:none;}
+  .dd-trigger:hover{border-color:var(--pink);color:var(--pink);}
+  .dd[open] .dd-trigger{border-color:var(--cyan);color:var(--cyan);}
+  .dd-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--card);border:1px solid var(--card-border);border-radius:4px;min-width:200px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+  .dd-menu button{display:block;width:100%;text-align:left;border:none;border-radius:0;border-bottom:1px solid var(--card-border);padding:10px 14px;text-transform:none;letter-spacing:0;font-size:13px;}
+  .dd-menu button:last-child{border-bottom:none;}
   .search-wrap input{width:100%;padding-right:34px;}
   .clear-btn{position:absolute;right:4px;background:transparent;border:none;color:var(--muted);font-size:14px;padding:4px 8px;cursor:pointer;display:none;}
   .clear-btn:hover{color:var(--pink);}
@@ -258,11 +265,24 @@
 <div class="section active" id="sectionRayon">
   <div class="toolbar">
     <button id="addBtn" class="primary">+ Ajouter un titre</button>
-    <button id="exportBtn">Exporter</button>
-    <button id="importBtn">Importer</button>
+
+    <details class="dd">
+      <summary class="dd-trigger">💾 Sauvegarde ▾</summary>
+      <div class="dd-menu">
+        <button id="exportBtn">📤 Exporter mon rayon</button>
+        <button id="importBtn">📥 Importer mon rayon</button>
+      </div>
+    </details>
     <input type="file" id="importInput" accept="application/json" style="display:none;">
-    <button id="csvTemplateBtn">Exemple CSV</button>
-    <button id="csvImportBtn">Importer CSV</button>
+
+    <details class="dd">
+      <summary class="dd-trigger">CSV ▾</summary>
+      <div class="dd-menu">
+        <button id="csvTemplateBtn">📄 Exemple de CSV</button>
+        <button id="csvExportBtn">📤 Exporter en CSV</button>
+        <button id="csvImportBtn">📥 Importer un CSV</button>
+      </div>
+    </details>
     <input type="file" id="csvImportInput" accept=".csv,text/csv" style="display:none;">
     <button id="selectModeBtn">Sélectionner plusieurs</button>
     <div class="search-wrap">
@@ -1498,6 +1518,35 @@ function downloadCsvTemplate(){
   a.href=url; a.download='exemple-import.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
+// Fermer les autres menus quand on en ouvre un
+document.querySelectorAll('.dd').forEach(dd=>{
+  dd.addEventListener('toggle',()=>{
+    if(dd.open) document.querySelectorAll('.dd').forEach(other=>{ if(other!==dd) other.removeAttribute('open'); });
+  });
+});
+document.querySelectorAll('.dd-menu button').forEach(btn=>{
+  btn.addEventListener('click',()=>btn.closest('.dd').removeAttribute('open'));
+});
+document.addEventListener('click',e=>{ if(!e.target.closest('.dd')) document.querySelectorAll('.dd').forEach(d=>d.removeAttribute('open')); });
+
+function exportCsv(){
+  if(collection.length===0){ alert('Collection vide.'); return; }
+  const rows = [['titre','format','année','vu','emplacement','notes','à l\'échange','à vendre','prix vente']];
+  collection.forEach(it=>{
+    rows.push([
+      it.title, fmtLabel(it.format), it.year||'',
+      it.watched?'oui':'non', it.shelf||'', it.notes||'',
+      it.forTrade?'oui':'non', it.forSale?'oui':'non', it.salePrice||''
+    ]);
+  });
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='mon-rayon-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
 document.getElementById('addBtn').addEventListener('click', openAdd);
 document.getElementById('cancelBtn').addEventListener('click',closeModal);
 document.getElementById('saveBtn').addEventListener('click',saveItemModal);
@@ -1517,6 +1566,7 @@ document.getElementById('exportBtn').addEventListener('click',exportCollection);
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importInput').click());
 document.getElementById('importInput').addEventListener('change',e=>{ if(e.target.files[0]) importCollection(e.target.files[0]); e.target.value=''; });
 document.getElementById('csvTemplateBtn').addEventListener('click',downloadCsvTemplate);
+document.getElementById('csvExportBtn').addEventListener('click',exportCsv);
 document.getElementById('csvImportBtn').addEventListener('click',()=>document.getElementById('csvImportInput').click());
 document.getElementById('csvImportInput').addEventListener('change',e=>{ if(e.target.files[0]) importCsvFile(e.target.files[0]); e.target.value=''; });
 document.getElementById('selectModeBtn').addEventListener('click',toggleSelectMode);
