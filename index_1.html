@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Ma Vidéothèque — Gérez et partagez votre collection de VHS, DVD, Blu-ray et Laser Disc avec la communauté.">
+<meta name="theme-color" content="#0d0d14">
+<title>Ma Vidéothèque</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://api.themoviedb.org">
+<link rel="preconnect" href="https://image.tmdb.org">
+<link rel="dns-prefetch" href="https://enykcstuektwkflccyae.supabase.co">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+  :root{--bg:#0d0d14;--card:#16161f;--card-border:#25252f;--pink:#ff2e88;--cyan:#2ee6ff;--text:#f0eee6;--muted:#8a8a9a;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,0.015) 0px,rgba(255,255,255,0.015) 1px,transparent 1px,transparent 3px),var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+
+  /* LOGIN */
+  #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
+  .login-box{background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:24px 20px;width:100%;max-width:400px;}
+  .login-box .logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;}
+  .login-box .logo span{color:var(--pink);}
+  .login-box .sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:20px;}
+  .login-tabs{display:flex;margin-bottom:20px;border:1px solid var(--card-border);border-radius:4px;overflow:hidden;}
+  .login-tab{flex:1;padding:9px;background:transparent;border:none;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:0.5px;}
+  .login-tab.active{background:var(--pink);color:#1a0410;font-weight:700;}
+  .login-field{margin-bottom:14px;}
+  .login-field label{display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+  .login-field input{width:100%;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:10px 12px;border-radius:3px;font-family:'Inter',sans-serif;font-size:13px;}
+  .login-field input:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
+  .login-btn{width:100%;margin-top:6px;padding:12px;background:var(--pink);border:none;border-radius:4px;color:#1a0410;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:1px;}
+  .login-btn:hover{background:#ff5fa2;}
+  .login-error{font-size:12px;color:#ff8080;margin-top:10px;text-align:center;min-height:18px;}
+  .login-info{font-size:11px;color:var(--muted);margin-top:10px;text-align:center;line-height:1.5;}
+
+  /* APP */
+  #app{display:none;}
+  header{padding:28px 24px 18px;border-bottom:2px solid var(--card-border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;line-height:1;color:var(--text);}
+  .logo span{color:var(--pink);}
+  .sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px;}
+  .header-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .stats{display:flex;gap:18px;font-family:'Space Mono',monospace;font-size:12px;}
+  .stat-num{font-size:20px;color:var(--cyan);display:block;}
+  .stat-label{color:var(--muted);}
+  .user-info{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:right;}
+  .user-info strong{color:var(--cyan);display:block;}
+
+  /* NAV ONGLETS */
+  .nav-tabs{display:flex;gap:0;border-bottom:2px solid var(--card-border);padding:0 24px;}
+  .nav-tab{font-family:'Space Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;padding:12px 20px;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;}
+  .nav-tab:hover{color:var(--text);}
+  .nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+
+  /* SECTIONS */
+  .section{display:none;}.section.active{display:block;}
+
+  /* TOOLBAR */
+  .toolbar{padding:18px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--card-border);position:sticky;top:0;z-index:40;background:var(--bg);}
+  button,.btn{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;background:transparent;border:1px solid var(--card-border);color:var(--text);padding:10px 16px;border-radius:3px;cursor:pointer;transition:all .15s;}
+  button:hover{border-color:var(--pink);color:var(--pink);}
+  button.primary{background:var(--pink);border-color:var(--pink);color:#1a0410;font-weight:700;}
+  button.primary:hover{background:#ff5fa2;color:#1a0410;}
+  input[type=text],input[type=number],input[type=email],input[type=password],select,textarea{background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:10px 12px;border-radius:3px;font-family:'Inter',sans-serif;font-size:13px;}
+  input[type=text]:focus,select:focus,textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
+  .filters select{min-width:140px;}
+  .dd{position:relative;display:inline-block;}
+  .dd-trigger{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;background:transparent;border:1px solid var(--card-border);color:var(--text);padding:10px 16px;border-radius:3px;cursor:pointer;list-style:none;transition:all .15s;user-select:none;}
+  .dd-trigger::-webkit-details-marker{display:none;}
+  .dd-trigger:hover{border-color:var(--pink);color:var(--pink);}
+  .dd[open] .dd-trigger{border-color:var(--cyan);color:var(--cyan);}
+  .dd-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--card);border:1px solid var(--card-border);border-radius:4px;min-width:200px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+  .dd-menu button{display:block;width:100%;text-align:left;border:none;border-radius:0;border-bottom:1px solid var(--card-border);padding:10px 14px;text-transform:none;letter-spacing:0;font-size:13px;}
+  .dd-menu button:last-child{border-bottom:none;}
+  .search-wrap input{width:100%;padding-right:34px;}
+  .clear-btn{position:absolute;right:4px;background:transparent;border:none;color:var(--muted);font-size:14px;padding:4px 8px;cursor:pointer;display:none;}
+  .clear-btn:hover{color:var(--pink);}
+  .search-wrap.has-value .clear-btn{display:block;}
+
+  /* RAYON */
+  .grid{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px;}
+  .tape{background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;position:relative;cursor:pointer;transition:transform .15s,border-color .15s;}
+  .tape:hover{transform:translateY(-3px);border-color:var(--cyan);}
+  .poster-wrap{width:100%;aspect-ratio:2/3;background:#1c1c26;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+  .poster-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .poster-placeholder{font-family:'Bebas Neue',sans-serif;color:var(--muted);font-size:13px;text-align:center;padding:10px;letter-spacing:1px;}
+  .tag{display:inline-block;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;padding:3px 7px;border-radius:2px;letter-spacing:0.5px;color:#0d0d14;}
+  .tag.VHS{background:var(--cyan);}
+  .tag.DVD{background:#ffd23f;}
+  .tag.BLURAY{background:var(--pink);}
+  .tag.BLURAY4K{background:#9b5cff;}
+  .tag.LASERDISC{background:#f97316;}
+  .photo-badge{position:absolute;bottom:8px;right:8px;background:rgba(13,13,20,0.85);border:1px solid var(--cyan);color:var(--cyan);font-size:9px;font-family:'Space Mono',monospace;padding:2px 6px;border-radius:2px;}
+  .watched-switch{display:inline-block;width:38px;height:20px;border-radius:10px;background:#c0314a;cursor:pointer;transition:background .2s;border:1px solid rgba(0,0,0,0.3);position:relative;vertical-align:middle;flex-shrink:0;}
+  .watched-switch.on{background:#2fae5e;}
+  .watched-switch .knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#f0eee6;transition:left .2s;}
+  .watched-switch.on .knob{left:20px;}
+  .dup-badge{position:absolute;top:8px;right:8px;z-index:3;width:22px;height:22px;border-radius:50%;background:var(--pink);color:#1a0410;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .tape.selectable{cursor:pointer;}
+  .tape.selected{outline:2px solid var(--cyan);outline-offset:-1px;}
+  .select-mark{position:absolute;top:8px;left:8px;z-index:3;width:20px;height:20px;border-radius:4px;background:rgba(13,13,20,0.85);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;}
+  .tape.selected .select-mark{background:var(--cyan);color:#0d0d14;border-color:var(--cyan);}
+  .tape.selectable .tag{}
+  .tape-info{padding:8px 10px 4px;}
+  .tape-title{font-size:13px;font-weight:600;line-height:1.3;margin:0 0 4px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .tape-year{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+  .tape-note-flag{font-family:'Space Mono',monospace;font-size:10px;color:var(--pink);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tape-bottom{padding:6px 10px 10px;border-top:1px solid var(--card-border);margin-top:6px;}
+  .tape-format-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+  .tape-watch-row{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+  .tape-watch-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+  .trade-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ffd23f;color:#1a0410;}
+  .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
+  .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty .logo{font-size:28px;margin-bottom:10px;opacity:.6;}
+
+  /* BARRE DE SÉLECTION */
+  .selection-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:10px 16px;display:none;gap:10px;align-items:center;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+  .selection-bar.open{display:flex;}
+  .selection-bar span{font-family:'Space Mono',monospace;font-size:12px;color:var(--text);}
+
+  /* MODAL */
+  .overlay{position:fixed;inset:0;background:rgba(5,5,10,0.88);display:none;align-items:flex-start;justify-content:center;z-index:50;overflow-y:auto;padding:16px;}
+  .overlay.open{display:flex;}
+  .modal{background:var(--card);border:1px solid var(--card-border);border-radius:8px;width:100%;max-width:480px;padding:24px;max-height:calc(100vh - 32px);overflow-y:auto;}
+  body.modal-open{overflow:hidden;}
+  .modal h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 18px;color:var(--cyan);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+  .field input,.field select,.field textarea{width:100%;}
+  .row2{display:flex;gap:10px;}
+  .row2 .field{flex:1;}
+  .search-results{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;max-height:280px;overflow-y:auto;}
+  .search-results img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:4px;cursor:pointer;border:2px solid transparent;}
+  .search-results img:hover{border-color:var(--cyan);}
+  .search-results img.selected{border-color:var(--pink);}
+  .poster-preview{width:100px;aspect-ratio:2/3;background:#1c1c26;border-radius:4px;overflow:hidden;margin:10px 0;display:flex;align-items:center;justify-content:center;}
+  .poster-preview img{width:100%;height:100%;object-fit:cover;}
+  .poster-preview span{font-size:10px;color:var(--muted);text-align:center;padding:6px;}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+  .modal-actions .danger{border-color:#793535;color:#ff8080;}
+  .modal-actions .danger:hover{background:#3a1414;border-color:#ff8080;}
+  .director-films{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:280px;overflow-y:auto;margin-top:8px;}
+  .director-films img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:4px;cursor:pointer;border:2px solid transparent;}
+  .director-films img:hover{border-color:var(--cyan);}
+  .director-films img.selected{border-color:var(--pink);}
+  .director-name-btn{display:block;width:100%;text-align:left;padding:8px 10px;margin-bottom:4px;background:#1c1c26;border:1px solid var(--card-border);border-radius:3px;color:var(--text);font-size:13px;cursor:pointer;}
+  .director-name-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;}
+  .tmdb-info{background:#1c1c26;border:1px solid var(--card-border);border-radius:4px;padding:12px;font-size:12px;line-height:1.6;color:var(--muted);}
+  .tmdb-info .meta-line{font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-bottom:6px;}
+
+  /* SECTION MEMBRES */
+  .members-grid{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;}
+  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:20px;cursor:pointer;transition:border-color .15s;}
+  .member-card:hover{border-color:var(--cyan);}
+  .member-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);margin-bottom:6px;}
+  .member-stats{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;}
+  .member-stats span{color:var(--text);}
+  .member-badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .badge{font-family:'Space Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;border:1px solid var(--card-border);color:var(--muted);}
+  .badge.trade{border-color:#ffd23f;color:#ffd23f;}
+  .badge.sale{border-color:#2fae5e;color:#2fae5e;}
+  .badge.private{border-color:#555;color:#555;}
+
+  /* PROFIL */
+  .profile-section{padding:24px;max-width:500px;}
+  .profile-section h3{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);margin:0 0 16px;}
+
+  /* WANTLIST */
+  .want-grid{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:18px;}
+  .want-card{background:var(--card);border:1px dashed var(--card-border);border-radius:6px;overflow:hidden;position:relative;cursor:pointer;transition:border-color .15s;}
+  .want-card:hover{border-color:var(--pink);}
+  .want-owners{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);padding:6px 10px;background:rgba(46,230,255,0.05);border-top:1px solid var(--card-border);}
+
+  /* FORUM */
+  .forum-compose{padding:20px 24px;border-bottom:1px solid var(--card-border);}
+  .forum-compose textarea{width:100%;resize:vertical;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:12px;border-radius:4px;font-family:'Inter',sans-serif;font-size:14px;}
+  .forum-compose textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
+  .mention-list{background:var(--card);border:1px solid var(--cyan);border-radius:4px;max-height:160px;overflow-y:auto;position:absolute;z-index:100;min-width:200px;}
+  .mention-item{padding:8px 14px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;color:var(--text);}
+  .mention-item:hover{background:var(--card-border);color:var(--cyan);}
+  .forum-posts{padding:16px 24px;display:flex;flex-direction:column;gap:14px;}
+  .post-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--cyan);}
+  .post-avatar img{width:100%;height:100%;object-fit:contain;background:#1c1c26;}
+  .post-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;display:flex;gap:12px;}
+  .post-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .post-author{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--cyan);letter-spacing:1px;}
+  .post-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+  .post-content{font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+  .post-content .mention{color:var(--pink);font-weight:600;cursor:pointer;}
+  .post-delete{font-size:11px;color:var(--muted);cursor:pointer;border:none;background:transparent;padding:4px 8px;}
+  .post-delete:hover{color:#ff8080;}
+  .notif-card{background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:12px 16px;font-size:13px;display:flex;gap:10px;align-items:center;}
+  .notif-card .notif-text{flex:1;line-height:1.5;}
+  .notif-card .notif-mark{font-size:11px;color:var(--muted);cursor:pointer;border:none;background:transparent;padding:4px 8px;white-space:nowrap;}
+  .notif-card .notif-mark:hover{color:var(--cyan);}
+  .member-filter-btn{font-size:11px;padding:6px 14px;}
+  .member-filter-btn.active{background:var(--cyan);border-color:var(--cyan);color:#0d0d14;font-weight:700;}
+  .member-filter-btn:hover{border-color:var(--cyan);color:var(--cyan);}position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--cyan);border-radius:6px;padding:14px 20px;width:320px;max-width:90vw;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+  .import-progress-bar{width:100%;height:6px;background:#1c1c26;border-radius:3px;overflow:hidden;margin-bottom:8px;}
+  .import-progress-fill{height:100%;width:0%;background:var(--cyan);transition:width .2s;}
+  .import-progress-text{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-align:center;}
+  ::-webkit-scrollbar{width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="logo">MA <span>VIDÉO</span>THÈQUE</div>
+    <div class="sub">VHS · DVD · BLU-RAY · 4K · LASER DISC</div>
+    <div class="login-tabs">
+      <button class="login-tab active" id="tabLogin">Connexion</button>
+      <button class="login-tab" id="tabSignup">Créer un compte</button>
+    </div>
+    <div id="loginForm">
+      <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com"></div>
+      <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <button class="login-btn" id="loginBtn">Se connecter</button>
+    </div>
+    <div id="signupForm" style="display:none;">
+      <div class="login-field"><label>Pseudo</label><input type="text" id="signupUsername" placeholder="Ex: VideoManiac69"></div>
+      <div class="login-field"><label>Email</label><input type="email" id="signupEmail" placeholder="ton@email.com"></div>
+      <div class="login-field"><label>Mot de passe</label><input type="password" id="signupPassword" placeholder="8 caractères minimum"></div>
+      <button class="login-btn" id="signupBtn">Créer mon compte</button>
+      <div class="login-info">Gratuit, sans pub, sans revente de données.</div>
+    </div>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<header>
+  <div>
+    <div class="logo">MA <span>VIDÉO</span>THÈQUE</div>
+    <div class="sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
+  </div>
+  <div class="header-right">
+    <div class="stats" id="stats"></div>
+    <div class="user-info" id="userInfo"></div>
+    <button id="logoutBtn" style="font-size:11px;padding:6px 12px;">Déconnexion</button>
+  </div>
+</header>
+
+<!-- NAV -->
+<div class="nav-tabs">
+  <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
+  <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
+  <button class="nav-tab" data-section="sectionMembers">Membres</button>
+  <button class="nav-tab" data-section="sectionForum">Discussions <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
+  <button class="nav-tab" data-section="sectionProfile">Mon Profil</button>
+</div>
+
+<!-- SECTION MON RAYON -->
+<div class="section active" id="sectionRayon">
+  <div class="toolbar">
+    <button id="addBtn" class="primary">+ Ajouter un titre</button>
+
+    <details class="dd">
+      <summary class="dd-trigger">💾 Sauvegarde ▾</summary>
+      <div class="dd-menu">
+        <button id="exportBtn">📤 Exporter mon rayon</button>
+        <button id="importBtn">📥 Importer mon rayon</button>
+      </div>
+    </details>
+    <input type="file" id="importInput" accept="application/json" style="display:none;">
+
+    <details class="dd">
+      <summary class="dd-trigger">CSV ▾</summary>
+      <div class="dd-menu">
+        <button id="csvTemplateBtn">📄 Exemple de CSV</button>
+        <button id="csvExportBtn">📤 Exporter en CSV</button>
+        <button id="csvImportBtn">📥 Importer un CSV</button>
+      </div>
+    </details>
+    <input type="file" id="csvImportInput" accept=".csv,text/csv" style="display:none;">
+    <button id="selectModeBtn">Sélectionner plusieurs</button>
+    <div class="search-wrap">
+      <input type="text" id="searchBox" placeholder="Titre, emplacement, note...">
+      <button id="clearSearch" class="clear-btn">✕</button>
+    </div>
+    <div class="filters">
+      <select id="filterFormat">
+        <option value="">Tous formats</option>
+        <option value="VHS">VHS</option>
+        <option value="DVD">DVD</option>
+        <option value="BLURAY">Blu-ray</option>
+        <option value="BLURAY4K">Blu-ray 4K</option>
+        <option value="LASERDISC">Laser Disc</option>
+      </select>
+      <select id="filterWatched">
+        <option value="">Vu et à voir</option>
+        <option value="watched">Déjà vus</option>
+        <option value="unwatched">À voir</option>
+      </select>
+      <select id="filterSort">
+        <option value="alpha">Ordre alphabétique</option>
+        <option value="date_added">Date d'ajout</option>
+        <option value="year">Date de sortie</option>
+        <option value="price_asc">Prix croissant</option>
+        <option value="price_desc">Prix décroissant</option>
+        <option value="trade">À l'échange</option>
+        <option value="sale">À la vente</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- SECTION WANTLIST -->
+<div class="section" id="sectionWantlist">
+  <div class="toolbar">
+    <button id="addWantBtn" class="primary">+ Ajouter à la wantlist</button>
+  </div>
+  <div class="want-grid" id="wantGrid"></div>
+</div>
+
+<!-- SECTION MEMBRES -->
+<div class="section" id="sectionMembers">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input type="text" id="memberSearch" placeholder="Rechercher un membre...">
+      <button id="clearMemberSearch" class="clear-btn">✕</button>
+    </div>
+  </div>
+  <div class="members-grid" id="membersGrid"></div>
+</div>
+
+<!-- SECTION FORUM -->
+<div class="section" id="sectionForum">
+  <div class="forum-compose">
+    <textarea id="forumInput" placeholder="Écris un message... Utilise @ pour mentionner un membre" rows="3"></textarea>
+    <div id="mentionList" class="mention-list" style="display:none;"></div>
+    <button id="forumPostBtn" class="primary" style="margin-top:8px;">Publier</button>
+  </div>
+  <div id="forumPosts" class="forum-posts"></div>
+</div>
+<div class="section" id="sectionProfile">
+  <div class="profile-section">
+    <h3>Mon Profil</h3>
+
+    <div class="field">
+      <label>Mon avatar</label>
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:10px;flex-wrap:wrap;">
+        <!-- Prévisualisation ronde interactive -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+          <div id="currentAvatar" style="width:90px;height:90px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);position:relative;cursor:grab;">
+            <div id="avatarImgWrap" style="width:100%;height:100%;"></div>
+          </div>
+          <div id="avatarDragHint" class="hint" style="text-align:center;display:none;">Glisse l'image pour la repositionner</div>
+        </div>
+        <button id="chooseAvatarBtn" type="button" style="align-self:center;">Choisir une affiche</button>
+      </div>
+      <div id="avatarSearch" style="display:none;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="avatarSearchInput" placeholder="Cherche un film..." style="flex:1;">
+          <button id="avatarSearchGoBtn" type="button">Chercher</button>
+        </div>
+        <div id="avatarResults" class="search-results"></div>
+        <div id="avatarHint" class="hint"></div>
+      </div>
+    </div>
+
+    <div class="field"><label>Pseudo</label><input type="text" id="profileUsername"></div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="profilePublic" style="width:16px;height:16px;">
+        <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">Rendre ma collection visible par les autres membres</span>
+      </label>
+      <div class="hint">Si décoché, ton profil apparaît dans la liste des membres mais ta collection reste privée.</div>
+    </div>
+    <button id="saveProfileBtn" class="primary">Enregistrer le profil</button>
+    <div id="profileMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- BARRES -->
+<div class="import-progress" id="importProgress" style="display:none;">
+  <div class="import-progress-bar"><div class="import-progress-fill" id="importProgressFill"></div></div>
+  <div id="importProgressText" class="import-progress-text"></div>
+</div>
+
+<div class="selection-bar" id="selectionBar">
+  <span id="selectionCount">0 sélectionnée(s)</span>
+  <button id="removeDupBtn" style="color:var(--cyan);">Retirer 1 doublon</button>
+  <button id="deleteSelectionBtn" style="border-color:#793535;color:#ff8080;">Retirer du rayon</button>
+  <button id="cancelSelectionBtn">Annuler</button>
+</div>
+
+<!-- MODAL FICHE -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modalTitle">Ajouter un titre</h2>
+    <div class="field"><label>Titre du film</label><input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly"></div>
+    <div class="field" id="copySelectorBlock" style="display:none;">
+      <label>Exemplaire</label><select id="copySelector"></select>
+    </div>
+    <div class="field" id="tmdbInfoBlock" style="display:none;">
+      <label>Infos du film</label><div id="tmdbInfoContent" class="tmdb-info"></div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Format</label>
+        <select id="inputFormat">
+          <option value="VHS">VHS</option><option value="DVD">DVD</option>
+          <option value="BLURAY">Blu-ray</option><option value="BLURAY4K">Blu-ray 4K</option>
+          <option value="LASERDISC">Laser Disc</option>
+        </select>
+      </div>
+      <div class="field"><label>Année</label><input type="text" id="inputYear" placeholder="Ex: 1995"></div>
+    </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="inputWatched" style="width:16px;height:16px;">
+        <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">J'ai déjà vu ce film</span>
+      </label>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="inputForTrade" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">À l'échange</span>
+        </label>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="inputForSale" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">À vendre</span>
+        </label>
+      </div>
+    </div>
+    <div class="field" id="saleBlock" style="display:none;">
+      <label>Prix de vente (€)</label>
+      <input type="number" id="inputSalePrice" placeholder="Ex: 12.00" min="0" step="0.50" style="width:140px;">
+    </div>
+    <div class="field"><label>Emplacement</label><input type="text" id="inputShelf" placeholder="Ex: Étagère 1"></div>
+    <div class="field">
+      <label>Valeur estimée (€)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="number" id="inputValue" placeholder="Ex: 8.50" min="0" step="0.50" style="width:130px;">
+        <button id="searchPriceBtn" type="button">🔍 Prix en ligne</button>
+      </div>
+    </div>
+    <div class="field"><label>Notes</label><textarea id="inputNotes" rows="3" placeholder="Jaquette abîmée, édition japonaise..." style="width:100%;resize:vertical;"></textarea></div>
+    <div class="field">
+      <label>Affiche</label>
+      <div class="poster-preview" id="posterPreview"><span>Pas encore d'affiche</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="searchPosterBtn" type="button">Par titre</button>
+        <button id="searchDirectorBtn" type="button">Par réalisateur</button>
+        <button id="uploadPhotoBtn" type="button">Photo</button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none;">
+      </div>
+      <div id="directorSearchWrap" style="display:none;margin-top:10px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="inputDirector" placeholder="Nom du réalisateur..." style="flex:1;">
+          <button id="searchDirectorGoBtn" type="button">Chercher</button>
+        </div>
+        <div id="directorResults" style="margin-top:8px;"></div>
+      </div>
+      <div id="searchResults" class="search-results"></div>
+      <div class="hint" id="modalHint"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="deleteBtn" class="danger" style="display:none;">Supprimer</button>
+      <button id="cancelBtn">Annuler</button>
+      <button class="primary" id="saveBtn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WANTLIST -->
+<div class="overlay" id="overlayWant">
+  <div class="modal">
+    <h2 id="wantModalTitle">Ajouter à la wantlist</h2>
+    <div class="field"><label>Titre du film</label><input type="text" id="wantTitle" placeholder="Ex: The Thing"></div>
+    <div class="field" id="wantPosterField">
+      <label>Affiche</label>
+      <div class="poster-preview" id="wantPosterPreview"><span>Pas encore d'affiche</span></div>
+      <button id="wantSearchBtn" type="button">Chercher l'affiche</button>
+      <div id="wantResults" class="search-results" style="margin-top:10px;"></div>
+      <div class="hint" id="wantHint"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="wantDeleteBtn" class="danger" style="display:none;">Supprimer</button>
+      <button id="wantCancelBtn">Annuler</button>
+      <button class="primary" id="wantSaveBtn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COLLECTION MEMBRE -->
+<div class="overlay" id="overlayMember">
+  <div class="modal" style="max-width:700px;">
+    <h2 id="memberModalTitle">Collection</h2>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="member-filter-btn active" data-filter="all">Tout voir</button>
+      <button class="member-filter-btn" data-filter="trade">Échanges</button>
+      <button class="member-filter-btn" data-filter="sale">Ventes</button>
+    </div>
+    <div id="memberModalContent" style="max-height:70vh;overflow-y:auto;">
+      <div class="grid" style="padding:0;" id="memberGrid"></div>
+    </div>
+    <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
+  </div>
+</div>
+
+</div><!-- fin #app -->
+
+<script>
+
+const SUPABASE_URL = "https://enykcstuektwkflccyae.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueWtjc3R1ZWt0d2tmbGNjeWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMTUyNDMsImV4cCI6MjA5ODU5MTI0M30.dVNdkZpj96cobRQgQCbNW4PjGbTWSbUtGHtogaJeGMo";
+const TMDB_KEY = "3f13274151b3f137a6559b399bbf80aa";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let collection=[], wantlist=[], currentUser=null, currentProfile=null;
+let editingId=null, editingWantId=null;
+let pendingPoster=null, pendingTmdbId=null, pendingWantPoster=null, pendingWantTmdbId=null;
+let selectionMode=false, selectedKeys=new Set(), lastGroups=new Map(), lastRenderedGroups=[], lastSelectedKey=null;
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function groupKeyOf(t){ return t.trim().toLowerCase(); }
+function fmtLabel(f){ return {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'}[f]||f; }
+
+async function initAuth(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await onLogin(session.user);
+  sb.auth.onAuthStateChange(async(_,session)=>{ if(session) await onLogin(session.user); else onLogout(); });
+}
+async function onLogin(user){
+  currentUser=user;
+  let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
+
+  // Si le profil n'existe pas encore, on le crée avec un pseudo temporaire
+  if(!profile){
+    const tempUsername = 'Membre_' + Math.random().toString(36).slice(2,7).toUpperCase();
+    await sb.from('profiles').insert({id:user.id, username:tempUsername, collection_public:true});
+    const {data:newProfile}=await sb.from('profiles').select('*').eq('id',user.id).single();
+    profile=newProfile;
+  }
+
+  currentProfile=profile;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+
+  // Dans le header, on affiche le pseudo + l'email uniquement pour soi
+  document.getElementById('userInfo').innerHTML=`<strong>${profile.username}</strong><span style="font-size:10px;color:var(--muted);">${user.email}</span>`;
+
+  document.getElementById('profileUsername').value=profile.username||'';
+  document.getElementById('profilePublic').checked=profile.collection_public!==false;
+  updateCurrentAvatar(profile.avatar_url||null);
+
+  // Si le pseudo ressemble à un pseudo auto-généré (Membre_XXXXX), on redirige vers le profil
+  if(!profile.username || profile.username.startsWith('Membre_')){
+    alert("Bienvenue ! Commence par choisir un pseudo dans l'onglet Mon Profil.");
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelector('.nav-tab[data-section="sectionProfile"]').classList.add('active');
+    document.getElementById('sectionProfile').classList.add('active');
+  }
+
+  await loadCollection();
+  await loadWantlist();
+  await loadNotifications();
+}
+function onLogout(){
+  currentUser=null; currentProfile=null; collection=[]; wantlist=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+}
+
+document.getElementById('tabLogin').addEventListener('click',()=>{
+  document.getElementById('tabLogin').classList.add('active');
+  document.getElementById('tabSignup').classList.remove('active');
+  document.getElementById('loginForm').style.display='block';
+  document.getElementById('signupForm').style.display='none';
+  document.getElementById('loginError').textContent='';
+});
+document.getElementById('tabSignup').addEventListener('click',()=>{
+  document.getElementById('tabSignup').classList.add('active');
+  document.getElementById('tabLogin').classList.remove('active');
+  document.getElementById('signupForm').style.display='block';
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('loginError').textContent='';
+});
+document.getElementById('loginBtn').addEventListener('click',async()=>{
+  const email=document.getElementById('loginEmail').value.trim();
+  const password=document.getElementById('loginPassword').value;
+  const errEl=document.getElementById('loginError');
+  errEl.textContent='Connexion...';
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error) errEl.textContent="Email ou mot de passe incorrect.";
+  else errEl.textContent='';
+});
+document.getElementById('signupBtn').addEventListener('click',async()=>{
+  const username=document.getElementById('signupUsername').value.trim();
+  const email=document.getElementById('signupEmail').value.trim();
+  const password=document.getElementById('signupPassword').value;
+  const errEl=document.getElementById('loginError');
+  if(!username){errEl.textContent="Choisis un pseudo.";return;}
+  if(password.length<8){errEl.textContent="Mot de passe trop court.";return;}
+  errEl.textContent='Création...';
+  const {data,error}=await sb.auth.signUp({email,password});
+  if(error){errEl.textContent=error.message;return;}
+  if(data.user){ await sb.from('profiles').insert({id:data.user.id,username,collection_public:true}); errEl.textContent='Compte créé ! Connecte-toi.'; }
+});
+document.getElementById('logoutBtn').addEventListener('click',()=>sb.auth.signOut());
+document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
+
+function toRow(it){
+  return {id:it.id,user_id:currentUser.id,title:it.title,format:it.format,year:it.year||null,
+    watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
+    custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
+    estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null};
+}
+function fromRow(r){
+  return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
+    notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
+    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null};
+}
+async function loadCollection(){
+  const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
+  collection=(data||[]).map(fromRow); render();
+}
+async function saveItem(it){ await sb.from('collection').upsert(toRow(it)); }
+async function deleteItemFromDb(id){ await sb.from('collection').delete().eq('id',id); }
+async function deleteItemsFromDb(ids){ if(ids.length) await sb.from('collection').delete().in('id',ids); }
+
+async function loadWantlist(){
+  const {data}=await sb.from('wantlist').select('*').eq('user_id',currentUser.id);
+  wantlist=(data||[]).map(r=>({id:r.id,title:r.title,tmdbId:r.tmdb_id||null,posterUrl:r.poster_url||null,year:r.year||''}));
+  renderWantlist();
+}
+async function saveWantItem(it){
+  await sb.from('wantlist').upsert({id:it.id,user_id:currentUser.id,title:it.title,
+    tmdb_id:it.tmdbId?String(it.tmdbId):null,poster_url:it.posterUrl||null,year:it.year||null});
+}
+async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
+
+// ── FORUM ──
+let allProfiles = [];
+
+async function loadForum(){
+  const {data:profiles} = await sb.from('profiles').select('id,username');
+  allProfiles = profiles || [];
+  const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
+  renderPosts(posts || []);
+  loadNotifications();
+}
+
+async function loadNotifications(){
+  const {data:notifs} = await sb.from('notifications')
+    .select('*,from_user:from_user_id(username),post:post_id(content)')
+    .eq('user_id', currentUser.id)
+    .eq('seen', false)
+    .order('created_at', {ascending:false});
+
+  const badge = document.getElementById('notifBadge');
+  if(notifs && notifs.length > 0){
+    badge.style.display = 'inline';
+    badge.textContent = notifs.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderPosts(posts){
+  const container = document.getElementById('forumPosts');
+  if(posts.length === 0){
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Pas encore de message. Sois le premier !</div>';
+    return;
+  }
+  container.innerHTML = posts.map(p => {
+    const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    const isOwn = p.user_id === currentUser.id;
+    const contentHtml = p.content.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+    const username = p.profiles ? p.profiles.username : 'Membre';
+    const avatarUrl = p.profiles ? p.profiles.avatar_url : null;
+    const avatarPos = p.profiles ? (p.profiles.avatar_position || '50% 25%') : '50% 25%';
+    const avatarHtml = avatarUrl
+      ? `<img src="${avatarUrl}" style="width:120%;height:120%;object-fit:cover;object-position:${avatarPos};position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">`
+      : `<span>${username.slice(0,1).toUpperCase()}</span>`;
+    return `<div class="post-card" data-pid="${p.id}">
+      <div class="post-avatar">${avatarHtml}</div>
+      <div style="flex:1;">
+        <div class="post-header">
+          <span class="post-author">${username}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="post-date">${date}</span>
+            ${isOwn ? `<button class="post-delete" data-pid="${p.id}">✕</button>` : ''}
+          </div>
+        </div>
+        <div class="post-content">${contentHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.querySelectorAll('.post-delete').forEach(btn => {
+    btn.addEventListener('click', () => deletePost(btn.dataset.pid));
+  });
+}
+
+async function publishPost(){
+  const content = document.getElementById('forumInput').value.trim();
+  if(!content){ alert("Écris quelque chose avant de publier."); return; }
+
+  const {data:post, error} = await sb.from('posts').insert({
+    user_id: currentUser.id,
+    content
+  }).select('*,profiles(username)').single();
+
+  if(error){ alert("Erreur à la publication."); return; }
+
+  document.getElementById('forumInput').value = '';
+
+  // Détecter les mentions @pseudo et créer les notifications
+  const mentions = [...new Set(content.match(/@(\w+)/g) || [])];
+  for(const mention of mentions){
+    const username = mention.slice(1);
+    const profile = allProfiles.find(p => p.username.toLowerCase() === username.toLowerCase());
+    if(profile && profile.id !== currentUser.id){
+      await sb.from('notifications').insert({
+        user_id: profile.id,
+        from_user_id: currentUser.id,
+        post_id: post.id
+      });
+    }
+  }
+
+  // Recharger les posts
+  const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
+  renderPosts(posts || []);
+}
+
+async function deletePost(postId){
+  if(!confirm("Supprimer ce message ?")) return;
+  await sb.from('posts').delete().eq('id', postId);
+  const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
+  renderPosts(posts || []);
+}
+
+// Autocomplétion des mentions @
+document.getElementById('forumInput').addEventListener('input', function(){
+  const text = this.value;
+  const cursorPos = this.selectionStart;
+  const textBefore = text.slice(0, cursorPos);
+  const mentionMatch = textBefore.match(/@(\w*)$/);
+  const mentionList = document.getElementById('mentionList');
+
+  if(mentionMatch){
+    const query = mentionMatch[1].toLowerCase();
+    const matches = allProfiles.filter(p =>
+      p.id !== currentUser.id && p.username.toLowerCase().startsWith(query)
+    ).slice(0, 6);
+
+    if(matches.length > 0){
+      mentionList.style.display = 'block';
+      mentionList.innerHTML = matches.map(p =>
+        `<div class="mention-item" data-username="${p.username}">@${p.username}</div>`
+      ).join('');
+      mentionList.querySelectorAll('.mention-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const input = document.getElementById('forumInput');
+          const val = input.value;
+          const before = val.slice(0, cursorPos).replace(/@\w*$/, '@' + item.dataset.username + ' ');
+          const after = val.slice(cursorPos);
+          input.value = before + after;
+          input.focus();
+          mentionList.style.display = 'none';
+        });
+      });
+    } else {
+      mentionList.style.display = 'none';
+    }
+  } else {
+    mentionList.style.display = 'none';
+  }
+});
+
+document.addEventListener('click', e => {
+  if(!e.target.closest('.forum-compose')) document.getElementById('mentionList').style.display = 'none';
+});
+
+document.getElementById('forumPostBtn').addEventListener('click', publishPost);
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.section).classList.add('active');
+    if(tab.dataset.section==='sectionMembers') loadMembers();
+    if(tab.dataset.section==='sectionForum') loadForum();
+  });
+});
+
+function render(){
+  const search=document.getElementById('searchBox').value.toLowerCase();
+  const filterFormat=document.getElementById('filterFormat').value;
+  const filterWatched=document.getElementById('filterWatched').value;
+  const filterSort=document.getElementById('filterSort').value;
+
+  let items=collection.filter(it=>{
+    const hay=[it.title,it.shelf,it.notes].filter(Boolean).join(' ').toLowerCase();
+    const matchSearch=!search||hay.includes(search);
+    const matchFormat=!filterFormat||it.format===filterFormat;
+    const matchWatched=!filterWatched||(filterWatched==='watched'&&it.watched)||(filterWatched==='unwatched'&&!it.watched);
+    const matchTrade=filterSort!=='trade'||it.forTrade;
+    const matchSale=filterSort!=='sale'||it.forSale;
+    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale;
+  });
+
+  lastGroups=new Map();
+  items.forEach(it=>{ const k=groupKeyOf(it.title); if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
+  let groups=Array.from(lastGroups.entries()).map(([key,gi])=>({key,items:gi,primary:gi.find(i=>i.posterUrl)||gi[0]}));
+
+  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'){
+    groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
+  } else if(filterSort==='date_added'){
+    groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
+  } else if(filterSort==='year'){
+    groups.sort((a,b)=>(b.primary.year||'0').localeCompare(a.primary.year||'0'));
+  } else if(filterSort==='price_asc'){
+    groups.sort((a,b)=>(a.primary.estimatedValue||0)-(b.primary.estimatedValue||0));
+  } else if(filterSort==='price_desc'){
+    groups.sort((a,b)=>(b.primary.estimatedValue||0)-(a.primary.estimatedValue||0));
+  }
+  lastRenderedGroups=groups;
+  const totalValue=collection.reduce((s,i)=>s+(i.estimatedValue||0),0);
+  const valuedCount=collection.filter(i=>i.estimatedValue).length;
+  document.getElementById('stats').innerHTML=
+    '<div><span class="stat-num">'+collection.length+'</span><span class="stat-label">titres</span></div>'+
+    '<div><span class="stat-num">'+collection.filter(i=>i.format==='VHS').length+'</span><span class="stat-label">vhs</span></div>'+
+    '<div><span class="stat-num">'+collection.filter(i=>!i.watched).length+'</span><span class="stat-label">a voir</span></div>'+
+    (totalValue>0?'<div title="'+valuedCount+' evalues"><span class="stat-num">'+totalValue.toFixed(0)+'eu</span><span class="stat-label">valeur</span></div>':'');
+  const grid=document.getElementById('grid');
+  if(groups.length===0){ grid.innerHTML='<div class="empty"><div class="logo">RAYON VIDE</div><div>Ajoute ton premier titre.</div></div>'; return; }
+  grid.innerHTML=groups.map(g=>{
+    const it=g.primary, allWatched=g.items.every(i=>i.watched), isSelected=selectedKeys.has(g.key);
+    const hasTrade=g.items.some(i=>i.forTrade), hasSale=g.items.some(i=>i.forSale);
+    return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+'" data-key="'+g.key+'">'
+      +'<div class="poster-wrap">'
+      +(selectionMode?'<div class="select-mark">&#x2713;</div>':'')
+      +(g.items.length>1?'<div class="dup-badge">'+g.items.length+'</div>':'')
+      +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
+        :'<div class="poster-placeholder">'+it.title+'</div>')
+      +(it.customPhoto?'<span class="photo-badge">PHOTO</span>':'')
+      +'</div>'
+      +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'
+      +(it.year?'<span class="tape-year">'+it.year+'</span>':'')
+      +((it.shelf||it.notes)?'<div class="tape-note-flag">'+(it.shelf||'Note')+'</div>':'')
+      +'</div>'
+      +'<div class="tape-bottom">'
+      +'<div class="tape-format-row">'
+      +'<span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
+      +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
+      +'</div>'
+      +'<div class="tape-watch-row">'
+      +'<span class="tape-watch-label">'+(allWatched?'Vu ✓':'À voir')+'</span>'
+      +'<div class="watched-switch '+(allWatched?'on':'')+'" data-watch-key="'+g.key+'"><div class="knob"></div></div>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  grid.querySelectorAll('.tape').forEach(el=>{
+    el.addEventListener('click',(e)=>{
+      if(e.target.closest('.watched-switch')) return;
+      const key=el.dataset.key;
+      if(selectionMode){
+        if(e.shiftKey&&lastSelectedKey&&lastSelectedKey!==key){
+          const keys=lastRenderedGroups.map(g=>g.key);
+          const a=keys.indexOf(lastSelectedKey),b=keys.indexOf(key);
+          const [from,to]=a<b?[a,b]:[b,a];
+          for(let i=from;i<=to;i++) selectedKeys.add(keys[i]);
+          updateSelectionBar(); render();
+        } else { toggleSelection(key); }
+      } else { openEdit(key); }
+    });
+  });
+  grid.querySelectorAll('.watched-switch').forEach(sw=>{
+    sw.addEventListener('click',async e=>{
+      e.stopPropagation();
+      const group=lastGroups.get(sw.dataset.watchKey);
+      if(!group) return;
+      const newState=!group.every(i=>i.watched);
+      for(const i of group){ i.watched=newState; await saveItem(i); }
+      render();
+    });
+  });
+}
+
+function toggleSelection(key){
+  if(selectedKeys.has(key)) selectedKeys.delete(key); else selectedKeys.add(key);
+  lastSelectedKey=key; updateSelectionBar(); render();
+}
+function updateSelectionBar(){
+  const bar=document.getElementById('selectionBar');
+  if(selectionMode&&selectedKeys.size>0){ bar.classList.add('open'); document.getElementById('selectionCount').textContent=selectedKeys.size+' selectionnee(s)'; }
+  else bar.classList.remove('open');
+}
+
+async function renderWantlist(){
+  const grid=document.getElementById('wantGrid');
+  if(wantlist.length===0){ grid.innerHTML='<div class="empty"><div class="logo">WANTLIST VIDE</div><div>Ajoute les films que tu cherches.</div></div>'; return; }
+  const tmdbIds=wantlist.filter(w=>w.tmdbId).map(w=>String(w.tmdbId));
+  let ownersMap={};
+  if(tmdbIds.length>0){
+    const {data:owners}=await sb.from('collection').select('tmdb_id,user_id,profiles(username)').in('tmdb_id',tmdbIds);
+    (owners||[]).forEach(o=>{ if(!ownersMap[o.tmdb_id]) ownersMap[o.tmdb_id]=[]; if(o.profiles&&o.user_id!==currentUser.id) ownersMap[o.tmdb_id].push(o.profiles.username); });
+  }
+  grid.innerHTML=wantlist.map(w=>{
+    const owners=w.tmdbId?(ownersMap[String(w.tmdbId)]||[]):[];
+    return '<div class="want-card" data-wid="'+w.id+'">'
+      +'<div class="poster-wrap">'+(w.posterUrl?'<img src="'+w.posterUrl+'">'
+        :'<div class="poster-placeholder">'+w.title+'</div>')+'</div>'
+      +'<div class="tape-info"><p class="tape-title">'+w.title+'</p>'+(w.year?'<span class="tape-year">'+w.year+'</span>':'')+'</div>'
+      +(owners.length>0?'<div class="want-owners">Posside par : '+owners.join(', ')+'</div>':'')
+      +'</div>';
+  }).join('');
+  grid.querySelectorAll('.want-card').forEach(el=>el.addEventListener('click',()=>openWantEdit(el.dataset.wid)));
+}
+
+function openWantAdd(){
+  editingWantId=null; pendingWantPoster=null; pendingWantTmdbId=null;
+  document.getElementById('wantModalTitle').textContent='Ajouter a la wantlist';
+  document.getElementById('wantTitle').value='';
+  document.getElementById('wantPosterPreview').innerHTML='<span>Pas encore</span>';
+  document.getElementById('wantResults').innerHTML='';
+  document.getElementById('wantHint').textContent='';
+  document.getElementById('wantDeleteBtn').style.display='none';
+  document.getElementById('overlayWant').classList.add('open');
+  document.body.classList.add('modal-open');
+  document.getElementById('wantTitle').focus();
+}
+function openWantEdit(id){
+  const w=wantlist.find(x=>x.id===id); if(!w) return;
+  editingWantId=id; pendingWantPoster=w.posterUrl?{url:w.posterUrl}:null; pendingWantTmdbId=w.tmdbId||null;
+  document.getElementById('wantModalTitle').textContent='Modifier';
+  document.getElementById('wantTitle').value=w.title;
+  document.getElementById('wantPosterPreview').innerHTML=w.posterUrl?'<img src="'+w.posterUrl+'">':"<span>Pas d'affiche</span>";
+  document.getElementById('wantResults').innerHTML='';
+  document.getElementById('wantHint').textContent='';
+  document.getElementById('wantDeleteBtn').style.display='inline-block';
+  document.getElementById('overlayWant').classList.add('open');
+}
+async function saveWant(){
+  const title=document.getElementById('wantTitle').value.trim();
+  if(!title){ alert('Donne un titre.'); return; }
+  if(editingWantId){
+    const w=wantlist.find(x=>x.id===editingWantId);
+    w.title=title;
+    if(pendingWantPoster) w.posterUrl=pendingWantPoster.url;
+    if(pendingWantTmdbId) w.tmdbId=pendingWantTmdbId;
+    await saveWantItem(w);
+  } else {
+    const w={id:uid(),title,posterUrl:pendingWantPoster?pendingWantPoster.url:null,tmdbId:pendingWantTmdbId||null,year:''};
+    wantlist.push(w); await saveWantItem(w);
+  }
+  document.getElementById('overlayWant').classList.remove('open');
+  renderWantlist();
+}
+async function deleteWant(){
+  if(!editingWantId) return;
+  if(!confirm('Retirer de la wantlist ?')) return;
+  await deleteWantItem(editingWantId);
+  wantlist=wantlist.filter(x=>x.id!==editingWantId);
+  document.getElementById('overlayWant').classList.remove('open');
+  renderWantlist();
+}
+async function searchWantPoster(){
+  const title=document.getElementById('wantTitle').value.trim();
+  if(!title){ document.getElementById('wantHint').textContent='Ecris le titre.'; return; }
+  document.getElementById('wantHint').textContent='Recherche...';
+  document.getElementById('wantResults').innerHTML='';
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
+    const data=await res.json();
+    const results=(data.results||[]).filter(r=>r.poster_path).slice(0,12);
+    if(results.length===0){ document.getElementById('wantHint').textContent='Aucun resultat.'; return; }
+    document.getElementById('wantHint').textContent='Clique sur le bon film.';
+    document.getElementById('wantResults').innerHTML=results.map(r=>'<img src="https://image.tmdb.org/t/p/w200'+r.poster_path+'" data-url="https://image.tmdb.org/t/p/w500'+r.poster_path+'" data-year="'+(r.release_date||'').slice(0,4)+'" data-id="'+r.id+'" title="'+r.title+'">').join('');
+    document.querySelectorAll('#wantResults img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        document.querySelectorAll('#wantResults img').forEach(i=>i.classList.remove('selected'));
+        img.classList.add('selected');
+        pendingWantPoster={url:img.dataset.url}; pendingWantTmdbId=img.dataset.id;
+        document.getElementById('wantPosterPreview').innerHTML='<img src="'+img.dataset.url+'">';
+        document.getElementById('wantHint').textContent='Film selectionne.';
+      });
+    });
+  }catch(e){ document.getElementById('wantHint').textContent='Erreur.'; }
+}
+
+async function loadMembers(){
+  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public');
+  const grid=document.getElementById('membersGrid');
+  if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
+  const {data:counts}=await sb.from('collection').select('user_id');
+  const countMap={}; (counts||[]).forEach(c=>{ countMap[c.user_id]=(countMap[c.user_id]||0)+1; });
+  const {data:tradeCounts}=await sb.from('collection').select('user_id').eq('for_trade',true);
+  const tradeMap={}; (tradeCounts||[]).forEach(c=>{ tradeMap[c.user_id]=(tradeMap[c.user_id]||0)+1; });
+  const {data:saleCounts}=await sb.from('collection').select('user_id').eq('for_sale',true);
+  const saleMap={}; (saleCounts||[]).forEach(c=>{ saleMap[c.user_id]=(saleMap[c.user_id]||0)+1; });
+  const searchVal=document.getElementById('memberSearch').value.toLowerCase();
+  const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
+  grid.innerHTML=filtered.map(p=>{
+    const total=countMap[p.id]||0, trades=tradeMap[p.id]||0, sales=saleMap[p.id]||0;
+    const isMe=p.id===currentUser.id;
+    return '<div class="member-card" data-uid="'+p.id+'" data-public="'+p.collection_public+'" data-name="'+p.username+'">'
+      +'<div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
+      +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privee')+'</span><br>'
+      +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
+      +(sales>0?'A vendre : <span>'+sales+'</span><br>':'')+'</div>'
+      +'<div class="member-badges">'
+      +(p.collection_public===false?'<span class="badge private">Prive</span>':'')
+      +(trades>0?'<span class="badge trade">Echange</span>':'')
+      +(sales>0?'<span class="badge sale">Vente</span>':'')
+      +'</div></div>';
+  }).join('');
+  document.querySelectorAll('.member-card').forEach(card=>{
+    card.addEventListener('click',()=>{
+      if(card.dataset.public==='false'&&card.dataset.uid!==currentUser.id){ alert('Collection privee.'); return; }
+      openMemberCollection(card.dataset.uid,card.dataset.name);
+    });
+  });
+}
+async function openMemberCollection(userId,username){
+  document.getElementById('memberModalTitle').textContent='Collection de '+username;
+  document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
+  document.getElementById('overlayMember').classList.add('open');
+  document.body.classList.add('modal-open');
+
+  // Réinitialiser le filtre actif
+  document.querySelectorAll('.member-filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.member-filter-btn[data-filter="all"]').classList.add('active');
+
+  const {data}=await sb.from('collection').select('*').eq('user_id',userId);
+  const allItems=(data||[]).map(fromRow).sort((a,b)=>a.title.localeCompare(b.title));
+
+  if(allItems.length===0){
+    document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Collection vide.</div>';
+    return;
+  }
+
+  function renderMemberGrid(filter){
+    let items=allItems;
+    if(filter==='trade') items=allItems.filter(i=>i.forTrade);
+    if(filter==='sale') items=allItems.filter(i=>i.forSale);
+    if(items.length===0){
+      document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre dans cette catégorie.</div>';
+      return;
+    }
+    document.getElementById('memberGrid').innerHTML=items.map(it=>
+      '<div class="tape" style="cursor:default;">'
+      +'<div class="poster-wrap"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
+      +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
+      +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
+        :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
+      +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
+      +'</div>'
+    ).join('');
+  }
+
+  renderMemberGrid('all');
+
+  document.querySelectorAll('.member-filter-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      document.querySelectorAll('.member-filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMemberGrid(btn.dataset.filter);
+    };
+  });
+}
+
+let pendingAvatarUrl = null;
+let avatarOffsetX = 50; // position en % (0=gauche, 100=droite)
+let avatarOffsetY = 25; // position en % (0=haut, 100=bas)
+let isDragging = false;
+let dragStartX, dragStartY, dragStartOX, dragStartOY;
+
+document.getElementById('chooseAvatarBtn').addEventListener('click', ()=>{
+  const s = document.getElementById('avatarSearch');
+  s.style.display = s.style.display === 'none' ? 'block' : 'none';
+  if(s.style.display === 'block') document.getElementById('avatarSearchInput').focus();
+});
+
+document.getElementById('avatarSearchGoBtn').addEventListener('click', searchAvatar);
+document.getElementById('avatarSearchInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchAvatar(); });
+
+async function searchAvatar(){
+  const query = document.getElementById('avatarSearchInput').value.trim();
+  if(!query){ document.getElementById('avatarHint').textContent = 'Écris un titre de film.'; return; }
+  document.getElementById('avatarHint').textContent = 'Recherche...';
+  document.getElementById('avatarResults').innerHTML = '';
+  try{
+    const res = await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(query)+'&language=fr-FR');
+    const data = await res.json();
+    const results = (data.results||[]).filter(r=>r.poster_path).slice(0,8);
+    if(results.length===0){ document.getElementById('avatarHint').textContent = 'Aucun résultat.'; return; }
+    document.getElementById('avatarHint').textContent = "Clique sur l'affiche que tu veux.";
+    document.getElementById('avatarResults').innerHTML = results.map(r=>
+      `<img src="https://image.tmdb.org/t/p/w200${r.poster_path}" data-url="https://image.tmdb.org/t/p/w500${r.poster_path}" title="${r.title}">`
+    ).join('');
+    document.querySelectorAll('#avatarResults img').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        document.querySelectorAll('#avatarResults img').forEach(i=>i.classList.remove('selected'));
+        img.classList.add('selected');
+        pendingAvatarUrl = img.dataset.url;
+        avatarOffsetX = 50;
+        avatarOffsetY = 25;
+        applyAvatarPreview(pendingAvatarUrl, avatarOffsetX, avatarOffsetY);
+        document.getElementById('avatarHint').textContent = '✓ Glisse l\'image dans le rond pour la repositionner, puis clique sur Enregistrer.';
+        document.getElementById('avatarDragHint').style.display = 'block';
+      });
+    });
+  }catch(e){ document.getElementById('avatarHint').textContent = 'Erreur de recherche.'; }
+}
+
+function applyAvatarPreview(url, ox, oy){
+  const wrap = document.getElementById('avatarImgWrap');
+  if(!url){
+    wrap.innerHTML = '<span style="font-size:11px;color:var(--muted);text-align:center;padding:4px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">Pas d\'avatar</span>';
+    return;
+  }
+  wrap.innerHTML = `<img src="${url}" style="width:120%;height:120%;object-fit:cover;object-position:${ox}% ${oy}%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">`;
+}
+
+function updateCurrentAvatar(url, position){
+  if(position){
+    const parts = position.split(' ');
+    avatarOffsetX = parseFloat(parts[0]) || 50;
+    avatarOffsetY = parseFloat(parts[1]) || 25;
+  }
+  pendingAvatarUrl = url || null;
+  applyAvatarPreview(url, avatarOffsetX, avatarOffsetY);
+}
+
+// Glisser pour repositionner
+const avatarEl = document.getElementById('currentAvatar');
+avatarEl.addEventListener('mousedown', startDrag);
+avatarEl.addEventListener('touchstart', startDrag, {passive:true});
+
+function startDrag(e){
+  if(!pendingAvatarUrl && !currentProfile?.avatar_url) return;
+  isDragging = true;
+  avatarEl.style.cursor = 'grabbing';
+  const pt = e.touches ? e.touches[0] : e;
+  dragStartX = pt.clientX;
+  dragStartY = pt.clientY;
+  dragStartOX = avatarOffsetX;
+  dragStartOY = avatarOffsetY;
+  e.preventDefault && e.preventDefault();
+}
+
+document.addEventListener('mousemove', onDrag);
+document.addEventListener('touchmove', onDrag, {passive:false});
+function onDrag(e){
+  if(!isDragging) return;
+  const pt = e.touches ? e.touches[0] : e;
+  const dx = (pt.clientX - dragStartX) / 2;
+  const dy = (pt.clientY - dragStartY) / 2;
+  avatarOffsetX = Math.max(0, Math.min(100, dragStartOX - dx));
+  avatarOffsetY = Math.max(0, Math.min(100, dragStartOY - dy));
+  const url = pendingAvatarUrl || currentProfile?.avatar_url;
+  applyAvatarPreview(url, avatarOffsetX, avatarOffsetY);
+  e.preventDefault && e.preventDefault();
+}
+
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+function endDrag(){
+  if(!isDragging) return;
+  isDragging = false;
+  avatarEl.style.cursor = 'grab';
+}
+
+document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
+  const username=document.getElementById('profileUsername').value.trim();
+  const isPublic=document.getElementById('profilePublic').checked;
+  if(!username){ alert('Le pseudo ne peut pas être vide.'); return; }
+  const position = `${Math.round(avatarOffsetX)}% ${Math.round(avatarOffsetY)}%`;
+  const updates = {username, collection_public:isPublic, avatar_position:position};
+  if(pendingAvatarUrl) updates.avatar_url = pendingAvatarUrl;
+  await sb.from('profiles').update(updates).eq('id',currentUser.id);
+  currentProfile={...currentProfile,...updates};
+  document.getElementById('userInfo').innerHTML='<strong>'+username+'</strong><span style="font-size:10px;color:var(--muted);">'+currentUser.email+'</span>';
+  document.getElementById('avatarSearch').style.display='none';
+  document.getElementById('profileMsg').textContent='✓ Profil enregistré !';
+  setTimeout(()=>document.getElementById('profileMsg').textContent='',3000);
+});
+
+function resetModal(){
+  editingId=null; pendingPoster=null; pendingTmdbId=null;
+  document.getElementById('modalTitle').textContent='Ajouter un titre';
+  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('inputFormat').value='VHS';
+  ['inputWatched','inputForTrade','inputForSale'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('saleBlock').style.display='none';
+  document.getElementById('searchResults').innerHTML='';
+  document.getElementById('modalHint').textContent='';
+  document.getElementById('deleteBtn').style.display='none';
+  document.getElementById('posterPreview').innerHTML="<span>Pas encore d'affiche</span>";
+  document.getElementById('tmdbInfoBlock').style.display='none';
+  document.getElementById('tmdbInfoContent').innerHTML='';
+  document.getElementById('copySelectorBlock').style.display='none';
+  document.getElementById('copySelector').innerHTML='';
+  document.getElementById('directorSearchWrap').style.display='none';
+  document.getElementById('directorResults').innerHTML='';
+}
+document.getElementById('inputForSale').addEventListener('change',()=>{
+  document.getElementById('saleBlock').style.display=document.getElementById('inputForSale').checked?'block':'none';
+});
+function openAdd(){ resetModal(); document.getElementById('overlay').classList.add('open'); document.body.classList.add('modal-open'); document.getElementById('inputTitle').focus(); }
+function fillFormFromItem(it){
+  editingId=it.id;
+  document.getElementById('modalTitle').textContent='Fiche de details';
+  document.getElementById('inputTitle').value=it.title;
+  document.getElementById('inputFormat').value=it.format;
+  document.getElementById('inputYear').value=it.year||'';
+  document.getElementById('inputWatched').checked=!!it.watched;
+  document.getElementById('inputForTrade').checked=!!it.forTrade;
+  document.getElementById('inputForSale').checked=!!it.forSale;
+  document.getElementById('inputSalePrice').value=it.salePrice||'';
+  document.getElementById('saleBlock').style.display=it.forSale?'block':'none';
+  document.getElementById('inputShelf').value=it.shelf||'';
+  document.getElementById('inputValue').value=it.estimatedValue||'';
+  document.getElementById('inputNotes').value=it.notes||'';
+  document.getElementById('deleteBtn').style.display='inline-block';
+  pendingPoster=it.posterUrl?{url:it.posterUrl,isPhoto:!!it.customPhoto}:null;
+  document.getElementById('posterPreview').innerHTML=it.posterUrl?'<img src="'+it.posterUrl+'">':"<span>Pas d'affiche</span>";
+  pendingTmdbId=it.tmdbId||null;
+  if(it.tmdbId) loadTmdbInfo(it.tmdbId);
+  else document.getElementById('tmdbInfoBlock').style.display='none';
+}
+function openEdit(key){
+  const group=lastGroups.get(key); if(!group||group.length===0) return;
+  resetModal();
+  if(group.length>1){
+    document.getElementById('copySelectorBlock').style.display='block';
+    const sel=document.getElementById('copySelector');
+    sel.innerHTML=group.map((it,idx)=>'<option value="'+it.id+'">Exemplaire '+(idx+1)+' - '+fmtLabel(it.format)+(it.shelf?' - '+it.shelf:'')+'</option>').join('');
+    sel.onchange=()=>{ const chosen=group.find(i=>i.id===sel.value); if(chosen) fillFormFromItem(chosen); };
+  }
+  fillFormFromItem(group[0]);
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); document.body.classList.remove('modal-open'); }
+
+async function loadTmdbInfo(tmdbId){
+  const block=document.getElementById('tmdbInfoBlock'),content=document.getElementById('tmdbInfoContent');
+  if(!tmdbId){ block.style.display='none'; return; }
+  block.style.display='block'; content.innerHTML='<span>Chargement...</span>';
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR');
+    const d=await res.json();
+    if(d.success===false){ content.innerHTML='<span>Indisponible.</span>'; return; }
+    const genres=(d.genres||[]).map(g=>g.name).join(', ');
+    content.innerHTML='<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' - ')+'</div><div>'+(d.overview||'Pas de synopsis.')+'</div>';
+  }catch(e){ content.innerHTML='<span>Erreur TMDB.</span>'; }
+}
+function searchPriceOnline(){
+  const title=document.getElementById('inputTitle').value.trim();
+  if(!title){ alert('Remplis le titre.'); return; }
+  const flt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K UHD',LASERDISC:'Laser Disc'}[document.getElementById('inputFormat').value]||'';
+  const q=encodeURIComponent(title+' '+flt);
+  ['https://fr.shopping.rakuten.com/search/'+q,'https://www.vinted.fr/catalog?search_text='+q,'https://www.leboncoin.fr/recherche?text='+q+'&category=32','https://www.gibert.com/recherche?q='+q]
+    .forEach((url,i)=>setTimeout(()=>window.open(url,'_blank'),i*150));
+}
+async function loadAltPosters(tmdbId){
+  const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('searchResults');
+  hint.textContent='Chargement...'; resultsDiv.innerHTML='';
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'/images?api_key='+TMDB_KEY+'&include_image_language=fr,en,null');
+    const data=await res.json(); const posters=data.posters||[];
+    if(posters.length===0){ hint.textContent='Aucune affiche alternative.'; return; }
+    hint.textContent=posters.length+' affiche(s) - clique pour choisir.';
+    resultsDiv.innerHTML=posters.map(p=>'<img src="https://image.tmdb.org/t/p/w200'+p.file_path+'" data-url="https://image.tmdb.org/t/p/w500'+p.file_path+'">').join('');
+    resultsDiv.querySelectorAll('img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
+        pendingPoster={url:img.dataset.url,isPhoto:false};
+        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
+        hint.innerHTML='Affiche selectionnee. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Voir d autres affiches</button>';
+        document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(tmdbId));
+      });
+    });
+  }catch(e){ hint.textContent='Erreur.'; }
+}
+async function searchByDirector(){
+  const name=document.getElementById('inputDirector').value.trim();
+  if(!name){ document.getElementById('modalHint').textContent='Ecris le nom.'; return; }
+  const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('directorResults');
+  hint.textContent='Recherche...'; resultsDiv.innerHTML='';
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/search/person?api_key='+TMDB_KEY+'&query='+encodeURIComponent(name)+'&language=fr-FR');
+    const data=await res.json();
+    const directors=(data.results||[]).filter(p=>p.known_for_department==='Directing').slice(0,5);
+    if(directors.length===0){ hint.textContent='Aucun realisateur trouve.'; return; }
+    if(directors.length===1){ await loadDirectorFilms(directors[0].id,directors[0].name); }
+    else{
+      hint.textContent='Plusieurs realisateurs - clique sur le bon :';
+      resultsDiv.innerHTML=directors.map(p=>'<button class="director-name-btn" data-pid="'+p.id+'" data-pname="'+p.name+'">'+p.name+(p.known_for&&p.known_for[0]?' - '+p.known_for[0].title:'')+'</button>').join('');
+      resultsDiv.querySelectorAll('.director-name-btn').forEach(btn=>btn.addEventListener('click',()=>loadDirectorFilms(btn.dataset.pid,btn.dataset.pname)));
+    }
+  }catch(e){ document.getElementById('modalHint').textContent='Erreur.'; }
+}
+async function loadDirectorFilms(personId,personName){
+  const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('directorResults');
+  hint.textContent='Films de '+personName+'...'; resultsDiv.innerHTML='';
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/person/'+personId+'/movie_credits?api_key='+TMDB_KEY+'&language=fr-FR');
+    const data=await res.json();
+    const films=(data.crew||[]).filter(c=>c.job==='Director'&&c.poster_path).sort((a,b)=>(b.release_date||'').localeCompare(a.release_date||''));
+    if(films.length===0){ hint.textContent='Aucun film.'; return; }
+    hint.textContent=films.length+' film(s) - clique sur l affiche.';
+    resultsDiv.innerHTML='<div class="director-films">'+films.map(f=>'<img src="https://image.tmdb.org/t/p/w200'+f.poster_path+'" data-url="https://image.tmdb.org/t/p/w500'+f.poster_path+'" data-year="'+(f.release_date||'').slice(0,4)+'" data-id="'+f.id+'" title="'+f.title+'">').join('')+'</div>';
+    resultsDiv.querySelectorAll('img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
+        pendingPoster={url:img.dataset.url,isPhoto:false}; pendingTmdbId=img.dataset.id;
+        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
+        hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
+        document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
+        if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
+        loadTmdbInfo(pendingTmdbId);
+      });
+    });
+  }catch(e){ hint.textContent='Erreur.'; }
+}
+async function searchPoster(){
+  const title=document.getElementById('inputTitle').value.trim();
+  if(!title){ document.getElementById('modalHint').textContent='Ecris le titre.'; return; }
+  const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('searchResults');
+  hint.textContent='Recherche...'; resultsDiv.innerHTML='';
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
+    const data=await res.json();
+    const results=(data.results||[]).filter(r=>r.poster_path).slice(0,16);
+    if(results.length===0){ hint.textContent='Aucune affiche.'; return; }
+    hint.textContent='Clique sur le bon film.';
+    resultsDiv.innerHTML=results.map(r=>'<img src="https://image.tmdb.org/t/p/w200'+r.poster_path+'" data-url="https://image.tmdb.org/t/p/w500'+r.poster_path+'" data-year="'+(r.release_date||'').slice(0,4)+'" data-id="'+r.id+'" title="'+r.title+'">').join('');
+    resultsDiv.querySelectorAll('img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
+        pendingPoster={url:img.dataset.url,isPhoto:false}; pendingTmdbId=img.dataset.id;
+        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
+        hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
+        document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
+        if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
+        loadTmdbInfo(pendingTmdbId);
+      });
+    });
+  }catch(e){ hint.textContent='Erreur.'; }
+}
+function resizeImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const scale=Math.min(1,400/img.width),canvas=document.createElement('canvas');
+        canvas.width=Math.round(img.width*scale); canvas.height=Math.round(img.height*scale);
+        canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/jpeg',0.75));
+      };
+      img.onerror=reject; img.src=e.target.result;
+    };
+    reader.onerror=reject; reader.readAsDataURL(file);
+  });
+}
+async function handlePhotoUpload(file){
+  const hint=document.getElementById('modalHint'); hint.textContent='Traitement...';
+  try{
+    const dataUrl=await resizeImageFile(file);
+    pendingPoster={url:dataUrl,isPhoto:true};
+    document.getElementById('posterPreview').innerHTML='<img src="'+dataUrl+'">';
+    document.getElementById('searchResults').innerHTML=''; hint.textContent='Photo prete.';
+  }catch(e){ hint.textContent='Erreur.'; }
+}
+async function saveItemModal(){
+  const title=document.getElementById('inputTitle').value.trim();
+  if(!title){ alert('Donne un titre.'); return; }
+  const it={title,format:document.getElementById('inputFormat').value,year:document.getElementById('inputYear').value.trim(),
+    watched:document.getElementById('inputWatched').checked,forTrade:document.getElementById('inputForTrade').checked,
+    forSale:document.getElementById('inputForSale').checked,salePrice:parseFloat(document.getElementById('inputSalePrice').value)||null,
+    shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
+    notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
+    customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null};
+  if(editingId){
+    const existing=collection.find(i=>i.id===editingId);
+    Object.assign(existing,it); await saveItem(existing);
+  } else {
+    const newIt={id:uid(),...it}; collection.push(newIt); await saveItem(newIt);
+  }
+  closeModal(); render();
+}
+async function deleteItemModal(){
+  if(!editingId) return;
+  if(!confirm('Retirer cet exemplaire ?')) return;
+  await deleteItemFromDb(editingId); collection=collection.filter(i=>i.id!==editingId);
+  closeModal(); render();
+}
+function toggleSelectMode(){
+  selectionMode=!selectionMode; selectedKeys=new Set(); lastSelectedKey=null;
+  document.getElementById('selectModeBtn').textContent=selectionMode?'Annuler la selection':'Selectionner plusieurs';
+  updateSelectionBar(); render();
+}
+async function removeDuplicates(){
+  const concerned=Array.from(selectedKeys).filter(k=>{ const g=lastGroups.get(k); return g&&g.length>1; });
+  if(concerned.length===0){ alert('Aucun doublon selectionne.'); return; }
+  if(!confirm('Supprimer 1 exemplaire sur '+concerned.length+' fiche(s) ?')) return;
+  for(const key of concerned){
+    const group=lastGroups.get(key),toRemove=group[group.length-1];
+    await deleteItemFromDb(toRemove.id); collection=collection.filter(i=>i.id!==toRemove.id);
+  }
+  selectionMode=false; selectedKeys=new Set(); lastSelectedKey=null;
+  document.getElementById('selectModeBtn').textContent='Selectionner plusieurs';
+  updateSelectionBar(); render();
+}
+async function deleteSelection(){
+  if(selectedKeys.size===0) return;
+  const toDelete=collection.filter(i=>selectedKeys.has(groupKeyOf(i.title)));
+  if(!confirm('Retirer '+selectedKeys.size+' fiche(s) ?')) return;
+  await deleteItemsFromDb(toDelete.map(i=>i.id)); collection=collection.filter(i=>!selectedKeys.has(groupKeyOf(i.title)));
+  selectionMode=false; selectedKeys=new Set(); lastSelectedKey=null;
+  document.getElementById('selectModeBtn').textContent='Selectionner plusieurs';
+  updateSelectionBar(); render();
+}
+function exportCollection(){
+  if(collection.length===0){ alert('Collection vide.'); return; }
+  const blob=new Blob([JSON.stringify(collection,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url; a.download='videotheque-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+async function importCollection(file){
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    let imported;
+    try{ imported=JSON.parse(e.target.result); if(!Array.isArray(imported)) throw new Error(); }
+    catch(err){ alert('Fichier invalide.'); return; }
+    const replace=confirm('OK = remplacer. Annuler = ajouter.');
+    if(replace){ await deleteItemsFromDb(collection.map(i=>i.id)); collection=[]; }
+    const existingIds=new Set(collection.map(i=>i.id));
+    for(const it of imported){ const newIt={...it,id:existingIds.has(it.id)?uid():it.id}; collection.push(newIt); await saveItem(newIt); }
+    render(); alert('Import termine : '+imported.length+' titre(s).');
+  };
+  reader.readAsText(file);
+}
+function normalizeFormat(raw){
+  const v=(raw||'').trim().toUpperCase().replace(/[\s\-_]/g,'');
+  if(v.includes('4K')) return 'BLURAY4K';
+  if(v.includes('LASER')||v.includes('LD')) return 'LASERDISC';
+  if(v.includes('BLURAY')||v.includes('BLU')) return 'BLURAY';
+  if(v.includes('DVD')) return 'DVD';
+  return 'VHS';
+}
+function parseCsvLine(line){
+  const result=[]; let cur='',inQuotes=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"') inQuotes=!inQuotes;
+    else if(c===','&&!inQuotes){ result.push(cur); cur=''; }
+    else cur+=c;
+  }
+  result.push(cur); return result.map(s=>s.trim().replace(/^"|"$/g,''));
+}
+function parseCsvText(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(lines.length===0) return [];
+  let start=0;
+  const first=parseCsvLine(lines[0]).map(s=>s.toLowerCase());
+  if(first[0]&&(first[0].includes('titre')||first[0].includes('title'))) start=1;
+  const rows=[];
+  for(let i=start;i<lines.length;i++){ const cols=parseCsvLine(lines[i]),title=cols[0]?cols[0].trim():''; if(!title) continue; rows.push({title,format:normalizeFormat(cols[1])}); }
+  return rows;
+}
+async function fetchFirstTmdbMatch(title){
+  try{
+    const res=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
+    const data=await res.json(),match=(data.results||[]).find(r=>r.poster_path);
+    if(!match) return null;
+    return {posterUrl:'https://image.tmdb.org/t/p/w500'+match.poster_path,tmdbId:match.id,year:(match.release_date||'').slice(0,4)};
+  }catch(e){ return null; }
+}
+async function importCsvFile(file){
+  const text=await file.text(),rows=parseCsvText(text);
+  if(rows.length===0){ alert('Aucun titre.'); return; }
+  if(!confirm(rows.length+' titre(s). On y va ?')) return;
+  const progress=document.getElementById('importProgress'),fill=document.getElementById('importProgressFill'),txt=document.getElementById('importProgressText');
+  progress.style.display='block'; let withPoster=0;
+  for(let i=0;i<rows.length;i++){
+    fill.style.width=Math.round(((i+1)/rows.length)*100)+'%';
+    txt.textContent='Import '+(i+1)+'/'+rows.length+' : '+rows[i].title;
+    const tmdb=await fetchFirstTmdbMatch(rows[i].title);
+    const newIt={id:uid(),title:rows[i].title,format:rows[i].format,year:tmdb?tmdb.year:'',watched:false,shelf:'',notes:'',posterUrl:tmdb?tmdb.posterUrl:null,customPhoto:false,tmdbId:tmdb?tmdb.tmdbId:null,estimatedValue:null,forTrade:false,forSale:false,salePrice:null};
+    collection.push(newIt); await saveItem(newIt); if(tmdb) withPoster++;
+    await new Promise(r=>setTimeout(r,250));
+  }
+  render(); progress.style.display='none'; alert('Import termine : '+rows.length+' ajout(s), '+withPoster+' avec affiche.');
+}
+function downloadCsvTemplate(){
+  const csv="titre,format\nHard Revenge Milly,DVD\nAlien,BLURAY\n";
+  const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url; a.download='exemple-import.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+// Fermer les autres menus quand on en ouvre un
+document.querySelectorAll('.dd').forEach(dd=>{
+  dd.addEventListener('toggle',()=>{
+    if(dd.open) document.querySelectorAll('.dd').forEach(other=>{ if(other!==dd) other.removeAttribute('open'); });
+  });
+});
+document.querySelectorAll('.dd-menu button').forEach(btn=>{
+  btn.addEventListener('click',()=>btn.closest('.dd').removeAttribute('open'));
+});
+document.addEventListener('click',e=>{ if(!e.target.closest('.dd')) document.querySelectorAll('.dd').forEach(d=>d.removeAttribute('open')); });
+
+function exportCsv(){
+  if(collection.length===0){ alert('Collection vide.'); return; }
+  const rows = [['titre','format','année','vu','emplacement','notes','à l\'échange','à vendre','prix vente']];
+  collection.forEach(it=>{
+    rows.push([
+      it.title, fmtLabel(it.format), it.year||'',
+      it.watched?'oui':'non', it.shelf||'', it.notes||'',
+      it.forTrade?'oui':'non', it.forSale?'oui':'non', it.salePrice||''
+    ]);
+  });
+  const csv = rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='mon-rayon-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+
+document.getElementById('addBtn').addEventListener('click', openAdd);
+document.getElementById('cancelBtn').addEventListener('click',closeModal);
+document.getElementById('saveBtn').addEventListener('click',saveItemModal);
+document.getElementById('deleteBtn').addEventListener('click',deleteItemModal);
+document.getElementById('searchPriceBtn').addEventListener('click',searchPriceOnline);
+document.getElementById('searchPosterBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); });
+document.getElementById('searchDirectorBtn').addEventListener('click',()=>{ const w=document.getElementById('directorSearchWrap'); w.style.display=w.style.display==='none'?'block':'none'; if(w.style.display==='block') document.getElementById('inputDirector').focus(); });
+document.getElementById('searchDirectorGoBtn').addEventListener('click',searchByDirector);
+document.getElementById('inputDirector').addEventListener('keydown',e=>{ if(e.key==='Enter') searchByDirector(); });
+document.getElementById('uploadPhotoBtn').addEventListener('click',()=>document.getElementById('photoInput').click());
+document.getElementById('photoInput').addEventListener('change',e=>{ if(e.target.files[0]) handlePhotoUpload(e.target.files[0]); });
+document.getElementById('filterFormat').addEventListener('change',render);
+document.getElementById('filterWatched').addEventListener('change',render);
+document.getElementById('filterSort').addEventListener('change',render);
+document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeModal(); });
+document.getElementById('exportBtn').addEventListener('click',exportCollection);
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importInput').click());
+document.getElementById('importInput').addEventListener('change',e=>{ if(e.target.files[0]) importCollection(e.target.files[0]); e.target.value=''; });
+document.getElementById('csvTemplateBtn').addEventListener('click',downloadCsvTemplate);
+document.getElementById('csvExportBtn').addEventListener('click',exportCsv);
+document.getElementById('csvImportBtn').addEventListener('click',()=>document.getElementById('csvImportInput').click());
+document.getElementById('csvImportInput').addEventListener('change',e=>{ if(e.target.files[0]) importCsvFile(e.target.files[0]); e.target.value=''; });
+document.getElementById('selectModeBtn').addEventListener('click',toggleSelectMode);
+document.getElementById('removeDupBtn').addEventListener('click',removeDuplicates);
+document.getElementById('deleteSelectionBtn').addEventListener('click',deleteSelection);
+document.getElementById('cancelSelectionBtn').addEventListener('click',toggleSelectMode);
+const searchBox=document.getElementById('searchBox'),searchWrap=searchBox.closest('.search-wrap');
+searchBox.addEventListener('input',()=>{ searchWrap.classList.toggle('has-value',searchBox.value.length>0); render(); });
+document.getElementById('clearSearch').addEventListener('click',()=>{ searchBox.value=''; searchWrap.classList.remove('has-value'); render(); searchBox.focus(); });
+document.getElementById('addWantBtn').addEventListener('click',openWantAdd);
+document.getElementById('wantCancelBtn').addEventListener('click',()=>{ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); });
+document.getElementById('wantSaveBtn').addEventListener('click',saveWant);
+document.getElementById('wantDeleteBtn').addEventListener('click',deleteWant);
+document.getElementById('wantSearchBtn').addEventListener('click',searchWantPoster);
+document.getElementById('overlayWant').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayWant')){ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); }});
+document.getElementById('memberCloseBtn').addEventListener('click',()=>{ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); });
+document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); }});
+const memberSearch=document.getElementById('memberSearch'),memberSearchWrap=memberSearch.closest('.search-wrap');
+memberSearch.addEventListener('input',()=>{ memberSearchWrap.classList.toggle('has-value',memberSearch.value.length>0); loadMembers(); });
+document.getElementById('clearMemberSearch').addEventListener('click',()=>{ memberSearch.value=''; memberSearchWrap.classList.remove('has-value'); loadMembers(); });
+document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
+document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
+document.getElementById('logoutBtn').addEventListener('click',()=>sb.auth.signOut());
+
+initAuth();
+
+</script>
+</body>
+</html>
