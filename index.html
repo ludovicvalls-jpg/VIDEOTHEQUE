@@ -178,7 +178,22 @@
   .want-card:hover{border-color:var(--pink);}
   .want-owners{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);padding:6px 10px;background:rgba(46,230,255,0.05);border-top:1px solid var(--card-border);}
 
-  /* FORUM */
+  /* ACTIVITÉ */
+  .activity-day{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 0;border-bottom:1px solid var(--card-border);margin-bottom:12px;}
+  .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
+  .activity-card{background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;transition:border-color .15s;}
+  .activity-card:hover{border-color:var(--cyan);}
+  .activity-poster{width:100%;aspect-ratio:2/3;background:#1c1c26;overflow:hidden;position:relative;}
+  .activity-poster img{width:100%;height:100%;object-fit:cover;}
+  .activity-poster .tag{position:absolute;top:6px;left:6px;}
+  .activity-info{padding:8px;}
+  .activity-title{font-size:12px;font-weight:600;line-height:1.3;margin:0 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .activity-member{display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .activity-avatar{width:20px;height:20px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;flex-shrink:0;position:relative;}
+  .activity-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
+  .activity-username{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .activity-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+  .activity-empty{text-align:center;padding:60px 20px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;}
   .forum-compose{padding:20px 24px;border-bottom:1px solid var(--card-border);}
   .forum-compose textarea{width:100%;resize:vertical;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:12px;border-radius:4px;font-family:'Inter',sans-serif;font-size:14px;}
   .forum-compose textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
@@ -254,11 +269,17 @@
 
 <!-- NAV -->
 <div class="nav-tabs">
+  <button class="nav-tab" data-section="sectionActivity">🎬 Activité</button>
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
   <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionForum">Discussions <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionProfile">Mon Profil</button>
+</div>
+
+<!-- SECTION ACTIVITÉ -->
+<div class="section" id="sectionActivity">
+  <div id="activityFeed" style="padding:24px;display:flex;flex-direction:column;gap:20px;"></div>
 </div>
 
 <!-- SECTION MON RAYON -->
@@ -573,6 +594,7 @@ async function onLogin(user){
   await loadCollection();
   await loadWantlist();
   await loadNotifications();
+  loadActivity();
 }
 function onLogout(){
   currentUser=null; currentProfile=null; collection=[]; wantlist=[];
@@ -649,6 +671,60 @@ async function saveWantItem(it){
     tmdb_id:it.tmdbId?String(it.tmdbId):null,poster_url:it.posterUrl||null,year:it.year||null});
 }
 async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
+
+// ── ACTIVITÉ RÉCENTE ──
+async function loadActivity(){
+  const feed = document.getElementById('activityFeed');
+  feed.innerHTML = '<div class="activity-empty">Chargement...</div>';
+  try{
+    const {data} = await sb.from('public_activity').select('*');
+    if(!data || data.length === 0){
+      feed.innerHTML = '<div class="activity-empty">Pas encore d\'activité dans la communauté.<br>Sois le premier à ajouter des films !</div>';
+      return;
+    }
+
+    // Grouper par jour
+    const byDay = new Map();
+    data.forEach(item=>{
+      const day = new Date(item.created_at).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+      if(!byDay.has(day)) byDay.set(day,[]);
+      byDay.get(day).push(item);
+    });
+
+    feed.innerHTML = Array.from(byDay.entries()).map(([day, items])=>{
+      const cards = items.map(item=>{
+        const avatarPos = item.avatar_position || '50% 25%';
+        const avatarHtml = item.avatar_url
+          ? `<img src="${item.avatar_url}" style="object-position:${avatarPos};">`
+          : `<span>${(item.username||'?').slice(0,1).toUpperCase()}</span>`;
+        const forTrade = item.for_trade;
+        const forSale = item.for_sale;
+        return `<div class="activity-card">
+          <div class="activity-poster">
+            <span class="tag ${item.format}">${fmtLabel(item.format)}</span>
+            ${item.poster_url
+              ? `<img src="${item.poster_url}" alt="${item.title}">`
+              : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;color:var(--muted);font-size:12px;padding:8px;text-align:center;">${item.title}</div>`}
+          </div>
+          <div class="activity-info">
+            <div class="activity-title" title="${item.title}">${item.title}</div>
+            ${forSale||forTrade ? `<div class="activity-badges">${forSale?'<span class="sale-badge">VENTE</span>':''}${forTrade?'<span class="trade-badge">ÉCHANGE</span>':''}</div>` : ''}
+            <div class="activity-member">
+              <div class="activity-avatar">${avatarHtml}</div>
+              <span class="activity-username">${item.username||'Membre'}</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div>
+        <div class="activity-day">${day}</div>
+        <div class="activity-grid">${cards}</div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    feed.innerHTML = '<div class="activity-empty">Impossible de charger l\'activité.</div>';
+  }
+}
 
 // ── FORUM ──
 let allProfiles = [];
@@ -804,6 +880,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     document.getElementById(tab.dataset.section).classList.add('active');
     if(tab.dataset.section==='sectionMembers') loadMembers();
     if(tab.dataset.section==='sectionForum') loadForum();
+    if(tab.dataset.section==='sectionActivity') loadActivity();
   });
 });
 
