@@ -314,7 +314,6 @@
     <div class="sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
   </div>
   <div class="header-right">
-    <div class="stats" id="stats"></div>
     <div class="hamburger-wrap">
       <button id="hamburgerBtn" class="hamburger-btn" title="Menu">
         <div id="hamburgerAvatar" class="hamburger-avatar"></div>
@@ -339,7 +338,6 @@
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionForum">🎬 Ciné-Club <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
-  <button class="nav-tab" data-section="sectionProfile">Mon Profil</button>
 </div>
 
 <!-- SECTION ACTIVITÉ -->
@@ -509,6 +507,14 @@
     </div>
     <button id="saveProfileBtn" class="primary">Enregistrer le profil</button>
     <div id="profileMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;"></div>
+
+    <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 14px;">Changer mon mot de passe</h3>
+      <div class="field"><label>Nouveau mot de passe</label><input type="password" id="newPassword" placeholder="8 caractères minimum"></div>
+      <div class="field"><label>Confirmer le mot de passe</label><input type="password" id="confirmPassword" placeholder="Répète le mot de passe"></div>
+      <button id="changePasswordBtn" class="primary">Mettre à jour le mot de passe</button>
+      <div id="passwordMsg" style="font-family:'Space Mono',monospace;font-size:11px;margin-top:10px;min-height:18px;"></div>
+    </div>
   </div>
 </div>
 
@@ -780,7 +786,20 @@ async function saveWantItem(it){
 }
 async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
 
-// ── HAMBURGER ──
+document.getElementById('changePasswordBtn').addEventListener('click', async ()=>{
+  const newPwd = document.getElementById('newPassword').value;
+  const confirmPwd = document.getElementById('confirmPassword').value;
+  const msgEl = document.getElementById('passwordMsg');
+  if(newPwd.length < 8){ msgEl.style.color='#ff8080'; msgEl.textContent="Le mot de passe doit faire au moins 8 caractères."; return; }
+  if(newPwd !== confirmPwd){ msgEl.style.color='#ff8080'; msgEl.textContent="Les deux mots de passe ne correspondent pas."; return; }
+  msgEl.style.color='var(--muted)'; msgEl.textContent="Mise à jour...";
+  const {error} = await sb.auth.updateUser({password: newPwd});
+  if(error){ msgEl.style.color='#ff8080'; msgEl.textContent="Erreur : "+error.message; return; }
+  msgEl.style.color='var(--cyan)'; msgEl.textContent="✓ Mot de passe mis à jour !";
+  document.getElementById('newPassword').value='';
+  document.getElementById('confirmPassword').value='';
+  setTimeout(()=> msgEl.textContent='', 4000);
+});
 document.getElementById('hamburgerBtn').addEventListener('click', e=>{
   e.stopPropagation();
   document.getElementById('hamburgerMenu').classList.toggle('open');
