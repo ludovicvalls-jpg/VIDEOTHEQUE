@@ -53,8 +53,8 @@
   .user-info strong{color:var(--cyan);display:block;}
 
   /* NAV ONGLETS */
-  .nav-tabs{display:flex;gap:0;border-bottom:2px solid var(--card-border);padding:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;position:sticky;top:0;z-index:41;background:var(--bg);}
-  .nav-tabs::-webkit-scrollbar{display:none;}
+  .nav-tabs{display:none;}
+  @media(min-width:600px){.nav-tabs{display:flex;gap:0;border-bottom:2px solid var(--card-border);padding:0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:sticky;top:0;z-index:41;background:var(--bg);}}
   .nav-tab{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:12px 14px;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;flex-shrink:0;}
   .nav-tab:hover{color:var(--text);}
   .nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
@@ -327,6 +327,12 @@
       </button>
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">🎬 Activité</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">📼 Mon Rayon</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">📋 Wantlist</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">👥 Membres</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionForum">🎞️ Ciné-Club</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionMessages">✉️ Messages <span id="msgBadgeMenu" style="background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;display:none;"></span></div>
         <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
         <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
         <div class="hamburger-item hamburger-danger" id="menuLogout">⏻ Déconnexion</div>
@@ -704,7 +710,6 @@ async function onLogin(user){
     alert("Bienvenue ! Commence par choisir un pseudo dans l'onglet Mon Profil.");
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.querySelector('.nav-tab[data-section="sectionProfile"]').classList.add('active');
     document.getElementById('sectionProfile').classList.add('active');
   }
 
@@ -820,11 +825,28 @@ document.getElementById('hamburgerBtn').addEventListener('click', e=>{
 });
 document.addEventListener('click', ()=> document.getElementById('hamburgerMenu').classList.remove('open'));
 
+// Navigation depuis le menu hamburger (mobile)
+document.querySelectorAll('.nav-mobile-item').forEach(item=>{
+  item.addEventListener('click', e=>{
+    e.stopPropagation();
+    const section = item.dataset.section;
+    document.getElementById('hamburgerMenu').classList.remove('open');
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    const tab = document.querySelector(`.nav-tab[data-section="${section}"]`);
+    if(tab) tab.classList.add('active');
+    document.getElementById(section).classList.add('active');
+    if(section==='sectionMembers') loadMembers();
+    if(section==='sectionForum') loadForum();
+    if(section==='sectionActivity') loadActivity();
+    if(section==='sectionMessages') loadMessages();
+  });
+});
+
 document.getElementById('menuProfil').addEventListener('click', ()=>{
   document.getElementById('hamburgerMenu').classList.remove('open');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelector('.nav-tab[data-section="sectionProfile"]').classList.add('active');
   document.getElementById('sectionProfile').classList.add('active');
 });
 
@@ -987,8 +1009,14 @@ async function loadConversations(){
 
 function updateMsgBadge(count){
   const badge = document.getElementById('msgBadge');
-  if(count > 0){ badge.style.display='inline'; badge.textContent=count; }
-  else badge.style.display='none';
+  const badgeMenu = document.getElementById('msgBadgeMenu');
+  if(count > 0){
+    if(badge){ badge.style.display='inline'; badge.textContent=count; }
+    if(badgeMenu){ badgeMenu.style.display='inline'; badgeMenu.textContent=count; }
+  } else {
+    if(badge) badge.style.display='none';
+    if(badgeMenu) badgeMenu.style.display='none';
+  }
 }
 
 async function openConversation(userId, username){
