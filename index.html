@@ -955,6 +955,34 @@ function renderStats(){
     </div>`:''}
   `;
 }
+// ── BADGES ──
+const BADGES = [
+  { min:0,    max:25,   name:"Collectionneur débutant",        tmdb:299536  }, // Avengers Infinity War
+  { min:26,   max:100,  name:"Cinéphile mignon",               tmdb:11      }, // Star Wars
+  { min:101,  max:150,  name:"Amateur de films compulsif",     tmdb:19404   }, // Dilwale Dulhania
+  { min:151,  max:200,  name:"Gardien du support physique",    tmdb:278     }, // Shawshank Redemption
+  { min:201,  max:300,  name:"Stockeur insaisissable",         tmdb:238     }, // Le Parrain
+  { min:301,  max:450,  name:"Employé de Vidéo Club",         tmdb:424     }, // La Liste de Schindler
+  { min:451,  max:550,  name:"Guerrier en armure Steelbook",   tmdb:539     }, // Psychose
+  { min:551,  max:750,  name:"Gérant de Vidéo Club",           tmdb:637     }, // La Dolce Vita
+  { min:751,  max:999,  name:"Propriétaire de la Cinémathèque",tmdb:761     }, // Jeanne Dielman
+  { min:1000, max:99999,name:"Légende de Ma Vidéothèque",      tmdb:289     }, // Nosferatu
+];
+
+const badgePosterCache = {};
+
+async function getBadge(count){
+  const level = BADGES.find(b => count >= b.min && count <= b.max) || BADGES[0];
+  if(!badgePosterCache[level.tmdb]){
+    try{
+      const res = await fetch(`https://api.themoviedb.org/3/movie/${level.tmdb}?api_key=${TMDB_KEY}`);
+      const d = await res.json();
+      badgePosterCache[level.tmdb] = d.poster_path ? `https://image.tmdb.org/t/p/w92${d.poster_path}` : null;
+    }catch(e){ badgePosterCache[level.tmdb] = null; }
+  }
+  return { name: level.name, poster: badgePosterCache[level.tmdb] };
+}
+
 let activeConvUserId = null;
 let activeConvUsername = null;
 let msgSubscription = null;
@@ -1215,12 +1243,20 @@ async function loadNotifications(){
   }
 }
 
-function renderPosts(posts){
+async function renderPosts(posts){
   const container = document.getElementById('forumPosts');
   if(posts.length === 0){
     container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Pas encore de message. Sois le premier !</div>';
     return;
   }
+  const badgesMap = {};
+  await Promise.all(posts.map(async p=>{
+    const uid = p.user_id;
+    if(!badgesMap[uid]){
+      const {data:cnt} = await sb.from('collection').select('id',{count:'exact',head:true}).eq('user_id',uid);
+      badgesMap[uid] = await getBadge(cnt||0);
+    }
+  }));
   container.innerHTML = posts.map(p => {
     const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const isOwn = p.user_id === currentUser.id;
@@ -1236,6 +1272,7 @@ function renderPosts(posts){
       <div style="flex:1;">
         <div class="post-header">
           <span class="post-author">${username}</span>
+          ${badgesMap[p.user_id]?`<span class="post-badge">${badgesMap[p.user_id].poster?`<img src="${badgesMap[p.user_id].poster}" title="${badgesMap[p.user_id].name}">`:''}<span>${badgesMap[p.user_id].name}</span></span>`:''}
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="post-date">${date}</span>
             ${isOwn ? `<button class="post-delete" data-pid="${p.id}">✕</button>` : ''}
@@ -1625,12 +1662,16 @@ async function loadMembers(){
   const saleMap={}; (saleCounts||[]).forEach(c=>{ saleMap[c.user_id]=(saleMap[c.user_id]||0)+1; });
   const searchVal=document.getElementById('memberSearch').value.toLowerCase();
   const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
-  grid.innerHTML=filtered.map(p=>{
+  // Charger les badges en parallèle
+  const badgeData = await Promise.all(filtered.map(p=> getBadge(countMap[p.id]||0)));
+  grid.innerHTML=filtered.map((p, idx)=>{
     const total=countMap[p.id]||0, trades=tradeMap[p.id]||0, sales=saleMap[p.id]||0;
     const isMe=p.id===currentUser.id;
+    const badge = badgeData[idx];
     return '<div class="member-card" data-uid="'+p.id+'" data-public="'+p.collection_public+'" data-name="'+p.username+'">'
       +'<div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
-      +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privee')+'</span><br>'
+      +(badge?'<div class="badge-wrap">'+(badge.poster?'<img class="badge-img" src="'+badge.poster+'" title="'+badge.name+'">':'')+'<span class="badge-name">'+badge.name+'</span></div>':'')
+      +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
       +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
       +(sales>0?'A vendre : <span>'+sales+'</span><br>':'')+'</div>'
       +'<div class="member-badges">'
