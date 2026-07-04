@@ -1316,13 +1316,15 @@ async function loadMembers(){
     });
   });
   document.querySelectorAll('.msg-btn').forEach(btn=>{
-    btn.addEventListener('click', e=>{
+    btn.addEventListener('click', async e=>{
       e.stopPropagation();
       // Basculer sur l'onglet Messages
       document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
       document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
       document.querySelector('.nav-tab[data-section="sectionMessages"]').classList.add('active');
       document.getElementById('sectionMessages').classList.add('active');
+      // Charger les conversations puis ouvrir la bonne
+      await loadConversations();
       openConversation(btn.dataset.uid, btn.dataset.uname);
     });
   });
