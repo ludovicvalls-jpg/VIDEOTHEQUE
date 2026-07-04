@@ -180,7 +180,32 @@
   .want-card:hover{border-color:var(--pink);}
   .want-owners{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);padding:6px 10px;background:rgba(46,230,255,0.05);border-top:1px solid var(--card-border);}
 
-  /* MESSAGES */
+  /* HAMBURGER */
+  .hamburger-wrap{position:relative;}
+  .hamburger-btn{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:6px 10px;cursor:pointer;transition:border-color .15s;}
+  .hamburger-btn:hover{border-color:var(--cyan);color:var(--text);}
+  .hamburger-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--cyan);flex-shrink:0;position:relative;}
+  .hamburger-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;object-position:50% 25%;}
+  .hamburger-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
+  .hamburger-menu.open{display:block;}
+  .hamburger-header{padding:14px 16px;border-bottom:1px solid var(--card-border);font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+  .hamburger-header strong{display:block;font-size:14px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:2px;}
+  .hamburger-item{padding:12px 16px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;color:var(--text);transition:background .15s;border-bottom:1px solid var(--card-border);}
+  .hamburger-item:last-child{border-bottom:none;}
+  .hamburger-item:hover{background:var(--card-border);}
+  .hamburger-danger{color:#ff8080;}
+  .hamburger-danger:hover{background:#3a1414;}
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+  .stat-card{background:#1c1c26;border:1px solid var(--card-border);border-radius:6px;padding:14px;}
+  .stat-card-num{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--cyan);line-height:1;}
+  .stat-card-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
+  .stats-section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--pink);margin:16px 0 8px;}
+  .stats-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .stats-bar-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--text);width:90px;flex-shrink:0;}
+  .stats-bar-track{flex:1;height:8px;background:var(--card-border);border-radius:4px;overflow:hidden;}
+  .stats-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
+  .stats-bar-val{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);width:50px;text-align:right;flex-shrink:0;}
   .messages-layout{display:flex;height:calc(100vh - 120px);}
   .conversations-list{width:280px;border-right:1px solid var(--card-border);overflow-y:auto;flex-shrink:0;}
   .conversation-item{padding:14px 16px;border-bottom:1px solid var(--card-border);cursor:pointer;transition:background .15s;}
@@ -290,8 +315,19 @@
   </div>
   <div class="header-right">
     <div class="stats" id="stats"></div>
-    <div class="user-info" id="userInfo"></div>
-    <button id="logoutBtn" style="font-size:11px;padding:6px 12px;">Déconnexion</button>
+    <div class="hamburger-wrap">
+      <button id="hamburgerBtn" class="hamburger-btn" title="Menu">
+        <div id="hamburgerAvatar" class="hamburger-avatar"></div>
+        <span id="hamburgerUsername" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <span style="color:var(--muted);font-size:14px;">☰</span>
+      </button>
+      <div class="hamburger-menu" id="hamburgerMenu">
+        <div class="hamburger-header" id="hamburgerHeader"></div>
+        <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
+        <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
+        <div class="hamburger-item hamburger-danger" id="menuLogout">⏻ Déconnexion</div>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -417,7 +453,14 @@
   </div>
   <div id="forumPosts" class="forum-posts"></div>
 </div>
-<!-- SECTION MESSAGES PRIVÉS -->
+<!-- MODAL STATS -->
+<div class="overlay" id="overlayStats">
+  <div class="modal" style="max-width:560px;">
+    <h2>📊 Mes Stats</h2>
+    <div id="statsContent"></div>
+    <div class="modal-actions"><button id="statsCloseBtn">Fermer</button></div>
+  </div>
+</div>
 <div class="section" id="sectionMessages">
   <div class="messages-layout">
     <div class="conversations-list" id="conversationsList"></div>
@@ -639,8 +682,7 @@ async function onLogin(user){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
 
-  // Dans le header, on affiche le pseudo + l'email uniquement pour soi
-  document.getElementById('userInfo').innerHTML=`<strong>${profile.username}</strong><span style="font-size:10px;color:var(--muted);">${user.email}</span>`;
+  updateHamburger(profile);
 
   document.getElementById('profileUsername').value=profile.username||'';
   document.getElementById('profilePublic').checked=profile.collection_public!==false;
@@ -704,7 +746,6 @@ document.getElementById('signupBtn').addEventListener('click',async()=>{
   if(error){errEl.textContent=error.message;return;}
   if(data.user){ await sb.from('profiles').insert({id:data.user.id,username,collection_public:true}); errEl.textContent='Compte créé ! Connecte-toi.'; }
 });
-document.getElementById('logoutBtn').addEventListener('click',()=>sb.auth.signOut());
 document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
@@ -739,7 +780,125 @@ async function saveWantItem(it){
 }
 async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
 
-// ── MESSAGES PRIVÉS ──
+// ── HAMBURGER ──
+document.getElementById('hamburgerBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  document.getElementById('hamburgerMenu').classList.toggle('open');
+});
+document.addEventListener('click', ()=> document.getElementById('hamburgerMenu').classList.remove('open'));
+
+document.getElementById('menuProfil').addEventListener('click', ()=>{
+  document.getElementById('hamburgerMenu').classList.remove('open');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.nav-tab[data-section="sectionProfile"]').classList.add('active');
+  document.getElementById('sectionProfile').classList.add('active');
+});
+
+document.getElementById('menuStats').addEventListener('click', ()=>{
+  document.getElementById('hamburgerMenu').classList.remove('open');
+  openStats();
+});
+
+document.getElementById('menuLogout').addEventListener('click', ()=> sb.auth.signOut());
+document.getElementById('statsCloseBtn').addEventListener('click', ()=>{ document.getElementById('overlayStats').classList.remove('open'); document.body.classList.remove('modal-open'); });
+document.getElementById('overlayStats').addEventListener('click', e=>{ if(e.target===document.getElementById('overlayStats')){ document.getElementById('overlayStats').classList.remove('open'); document.body.classList.remove('modal-open'); }});
+
+function updateHamburger(profile){
+  const avatar = document.getElementById('hamburgerAvatar');
+  const username = document.getElementById('hamburgerUsername');
+  const header = document.getElementById('hamburgerHeader');
+  username.textContent = profile.username || '';
+  header.innerHTML = `<strong>${profile.username||'Membre'}</strong>${currentUser.email}`;
+  if(profile.avatar_url){
+    const pos = profile.avatar_position || '50% 25%';
+    avatar.innerHTML = `<img src="${profile.avatar_url}" style="object-position:${pos};">`;
+  } else {
+    avatar.innerHTML = `<span>${(profile.username||'?').slice(0,1).toUpperCase()}</span>`;
+  }
+}
+
+function openStats(){
+  document.getElementById('overlayStats').classList.add('open');
+  document.body.classList.add('modal-open');
+  renderStats();
+}
+
+function renderStats(){
+  const c = collection;
+  if(c.length === 0){ document.getElementById('statsContent').innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Ton rayon est vide pour l\'instant !</p>'; return; }
+
+  const formats = ['VHS','DVD','BLURAY','BLURAY4K','LASERDISC'];
+  const formatNames = {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'};
+  const formatColors = {VHS:'var(--cyan)',DVD:'#ffd23f',BLURAY:'var(--pink)',BLURAY4K:'#9b5cff',LASERDISC:'#f97316'};
+
+  const totalValue = c.reduce((s,i)=>s+(i.estimatedValue||0),0);
+  const watched = c.filter(i=>i.watched).length;
+  const withPoster = c.filter(i=>i.posterUrl).length;
+  const forTrade = c.filter(i=>i.forTrade).length;
+  const forSale = c.filter(i=>i.forSale).length;
+  const withValue = c.filter(i=>i.estimatedValue).length;
+  const avgValue = withValue ? (totalValue/withValue).toFixed(2) : 0;
+  const mostExpensive = c.filter(i=>i.estimatedValue).sort((a,b)=>b.estimatedValue-a.estimatedValue)[0];
+  const newest = [...c].sort((a,b)=>b.id.localeCompare(a.id))[0];
+
+  // Répartition par décennie
+  const decades = {};
+  c.forEach(i=>{ if(i.year){ const d = Math.floor(parseInt(i.year)/10)*10; decades[d]=(decades[d]||0)+1; }});
+  const sortedDecades = Object.entries(decades).sort((a,b)=>a[0]-b[0]);
+  const maxDecade = Math.max(...Object.values(decades));
+
+  // Valeur par format
+  const valueByFormat = {};
+  formats.forEach(f=>{ valueByFormat[f] = c.filter(i=>i.format===f).reduce((s,i)=>s+(i.estimatedValue||0),0); });
+
+  const maxCount = Math.max(...formats.map(f=>c.filter(i=>i.format===f).length));
+
+  document.getElementById('statsContent').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-card-num">${c.length}</div><div class="stat-card-label">Titres au total</div></div>
+      <div class="stat-card"><div class="stat-card-num">${totalValue>0?totalValue.toFixed(0)+'€':'—'}</div><div class="stat-card-label">Valeur estimée totale</div></div>
+      <div class="stat-card"><div class="stat-card-num">${watched}</div><div class="stat-card-label">Films vus (${Math.round(watched/c.length*100)}%)</div></div>
+      <div class="stat-card"><div class="stat-card-num">${c.length-watched}</div><div class="stat-card-label">Films à voir</div></div>
+      <div class="stat-card"><div class="stat-card-num">${forTrade}</div><div class="stat-card-label">À l'échange</div></div>
+      <div class="stat-card"><div class="stat-card-num">${forSale}</div><div class="stat-card-label">À la vente</div></div>
+      <div class="stat-card"><div class="stat-card-num">${withPoster}</div><div class="stat-card-label">Avec affiche (${Math.round(withPoster/c.length*100)}%)</div></div>
+      <div class="stat-card"><div class="stat-card-num">${avgValue>0?avgValue+'€':'—'}</div><div class="stat-card-label">Valeur moyenne / titre</div></div>
+    </div>
+
+    <div class="stats-section-title">Répartition par format</div>
+    ${formats.map(f=>{
+      const count = c.filter(i=>i.format===f).length;
+      const val = valueByFormat[f];
+      if(count===0) return '';
+      return `<div class="stats-bar-row">
+        <div class="stats-bar-label">${formatNames[f]}</div>
+        <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(count/maxCount*100)}%;background:${formatColors[f]};"></div></div>
+        <div class="stats-bar-val">${count} titre${count>1?'s':''}${val>0?' · '+val.toFixed(0)+'€':''}</div>
+      </div>`;
+    }).join('')}
+
+    ${sortedDecades.length>0?`
+    <div class="stats-section-title">Répartition par décennie</div>
+    ${sortedDecades.map(([d,count])=>`<div class="stats-bar-row">
+      <div class="stats-bar-label">${d}s</div>
+      <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(count/maxDecade*100)}%;background:var(--cyan);"></div></div>
+      <div class="stats-bar-val">${count} titre${count>1?'s':''}</div>
+    </div>`).join('')}`:''}
+
+    ${mostExpensive?`<div class="stats-section-title">Le plus précieux</div>
+    <div style="background:#1c1c26;border:1px solid var(--card-border);border-radius:6px;padding:12px;display:flex;gap:12px;align-items:center;">
+      ${mostExpensive.posterUrl?`<img src="${mostExpensive.posterUrl}" style="height:60px;width:auto;border-radius:4px;">`:''}
+      <div><div style="font-weight:600;">${mostExpensive.title}</div><div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);">${mostExpensive.estimatedValue}€</div></div>
+    </div>`:''}
+
+    ${newest?`<div class="stats-section-title">Dernier ajout</div>
+    <div style="background:#1c1c26;border:1px solid var(--card-border);border-radius:6px;padding:12px;display:flex;gap:12px;align-items:center;">
+      ${newest.posterUrl?`<img src="${newest.posterUrl}" style="height:60px;width:auto;border-radius:4px;">`:''}
+      <div><div style="font-weight:600;">${newest.title}</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">${fmtLabel(newest.format)}${newest.year?' · '+newest.year:''}</div></div>
+    </div>`:''}
+  `;
+}
 let activeConvUserId = null;
 let activeConvUsername = null;
 let msgSubscription = null;
@@ -1598,7 +1757,7 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
   if(pendingAvatarUrl) updates.avatar_url = pendingAvatarUrl;
   await sb.from('profiles').update(updates).eq('id',currentUser.id);
   currentProfile={...currentProfile,...updates};
-  document.getElementById('userInfo').innerHTML='<strong>'+username+'</strong><span style="font-size:10px;color:var(--muted);">'+currentUser.email+'</span>';
+  updateHamburger({...currentProfile, username});
   document.getElementById('avatarSearch').style.display='none';
   document.getElementById('profileMsg').textContent='✓ Profil enregistré !';
   setTimeout(()=>document.getElementById('profileMsg').textContent='',3000);
@@ -1992,7 +2151,6 @@ document.getElementById('clearMemberSearch').addEventListener('click',()=>{ memb
 document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
-document.getElementById('logoutBtn').addEventListener('click',()=>sb.auth.signOut());
 
 async function loadLoginCarousel(){
   try{
