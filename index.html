@@ -190,7 +190,7 @@
   .hamburger-btn:hover{border-color:var(--cyan);color:var(--text);}
   .hamburger-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--cyan);flex-shrink:0;position:relative;}
   .hamburger-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;object-position:50% 25%;}
-  .hamburger-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
+  .hamburger-menu{display:none;position:fixed;top:70px;right:8px;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;max-width:calc(100vw - 16px);z-index:200;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
   .hamburger-menu.open{display:block;}
   .hamburger-header{padding:14px 16px;border-bottom:1px solid var(--card-border);font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
   .hamburger-header strong{display:block;font-size:14px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:2px;}
@@ -232,7 +232,8 @@
   .conv-input textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
   @media(max-width:600px){.conversations-list{width:100%;}.messages-layout{flex-direction:column;}.conversation-view{display:none;}.conversation-view.open{display:flex;}.conversations-list.hidden{display:none;}}
   .activity-day{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 0;border-bottom:1px solid var(--card-border);margin-bottom:12px;}
-  .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
+  .activity-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  @media(min-width:600px){.activity-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}}
   .activity-card{background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;transition:border-color .15s;}
   .activity-card:hover{border-color:var(--cyan);}
   .activity-poster{width:100%;aspect-ratio:2/3;background:#1c1c26;overflow:hidden;position:relative;}
@@ -741,8 +742,13 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
   const errEl=document.getElementById('loginError');
   errEl.textContent='Connexion...';
   const {error}=await sb.auth.signInWithPassword({email,password});
-  if(error) errEl.textContent="Email ou mot de passe incorrect.";
-  else errEl.textContent='';
+  if(error){
+    if(error.message.includes('Email not confirmed')){
+      errEl.textContent="Tu dois d'abord confirmer ton email. Vérifie ta boite mail (et les spams) et clique sur le lien reçu.";
+    } else {
+      errEl.textContent="Email ou mot de passe incorrect.";
+    }
+  } else errEl.textContent='';
 });
 document.getElementById('signupBtn').addEventListener('click',async()=>{
   const username=document.getElementById('signupUsername').value.trim();
@@ -754,7 +760,11 @@ document.getElementById('signupBtn').addEventListener('click',async()=>{
   errEl.textContent='Création...';
   const {data,error}=await sb.auth.signUp({email,password});
   if(error){errEl.textContent=error.message;return;}
-  if(data.user){ await sb.from('profiles').insert({id:data.user.id,username,collection_public:true}); errEl.textContent='Compte créé ! Connecte-toi.'; }
+  if(data.user){ 
+    await sb.from('profiles').insert({id:data.user.id,username,collection_public:true});
+    errEl.style.color='var(--cyan)';
+    errEl.textContent='✓ Compte créé ! Vérifie ta boite mail et clique sur le lien de confirmation avant de te connecter.';
+  }
 });
 document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
