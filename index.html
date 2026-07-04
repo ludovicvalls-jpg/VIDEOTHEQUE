@@ -21,7 +21,9 @@
 
   /* LOGIN */
   #loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px;}
-  .login-box{background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:24px 20px;width:100%;max-width:400px;}
+  .login-box{background:var(--card);border:1px solid var(--card-border);border-radius:10px;overflow:hidden;width:100%;max-width:400px;}
+  .login-hero{width:100%;height:200px;object-fit:cover;display:block;background:#1c1c26;}
+  .login-content{padding:24px 20px;}
   .login-box .logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;}
   .login-box .logo span{color:var(--pink);}
   .login-box .sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:1px;margin-bottom:20px;}
@@ -215,13 +217,13 @@
   .activity-username{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .activity-badges{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
   .activity-empty{text-align:center;padding:60px 20px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;}
-  .forum-compose{padding:20px 24px;border-bottom:1px solid var(--card-border);}
-  .forum-compose textarea{width:100%;resize:vertical;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:12px;border-radius:4px;font-family:'Inter',sans-serif;font-size:14px;}
+  .forum-compose{padding:12px 16px;border-bottom:1px solid var(--card-border);max-width:640px;margin:0 auto;width:100%;box-sizing:border-box;}
+  .forum-compose textarea{width:100%;resize:none;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:8px 10px;border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;}
   .forum-compose textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
   .mention-list{background:var(--card);border:1px solid var(--cyan);border-radius:4px;max-height:160px;overflow-y:auto;position:absolute;z-index:100;min-width:200px;}
   .mention-item{padding:8px 14px;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;color:var(--text);}
   .mention-item:hover{background:var(--card-border);color:var(--cyan);}
-  .forum-posts{padding:16px 24px;display:flex;flex-direction:column;gap:14px;}
+  .forum-posts{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:640px;margin:0 auto;width:100%;box-sizing:border-box;}
   .post-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--cyan);position:relative;}
   .post-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
   .post-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;display:flex;gap:12px;}
@@ -251,6 +253,10 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
+    <div id="loginCarousel" style="width:100%;height:100px;overflow:hidden;background:#1c1c26;position:relative;">
+      <div id="loginCarouselTrack" style="display:flex;gap:0;height:100%;will-change:transform;"></div>
+    </div>
+    <div class="login-content">
     <div class="logo">MA <span>VIDÉO</span>THÈQUE</div>
     <div class="sub">VHS · DVD · BLU-RAY · 4K · LASER DISC</div>
     <div class="login-tabs">
@@ -270,6 +276,7 @@
       <div class="login-info">Gratuit, sans pub, sans revente de données.</div>
     </div>
     <div class="login-error" id="loginError"></div>
+    </div><!-- fin login-content -->
   </div>
 </div>
 
@@ -932,7 +939,7 @@ async function loadActivity(){
             ${forSale||forTrade ? `<div class="activity-badges">${forSale?'<span class="sale-badge">VENTE</span>':''}${forTrade?'<span class="trade-badge">ÉCHANGE</span>':''}</div>` : ''}
             <div class="activity-member">
               <div class="activity-avatar">${avatarHtml}</div>
-              <span class="activity-username">${item.username||'Membre'}</span>
+              <span class="activity-username" data-uid="${item.user_id}" data-uname="${item.username||'Membre'}" style="cursor:pointer;text-decoration:underline;" title="Envoyer un message">${item.username||'Membre'}</span>
             </div>
           </div>
         </div>`;
@@ -942,6 +949,19 @@ async function loadActivity(){
         <div class="activity-grid">${cards}</div>
       </div>`;
     }).join('');
+
+    // Rendre les pseudos cliquables pour envoyer un MP
+    feed.querySelectorAll('.activity-username[data-uid]').forEach(el=>{
+      if(el.dataset.uid === currentUser.id) return; // pas de MP à soi-même
+      el.addEventListener('click', ()=>{
+        document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+        document.querySelector('.nav-tab[data-section="sectionMessages"]').classList.add('active');
+        document.getElementById('sectionMessages').classList.add('active');
+        loadConversations().then(()=> openConversation(el.dataset.uid, el.dataset.uname));
+      });
+    });
+
   }catch(e){
     feed.innerHTML = '<div class="activity-empty">Impossible de charger l\'activité.</div>';
   }
@@ -1974,6 +1994,30 @@ document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.ke
 document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
 document.getElementById('logoutBtn').addEventListener('click',()=>sb.auth.signOut());
 
+async function loadLoginCarousel(){
+  try{
+    const pages = [1,2,3];
+    const results = await Promise.all(pages.map(p=>
+      fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=fr-FR&page=${p}`)
+        .then(r=>r.json())
+    ));
+    const films = results.flatMap(d=>d.results||[]).filter(f=>f.poster_path);
+    films.sort(()=>Math.random()-0.5);
+    const track = document.getElementById('loginCarouselTrack');
+    if(!track || films.length===0) return;
+    const makeImgs = ()=> films.map(f=>
+      `<img src="https://image.tmdb.org/t/p/w92${f.poster_path}" style="height:100px;width:auto;display:block;flex-shrink:0;" title="${f.title}">`
+    ).join('');
+    track.innerHTML = makeImgs() + makeImgs();
+    const totalWidth = films.length * 68;
+    track.style.animation = `carouselScroll ${films.length * 1.8}s linear infinite`;
+    const style = document.createElement('style');
+    style.textContent = `@keyframes carouselScroll { from{transform:translateX(0)} to{transform:translateX(-${totalWidth}px)} }`;
+    document.head.appendChild(style);
+  }catch(e){}
+}
+
+loadLoginCarousel();
 initAuth();
 
 </script>
