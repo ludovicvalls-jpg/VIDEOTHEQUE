@@ -1406,7 +1406,8 @@ function render(){
   lastRenderedGroups=groups;
   const totalValue=collection.reduce((s,i)=>s+(i.estimatedValue||0),0);
   const valuedCount=collection.filter(i=>i.estimatedValue).length;
-  document.getElementById('stats').innerHTML=
+  const statsEl = document.getElementById('stats');
+  if(statsEl) statsEl.innerHTML=
     '<div><span class="stat-num">'+collection.length+'</span><span class="stat-label">titres</span></div>'+
     '<div><span class="stat-num">'+collection.filter(i=>i.format==='VHS').length+'</span><span class="stat-label">vhs</span></div>'+
     '<div><span class="stat-num">'+collection.filter(i=>!i.watched).length+'</span><span class="stat-label">a voir</span></div>'+
