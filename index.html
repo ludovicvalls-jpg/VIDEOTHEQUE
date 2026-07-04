@@ -178,7 +178,28 @@
   .want-card:hover{border-color:var(--pink);}
   .want-owners{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);padding:6px 10px;background:rgba(46,230,255,0.05);border-top:1px solid var(--card-border);}
 
-  /* ACTIVITÉ */
+  /* MESSAGES */
+  .messages-layout{display:flex;height:calc(100vh - 120px);}
+  .conversations-list{width:280px;border-right:1px solid var(--card-border);overflow-y:auto;flex-shrink:0;}
+  .conversation-item{padding:14px 16px;border-bottom:1px solid var(--card-border);cursor:pointer;transition:background .15s;}
+  .conversation-item:hover{background:var(--card);}
+  .conversation-item.active{background:var(--card);border-left:2px solid var(--cyan);}
+  .conv-name{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--text);letter-spacing:1px;}
+  .conv-preview{font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .conv-unread{display:inline-block;background:var(--cyan);color:#0d0d14;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px;font-family:'Space Mono',monospace;}
+  .conversation-view{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+  .conversation-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;padding:24px;}
+  .conv-header{padding:14px 20px;border-bottom:1px solid var(--card-border);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);}
+  .conv-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;}
+  .msg-bubble{max-width:75%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;word-break:break-word;}
+  .msg-bubble.mine{background:var(--pink);color:#fff;align-self:flex-end;border-bottom-right-radius:3px;}
+  .msg-bubble.theirs{background:var(--card);border:1px solid var(--card-border);color:var(--text);align-self:flex-start;border-bottom-left-radius:3px;}
+  .msg-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
+  .msg-time.mine{text-align:right;}
+  .conv-input{padding:14px 20px;border-top:1px solid var(--card-border);display:flex;gap:10px;}
+  .conv-input textarea{flex:1;resize:none;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:10px;border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;max-height:100px;}
+  .conv-input textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
+  @media(max-width:600px){.conversations-list{width:100%;}.messages-layout{flex-direction:column;}.conversation-view{display:none;}.conversation-view.open{display:flex;}.conversations-list.hidden{display:none;}}
   .activity-day{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:4px 0;border-bottom:1px solid var(--card-border);margin-bottom:12px;}
   .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
   .activity-card{background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;transition:border-color .15s;}
@@ -274,6 +295,7 @@
   <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionForum">Discussions <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
+  <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
   <button class="nav-tab" data-section="sectionProfile">Mon Profil</button>
 </div>
 
@@ -366,6 +388,19 @@
   </div>
   <div id="forumPosts" class="forum-posts"></div>
 </div>
+<!-- SECTION MESSAGES PRIVÉS -->
+<div class="section" id="sectionMessages">
+  <div class="messages-layout">
+    <div class="conversations-list" id="conversationsList"></div>
+    <div class="conversation-view" id="conversationView">
+      <div class="conversation-empty" id="conversationEmpty">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--muted);letter-spacing:1px;">Tes messages privés</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px;">Sélectionne une conversation ou écris à un membre depuis l'onglet Membres.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="section" id="sectionProfile">
   <div class="profile-section">
     <h3>Mon Profil</h3>
@@ -595,6 +630,9 @@ async function onLogin(user){
   await loadWantlist();
   await loadNotifications();
   loadActivity();
+  // Vérifier les messages non lus
+  const {data:unread} = await sb.from('messages').select('id').eq('to_user_id',user.id).eq('seen',false);
+  updateMsgBadge((unread||[]).length);
 }
 function onLogout(){
   currentUser=null; currentProfile=null; collection=[]; wantlist=[];
@@ -671,6 +709,167 @@ async function saveWantItem(it){
     tmdb_id:it.tmdbId?String(it.tmdbId):null,poster_url:it.posterUrl||null,year:it.year||null});
 }
 async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
+
+// ── MESSAGES PRIVÉS ──
+let activeConvUserId = null;
+let activeConvUsername = null;
+let msgSubscription = null;
+
+async function loadMessages(){
+  await loadConversations();
+  if(activeConvUserId) openConversation(activeConvUserId, activeConvUsername);
+}
+
+async function loadConversations(){
+  const list = document.getElementById('conversationsList');
+  list.innerHTML = '<div style="padding:16px;font-size:12px;color:var(--muted);">Chargement...</div>';
+
+  // Récupérer tous les messages envoyés ou reçus
+  const {data} = await sb.from('messages')
+    .select('*,from:from_user_id(id,username),to:to_user_id(id,username)')
+    .or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`)
+    .order('created_at', {ascending:false});
+
+  if(!data || data.length === 0){
+    list.innerHTML = '<div style="padding:20px;font-size:12px;color:var(--muted);text-align:center;">Aucune conversation.<br>Écris à un membre depuis l\'onglet Membres !</div>';
+    updateMsgBadge(0);
+    return;
+  }
+
+  // Grouper par interlocuteur
+  const convMap = new Map();
+  data.forEach(msg=>{
+    const other = msg.from_user_id === currentUser.id ? msg.to : msg.from;
+    if(!other) return;
+    if(!convMap.has(other.id)){
+      convMap.set(other.id, {username: other.username, lastMsg: msg, unread: 0});
+    }
+    if(!msg.seen && msg.to_user_id === currentUser.id){
+      convMap.get(other.id).unread++;
+    }
+  });
+
+  const totalUnread = Array.from(convMap.values()).reduce((s,c)=>s+c.unread, 0);
+  updateMsgBadge(totalUnread);
+
+  list.innerHTML = Array.from(convMap.entries()).map(([uid, conv])=>`
+    <div class="conversation-item ${uid===activeConvUserId?'active':''}" data-uid="${uid}" data-uname="${conv.username}">
+      <div class="conv-name">${conv.username}${conv.unread>0?`<span class="conv-unread">${conv.unread}</span>`:''}</div>
+      <div class="conv-preview">${conv.lastMsg.from_user_id===currentUser.id?'Toi : ':''}${conv.lastMsg.content}</div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.conversation-item').forEach(el=>{
+    el.addEventListener('click', ()=>openConversation(el.dataset.uid, el.dataset.uname));
+  });
+}
+
+function updateMsgBadge(count){
+  const badge = document.getElementById('msgBadge');
+  if(count > 0){ badge.style.display='inline'; badge.textContent=count; }
+  else badge.style.display='none';
+}
+
+async function openConversation(userId, username){
+  activeConvUserId = userId;
+  activeConvUsername = username;
+
+  // Sur mobile, afficher la vue conversation
+  document.getElementById('conversationView').classList.add('open');
+  document.getElementById('conversationsList').classList.add('hidden');
+
+  const view = document.getElementById('conversationView');
+  view.innerHTML = `
+    <div class="conv-header">
+      <button id="backToList" style="font-size:11px;padding:4px 10px;margin-right:10px;display:none;" class="mobile-back">← Retour</button>
+      ${username}
+    </div>
+    <div class="conv-messages" id="convMessages"><div style="text-align:center;color:var(--muted);font-size:12px;padding:20px;">Chargement...</div></div>
+    <div class="conv-input">
+      <textarea id="msgInput" placeholder="Écris ton message..." rows="2"></textarea>
+      <button id="sendMsgBtn" class="primary" style="align-self:flex-end;padding:10px 16px;">Envoyer</button>
+    </div>
+  `;
+
+  document.getElementById('sendMsgBtn').addEventListener('click', sendMessage);
+  document.getElementById('msgInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+  });
+
+  // Bouton retour sur mobile
+  if(window.innerWidth <= 600){
+    const backBtn = document.getElementById('backToList');
+    backBtn.style.display = 'inline-block';
+    backBtn.addEventListener('click', ()=>{
+      document.getElementById('conversationView').classList.remove('open');
+      document.getElementById('conversationsList').classList.remove('hidden');
+      activeConvUserId = null;
+    });
+  }
+
+  await fetchMessages();
+  await markMessagesRead(userId);
+  loadConversations();
+
+  // Écoute en temps réel les nouveaux messages
+  if(msgSubscription) msgSubscription.unsubscribe();
+  msgSubscription = sb.channel('messages-'+userId)
+    .on('postgres_changes', {event:'INSERT', schema:'public', table:'messages'}, async payload=>{
+      const msg = payload.new;
+      if((msg.from_user_id===userId && msg.to_user_id===currentUser.id) ||
+         (msg.from_user_id===currentUser.id && msg.to_user_id===userId)){
+        await fetchMessages();
+        if(msg.to_user_id===currentUser.id) markMessagesRead(userId);
+      }
+    })
+    .subscribe();
+}
+
+async function fetchMessages(){
+  const container = document.getElementById('convMessages');
+  if(!container) return;
+  const {data} = await sb.from('messages')
+    .select('*')
+    .or(`and(from_user_id.eq.${currentUser.id},to_user_id.eq.${activeConvUserId}),and(from_user_id.eq.${activeConvUserId},to_user_id.eq.${currentUser.id})`)
+    .order('created_at', {ascending:true});
+
+  if(!data || data.length===0){
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px;">Pas encore de messages. Dis bonjour !</div>';
+    return;
+  }
+
+  container.innerHTML = data.map(msg=>{
+    const isMine = msg.from_user_id === currentUser.id;
+    const time = new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    return `<div>
+      <div class="msg-bubble ${isMine?'mine':'theirs'}">${msg.content}</div>
+      <div class="msg-time ${isMine?'mine':''}">${time}${isMine&&msg.seen?' ✓✓':''}</div>
+    </div>`;
+  }).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+async function markMessagesRead(fromUserId){
+  await sb.from('messages')
+    .update({seen:true})
+    .eq('from_user_id', fromUserId)
+    .eq('to_user_id', currentUser.id)
+    .eq('seen', false);
+}
+
+async function sendMessage(){
+  const input = document.getElementById('msgInput');
+  const content = input ? input.value.trim() : '';
+  if(!content || !activeConvUserId) return;
+  input.value = '';
+  await sb.from('messages').insert({
+    from_user_id: currentUser.id,
+    to_user_id: activeConvUserId,
+    content
+  });
+  await fetchMessages();
+  loadConversations();
+}
 
 // ── ACTIVITÉ RÉCENTE ──
 async function loadActivity(){
@@ -881,6 +1080,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if(tab.dataset.section==='sectionMembers') loadMembers();
     if(tab.dataset.section==='sectionForum') loadForum();
     if(tab.dataset.section==='sectionActivity') loadActivity();
+    if(tab.dataset.section==='sectionMessages') loadMessages();
   });
 });
 
@@ -1105,12 +1305,20 @@ async function loadMembers(){
       +(p.collection_public===false?'<span class="badge private">Prive</span>':'')
       +(trades>0?'<span class="badge trade">Echange</span>':'')
       +(sales>0?'<span class="badge sale">Vente</span>':'')
-      +'</div></div>';
+      +'</div>'
+      +(p.id!==currentUser.id?`<button class="msg-btn" data-uid="${p.id}" data-uname="${p.username}" style="margin-top:10px;width:100%;font-size:11px;padding:6px;">✉️ Envoyer un message</button>`:'')
+      +'</div>';
   }).join('');
   document.querySelectorAll('.member-card').forEach(card=>{
     card.addEventListener('click',()=>{
       if(card.dataset.public==='false'&&card.dataset.uid!==currentUser.id){ alert('Collection privee.'); return; }
       openMemberCollection(card.dataset.uid,card.dataset.name);
+    });
+  });
+  document.querySelectorAll('.msg-btn').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      e.stopPropagation();
+      openConversation(btn.dataset.uid, btn.dataset.uname);
     });
   });
 }
