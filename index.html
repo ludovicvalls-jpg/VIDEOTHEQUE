@@ -63,7 +63,9 @@
   .section{display:none;}.section.active{display:block;}
 
   /* TOOLBAR */
-  .toolbar{padding:18px 24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--card-border);position:sticky;top:0;z-index:40;background:var(--bg);}
+  .toolbar{padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--card-border);position:sticky;top:0;z-index:40;background:var(--bg);}
+  .toolbar-desktop{display:none;}
+  @media(min-width:600px){.toolbar-desktop{display:inline-block;}.toolbar{padding:14px 20px;}}
   button,.btn{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;background:transparent;border:1px solid var(--card-border);color:var(--text);padding:10px 16px;border-radius:3px;cursor:pointer;transition:all .15s;}
   button:hover{border-color:var(--pink);color:var(--pink);}
   button.primary{background:var(--pink);border-color:var(--pink);color:#1a0410;font-weight:700;}
@@ -361,27 +363,26 @@
   <div class="toolbar">
     <button id="addBtn" class="primary">+ Ajouter un titre</button>
 
-    <details class="dd">
-      <summary class="dd-trigger">💾 Sauvegarde ▾</summary>
-      <div class="dd-menu">
+    <!-- Menu "..." qui regroupe tout sur mobile -->
+    <details class="dd" id="moreMenu">
+      <summary class="dd-trigger">• • •</summary>
+      <div class="dd-menu" style="min-width:220px;">
+        <div style="padding:8px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--card-border);">Sauvegarde</div>
         <button id="exportBtn">📤 Exporter mon rayon</button>
         <button id="importBtn">📥 Importer mon rayon</button>
-      </div>
-    </details>
-    <input type="file" id="importInput" accept="application/json" style="display:none;">
-
-    <details class="dd">
-      <summary class="dd-trigger">CSV ▾</summary>
-      <div class="dd-menu">
+        <div style="padding:8px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--card-border);border-top:1px solid var(--card-border);">CSV</div>
         <button id="csvTemplateBtn">📄 Exemple de CSV</button>
         <button id="csvExportBtn">📤 Exporter en CSV</button>
         <button id="csvImportBtn">📥 Importer un CSV</button>
+        <div style="padding:8px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--card-border);border-top:1px solid var(--card-border);">Sélection</div>
+        <button id="selectModeBtn">☑️ Sélectionner plusieurs</button>
       </div>
     </details>
+    <input type="file" id="importInput" accept="application/json" style="display:none;">
     <input type="file" id="csvImportInput" accept=".csv,text/csv" style="display:none;">
-    <button id="selectModeBtn">Sélectionner plusieurs</button>
+
     <div class="search-wrap">
-      <input type="text" id="searchBox" placeholder="Titre, emplacement, note...">
+      <input type="text" id="searchBox" placeholder="Rechercher...">
       <button id="clearSearch" class="clear-btn">✕</button>
     </div>
     <div class="filters">
