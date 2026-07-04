@@ -294,7 +294,7 @@
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
   <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
-  <button class="nav-tab" data-section="sectionForum">Discussions <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
+  <button class="nav-tab" data-section="sectionForum">🎬 Ciné-Club <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
   <button class="nav-tab" data-section="sectionProfile">Mon Profil</button>
 </div>
@@ -384,7 +384,29 @@
   <div class="forum-compose">
     <textarea id="forumInput" placeholder="Écris un message... Utilise @ pour mentionner un membre" rows="3"></textarea>
     <div id="mentionList" class="mention-list" style="display:none;"></div>
-    <button id="forumPostBtn" class="primary" style="margin-top:8px;">Publier</button>
+    <div id="imageUrlWrap" style="display:none;margin-top:8px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="imageUrlInput" placeholder="Colle un lien d'image (https://...)" style="flex:1;font-size:12px;">
+        <button id="imageUrlConfirmBtn" type="button">Ajouter</button>
+        <button id="imageUrlCancelBtn" type="button">✕</button>
+      </div>
+      <div id="imagePreviewWrap" style="margin-top:8px;display:none;">
+        <img id="imagePreview" style="max-width:200px;max-height:150px;border-radius:4px;border:1px solid var(--card-border);">
+      </div>
+    </div>
+    <div id="giphyWrap" style="display:none;margin-top:8px;">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="giphyInput" placeholder="Cherche un GIF..." style="flex:1;font-size:12px;">
+        <button id="giphySearchBtn" type="button">Chercher</button>
+        <button id="giphyCancelBtn" type="button">✕</button>
+      </div>
+      <div id="giphyResults" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:200px;overflow-y:auto;"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+      <button id="forumPostBtn" class="primary">Publier</button>
+      <button id="addImageBtn" type="button">🖼️ Image</button>
+      <button id="addGifBtn" type="button">GIF</button>
+    </div>
   </div>
   <div id="forumPosts" class="forum-posts"></div>
 </div>
@@ -979,6 +1001,7 @@ function renderPosts(posts){
           </div>
         </div>
         <div class="post-content">${contentHtml}</div>
+        ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;">` : ''}
       </div>
     </div>`;
   }).join('');
@@ -990,18 +1013,26 @@ function renderPosts(posts){
 
 async function publishPost(){
   const content = document.getElementById('forumInput').value.trim();
-  if(!content){ alert("Écris quelque chose avant de publier."); return; }
+  const imageUrl = pendingImageUrl || null;
+  if(!content && !imageUrl){ alert("Écris quelque chose ou ajoute une image avant de publier."); return; }
 
   const {data:post, error} = await sb.from('posts').insert({
     user_id: currentUser.id,
-    content
+    content: content || '',
+    image_url: imageUrl
   }).select('*,profiles(username)').single();
 
   if(error){ alert("Erreur à la publication."); return; }
 
   document.getElementById('forumInput').value = '';
+  pendingImageUrl = null;
+  document.getElementById('imageUrlWrap').style.display = 'none';
+  document.getElementById('giphyWrap').style.display = 'none';
+  document.getElementById('imageUrlInput').value = '';
+  document.getElementById('imagePreviewWrap').style.display = 'none';
+  document.getElementById('giphyResults').innerHTML = '';
 
-  // Détecter les mentions @pseudo et créer les notifications
+  // Détecter les mentions @pseudo
   const mentions = [...new Set(content.match(/@(\w+)/g) || [])];
   for(const mention of mentions){
     const username = mention.slice(1);
@@ -1015,7 +1046,6 @@ async function publishPost(){
     }
   }
 
-  // Recharger les posts
   const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
   renderPosts(posts || []);
 }
@@ -1068,6 +1098,66 @@ document.getElementById('forumInput').addEventListener('input', function(){
 document.addEventListener('click', e => {
   if(!e.target.closest('.forum-compose')) document.getElementById('mentionList').style.display = 'none';
 });
+
+let pendingImageUrl = null;
+const GIPHY_KEY = 'sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh';
+
+document.getElementById('addImageBtn').addEventListener('click', ()=>{
+  document.getElementById('imageUrlWrap').style.display = 'block';
+  document.getElementById('giphyWrap').style.display = 'none';
+  document.getElementById('imageUrlInput').focus();
+});
+
+document.getElementById('addGifBtn').addEventListener('click', ()=>{
+  document.getElementById('giphyWrap').style.display = 'block';
+  document.getElementById('imageUrlWrap').style.display = 'none';
+  document.getElementById('giphyInput').focus();
+});
+
+document.getElementById('imageUrlCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('imageUrlWrap').style.display = 'none';
+  document.getElementById('imageUrlInput').value = '';
+  document.getElementById('imagePreviewWrap').style.display = 'none';
+  pendingImageUrl = null;
+});
+
+document.getElementById('imageUrlConfirmBtn').addEventListener('click', ()=>{
+  const url = document.getElementById('imageUrlInput').value.trim();
+  if(!url || !url.startsWith('http')){ alert("Colle un lien valide qui commence par https://"); return; }
+  pendingImageUrl = url;
+  document.getElementById('imagePreview').src = url;
+  document.getElementById('imagePreviewWrap').style.display = 'block';
+  document.getElementById('imageUrlWrap').style.display = 'none';
+});
+
+document.getElementById('giphyCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('giphyWrap').style.display = 'none';
+  document.getElementById('giphyInput').value = '';
+  document.getElementById('giphyResults').innerHTML = '';
+});
+
+document.getElementById('giphySearchBtn').addEventListener('click', searchGiphy);
+document.getElementById('giphyInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchGiphy(); });
+
+async function searchGiphy(){
+  const query = document.getElementById('giphyInput').value.trim();
+  if(!query) return;
+  const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(query)}&limit=12&rating=g`);
+  const data = await res.json();
+  const results = document.getElementById('giphyResults');
+  results.innerHTML = (data.data||[]).map(gif=>
+    `<img src="${gif.images.fixed_height_small.url}" data-url="${gif.images.downsized.url}" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
+  ).join('');
+  results.querySelectorAll('img').forEach(img=>{
+    img.addEventListener('click', ()=>{
+      pendingImageUrl = img.dataset.url;
+      document.getElementById('imagePreview').src = pendingImageUrl;
+      document.getElementById('imagePreviewWrap').style.display = 'block';
+      document.getElementById('giphyWrap').style.display = 'none';
+      document.getElementById('imageUrlWrap').style.display = 'block';
+    });
+  });
+}
 
 document.getElementById('forumPostBtn').addEventListener('click', publishPost);
 
