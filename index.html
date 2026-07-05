@@ -451,8 +451,11 @@
         <button id="imageUrlConfirmBtn" type="button">Ajouter</button>
         <button id="imageUrlCancelBtn" type="button">✕</button>
       </div>
-      <div id="imagePreviewWrap" style="margin-top:8px;display:none;">
-        <img id="imagePreview" style="max-width:200px;max-height:150px;border-radius:4px;border:1px solid var(--card-border);">
+    </div>
+    <div id="imagePreviewWrap" style="margin-top:8px;display:none;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <img id="imagePreview" style="max-width:180px;max-height:120px;border-radius:4px;border:1px solid var(--card-border);">
+        <button id="removeImageBtn" type="button" style="font-size:11px;padding:4px 8px;">✕ Retirer</button>
       </div>
     </div>
     <div id="giphyWrap" style="display:none;margin-top:8px;">
@@ -495,10 +498,26 @@
   <div class="profile-section">
     <h3>Mon Profil</h3>
 
+    <!-- BANNIÈRE -->
+    <div class="field">
+      <label>Bannière de profil</label>
+      <div id="bannerPreview" style="width:100%;height:130px;border-radius:8px;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);margin-bottom:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;font-family:'Space Mono',monospace;">Pas encore de bannière</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="chooseBannerBtn" type="button">Choisir un fond de film</button>
+      </div>
+      <div id="bannerSearch" style="display:none;margin-top:10px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="bannerSearchInput" placeholder="Cherche un film..." style="flex:1;">
+          <button id="bannerSearchGoBtn" type="button">Chercher</button>
+        </div>
+        <div id="bannerResults" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;max-height:200px;overflow-y:auto;"></div>
+        <div id="bannerHint" class="hint"></div>
+      </div>
+    </div>
+
     <div class="field">
       <label>Mon avatar</label>
       <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:10px;flex-wrap:wrap;">
-        <!-- Prévisualisation ronde interactive -->
         <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
           <div id="currentAvatar" style="width:90px;height:90px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);position:relative;cursor:grab;">
             <div id="avatarImgWrap" style="width:100%;height:100%;"></div>
@@ -655,24 +674,35 @@
 
 <!-- MODAL COLLECTION MEMBRE -->
 <div class="overlay" id="overlayMember">
-  <div class="modal" style="max-width:700px;">
-    <div id="memberProfileHeader" style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--card-border);">
-      <div id="memberProfileAvatar" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;"></div>
-      <div>
-        <h2 id="memberModalTitle" style="margin:0 0 4px;"></h2>
-        <div id="memberProfileBadge" style="display:flex;align-items:center;gap:8px;margin-top:4px;"></div>
+  <div class="modal" style="max-width:700px;padding:0;overflow:hidden;">
+    <!-- Bannière -->
+    <div id="memberBanner" style="width:100%;height:100px;background:#1c1c26;overflow:hidden;flex-shrink:0;"></div>
+    <div style="padding:16px 20px;">
+      <div id="memberProfileHeader" style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--card-border);">
+        <div id="memberProfileAvatar" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;margin-top:-40px;box-shadow:0 0 0 3px var(--card);"></div>
+        <div>
+          <h2 id="memberModalTitle" style="margin:0 0 4px;"></h2>
+          <div id="memberProfileBadge" style="display:flex;align-items:center;gap:8px;margin-top:4px;"></div>
+        </div>
+        <div style="margin-left:auto;" id="memberMsgBtn"></div>
       </div>
-      <div style="margin-left:auto;" id="memberMsgBtn"></div>
+      <!-- Recherche dans la collection -->
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div class="search-wrap" style="flex:1;">
+          <input type="text" id="memberSearchBox" placeholder="Chercher dans sa collection...">
+          <button id="clearMemberSearchBox" class="clear-btn">✕</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="member-filter-btn active" data-filter="all">Tout voir</button>
+        <button class="member-filter-btn" data-filter="trade">Échanges</button>
+        <button class="member-filter-btn" data-filter="sale">Ventes</button>
+      </div>
+      <div id="memberModalContent" style="max-height:55vh;overflow-y:auto;">
+        <div class="grid" style="padding:0;" id="memberGrid"></div>
+      </div>
+      <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="member-filter-btn active" data-filter="all">Tout voir</button>
-      <button class="member-filter-btn" data-filter="trade">Échanges</button>
-      <button class="member-filter-btn" data-filter="sale">Ventes</button>
-    </div>
-    <div id="memberModalContent" style="max-height:65vh;overflow-y:auto;">
-      <div class="grid" style="padding:0;" id="memberGrid"></div>
-    </div>
-    <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
   </div>
 </div>
 
@@ -703,10 +733,12 @@ async function onLogin(user){
   currentUser=user;
   let {data:profile}=await sb.from('profiles').select('*').eq('id',user.id).single();
 
-  // Si le profil n'existe pas encore, on le crée avec un pseudo temporaire
+  // Si le profil n'existe pas encore, on le crée avec le pseudo choisi à l'inscription
   if(!profile){
-    const tempUsername = 'Membre_' + Math.random().toString(36).slice(2,7).toUpperCase();
-    await sb.from('profiles').insert({id:user.id, username:tempUsername, collection_public:true});
+    const savedUsername = localStorage.getItem('pendingUsername');
+    const username = savedUsername || ('Membre_' + Math.random().toString(36).slice(2,7).toUpperCase());
+    await sb.from('profiles').insert({id:user.id, username, collection_public:true});
+    localStorage.removeItem('pendingUsername');
     const {data:newProfile}=await sb.from('profiles').select('*').eq('id',user.id).single();
     profile=newProfile;
   }
@@ -719,7 +751,8 @@ async function onLogin(user){
 
   document.getElementById('profileUsername').value=profile.username||'';
   document.getElementById('profilePublic').checked=profile.collection_public!==false;
-  updateCurrentAvatar(profile.avatar_url||null);
+  updateCurrentAvatar(profile.avatar_url||null, profile.avatar_position||null);
+  updateBannerPreview(profile.banner_url||null);
 
   // Si le pseudo ressemble à un pseudo auto-généré (Membre_XXXXX), on redirige vers le profil
   if(!profile.username || profile.username.startsWith('Membre_')){
@@ -801,8 +834,14 @@ document.getElementById('signupBtn').addEventListener('click',async()=>{
     return;
   }
   if(data.user){ 
-    await sb.from('profiles').insert({id:data.user.id,username,collection_public:true});
-    showLoginSuccess("✓ Compte créé ! Vérifie ta boite mail (et les spams) et clique sur le lien de confirmation. Tu pourras ensuite te connecter.");
+    // Sauvegarder le pseudo en attendant la confirmation de l'email
+    localStorage.setItem('pendingUsername', username);
+    try{
+      await sb.from('profiles').insert({id:data.user.id,username,collection_public:true});
+    }catch(e){
+      // Normal si l'email n'est pas encore confirmé — le pseudo sera récupéré à la connexion
+    }
+    showLoginSuccess('✓ Compte créé ! Vérifie ta boite mail (et les spams) et clique sur le lien de confirmation. Tu pourras ensuite te connecter.');
   }
 });
 
@@ -1271,13 +1310,8 @@ async function loadActivity(){
 
     // Rendre les pseudos cliquables pour envoyer un MP
     feed.querySelectorAll('.activity-username[data-uid]').forEach(el=>{
-      if(el.dataset.uid === currentUser.id) return; // pas de MP à soi-même
       el.addEventListener('click', ()=>{
-        document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-        document.querySelector('.nav-tab[data-section="sectionMessages"]').classList.add('active');
-        document.getElementById('sectionMessages').classList.add('active');
-        loadConversations().then(()=> openConversation(el.dataset.uid, el.dataset.uname));
+        openMemberCollection(el.dataset.uid, el.dataset.uname);
       });
     });
 
@@ -1466,7 +1500,14 @@ document.getElementById('imageUrlConfirmBtn').addEventListener('click', ()=>{
   pendingImageUrl = url;
   document.getElementById('imagePreview').src = url;
   document.getElementById('imagePreviewWrap').style.display = 'block';
+  document.getElementById('imageUrlInput').value = '';
   document.getElementById('imageUrlWrap').style.display = 'none';
+});
+
+document.getElementById('removeImageBtn').addEventListener('click', ()=>{
+  pendingImageUrl = null;
+  document.getElementById('imagePreviewWrap').style.display = 'none';
+  document.getElementById('imagePreview').src = '';
 });
 
 document.getElementById('giphyCancelBtn').addEventListener('click', ()=>{
@@ -1712,7 +1753,7 @@ async function searchWantPoster(){
 }
 
 async function loadMembers(){
-  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public');
+  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
   const grid=document.getElementById('membersGrid');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
   const {data:counts}=await sb.from('collection').select('user_id');
@@ -1723,6 +1764,8 @@ async function loadMembers(){
   const saleMap={}; (saleCounts||[]).forEach(c=>{ saleMap[c.user_id]=(saleMap[c.user_id]||0)+1; });
   const searchVal=document.getElementById('memberSearch').value.toLowerCase();
   const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
+  // Trier par taille de collection décroissante
+  filtered.sort((a,b)=>(countMap[b.id]||0)-(countMap[a.id]||0));
   const badgeData = await Promise.all(filtered.map(p=> getBadge(countMap[p.id]||0)));
   grid.innerHTML=filtered.map((p, idx)=>{
     const total=countMap[p.id]||0, trades=tradeMap[p.id]||0, sales=saleMap[p.id]||0;
@@ -1769,6 +1812,68 @@ async function loadMembers(){
     });
   });
 }
+// ── BANNIÈRE PROFIL ──
+let pendingBannerUrl = null;
+
+document.getElementById('chooseBannerBtn').addEventListener('click',()=>{
+  const s = document.getElementById('bannerSearch');
+  s.style.display = s.style.display==='none'?'block':'none';
+  if(s.style.display==='block') document.getElementById('bannerSearchInput').focus();
+});
+document.getElementById('bannerSearchGoBtn').addEventListener('click', searchBanner);
+document.getElementById('bannerSearchInput').addEventListener('keydown',e=>{ if(e.key==='Enter') searchBanner(); });
+
+async function searchBanner(){
+  const query = document.getElementById('bannerSearchInput').value.trim();
+  if(!query){ document.getElementById('bannerHint').textContent='Écris un titre de film.'; return; }
+  document.getElementById('bannerHint').textContent='Recherche...';
+  document.getElementById('bannerResults').innerHTML='';
+  try{
+    const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
+    const data = await res.json();
+    const films = (data.results||[]).filter(f=>f.id).slice(0,5);
+    if(films.length===0){ document.getElementById('bannerHint').textContent='Aucun film trouvé.'; return; }
+    document.getElementById('bannerHint').textContent='Clique sur un film pour voir ses fonds d\'écran.';
+    document.getElementById('bannerResults').innerHTML = films.map(f=>
+      `<button class="director-name-btn" data-fid="${f.id}" data-ftitle="${f.title}">${f.title} ${f.release_date?'('+f.release_date.slice(0,4)+')':''}</button>`
+    ).join('');
+    document.querySelectorAll('#bannerResults .director-name-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> loadBackdrops(btn.dataset.fid, btn.dataset.ftitle));
+    });
+  }catch(e){ document.getElementById('bannerHint').textContent='Erreur de recherche.'; }
+}
+
+async function loadBackdrops(filmId, filmTitle){
+  document.getElementById('bannerHint').textContent=`Chargement des fonds d'écran de ${filmTitle}...`;
+  document.getElementById('bannerResults').innerHTML='';
+  try{
+    const res = await fetch(`https://api.themoviedb.org/3/movie/${filmId}/images?api_key=${TMDB_KEY}&include_image_language=fr,en,null`);
+    const data = await res.json();
+    const backdrops = data.backdrops||[];
+    if(backdrops.length===0){ document.getElementById('bannerHint').textContent='Aucun fond d\'écran disponible pour ce film.'; return; }
+    document.getElementById('bannerHint').textContent=`${backdrops.length} fond(s) disponible(s) — clique pour choisir.`;
+    document.getElementById('bannerResults').innerHTML = backdrops.slice(0,20).map(b=>
+      `<img src="https://image.tmdb.org/t/p/w300${b.file_path}" data-url="https://image.tmdb.org/t/p/w1280${b.file_path}" style="height:60px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="Fond d'écran">`
+    ).join('');
+    document.querySelectorAll('#bannerResults img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        pendingBannerUrl = img.dataset.url;
+        const bp = document.getElementById('bannerPreview');
+        bp.innerHTML = `<img src="${pendingBannerUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+        document.getElementById('bannerSearch').style.display='none';
+        document.getElementById('bannerHint').textContent='✓ Bannière sélectionnée. Clique sur Enregistrer.';
+      });
+    });
+  }catch(e){ document.getElementById('bannerHint').textContent='Impossible de charger les fonds d\'écran.'; }
+}
+
+function updateBannerPreview(url){
+  const bp = document.getElementById('bannerPreview');
+  if(url) bp.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;">`;
+  else bp.innerHTML='<span style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Pas encore de bannière</span>';
+}
+
+// ── BANNIÈRE dans la modal membre ──
 async function openMemberCollection(userId,username){
   document.getElementById('memberModalTitle').textContent = username;
   document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
@@ -1776,13 +1881,19 @@ async function openMemberCollection(userId,username){
   document.body.classList.add('modal-open');
 
   // Charger le profil du membre pour la photo et le badge
-  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position').eq('id',userId).single();
+  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url').eq('id',userId).single();
   const {data:countData} = await sb.from('collection').select('id').eq('user_id',userId);
   const count = (countData||[]).length;
   const badge = await getBadge(count);
 
-  // Avatar
-  const avatarEl = document.getElementById('memberProfileAvatar');
+  // Bannière
+  const bannerEl = document.getElementById('memberBanner');
+  if(profile?.banner_url){
+    bannerEl.innerHTML = `<img src="${profile.banner_url}" style="width:100%;height:100%;object-fit:cover;">`;
+  } else {
+    bannerEl.innerHTML = '';
+    bannerEl.style.background = '#1c1c26';
+  }
   const pos = profile?.avatar_position || '50% 25%';
   if(profile?.avatar_url){
     avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;object-position:${pos};position:absolute;top:0;left:0;">`;
@@ -1818,15 +1929,30 @@ async function openMemberCollection(userId,username){
   const allItems=(data||[]).map(fromRow).sort((a,b)=>a.title.localeCompare(b.title));
   if(allItems.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Collection vide.</div>'; return; }
 
+  const memberSB = document.getElementById('memberSearchBox');
+  const memberClear = document.getElementById('clearMemberSearchBox');
+  memberSB.value = '';
+  memberSB.oninput = ()=>{
+    memberClear.style.display = memberSB.value ? 'block' : 'none';
+    const active = document.querySelector('.member-filter-btn.active');
+    renderMemberGrid(active ? active.dataset.filter : 'all');
+  };
+  memberClear.onclick = ()=>{
+    memberSB.value = ''; memberClear.style.display = 'none';
+    renderMemberGrid('all');
+  };
+
   function renderMemberGrid(filter){
+    const search = memberSB.value.toLowerCase();
     let items=allItems;
     if(filter==='trade') items=allItems.filter(i=>i.forTrade);
     if(filter==='sale') items=allItems.filter(i=>i.forSale);
-    if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre dans cette catégorie.</div>'; return; }
+    if(search) items=items.filter(i=>i.title.toLowerCase().includes(search));
+    if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>
       '<div class="tape" style="cursor:default;">'
       +'<div class="poster-wrap"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
-      +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
+      +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'eu':'')+'</span>':it.forTrade?'<span class="trade-badge">ECHANGE</span>':'')
       +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
         :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
       +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
@@ -1954,6 +2080,7 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
   const position = `${Math.round(avatarOffsetX)}% ${Math.round(avatarOffsetY)}%`;
   const updates = {username, collection_public:isPublic, avatar_position:position};
   if(pendingAvatarUrl) updates.avatar_url = pendingAvatarUrl;
+  if(pendingBannerUrl) updates.banner_url = pendingBannerUrl;
   await sb.from('profiles').update(updates).eq('id',currentUser.id);
   currentProfile={...currentProfile,...updates};
   updateHamburger({...currentProfile, username});
