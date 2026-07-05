@@ -296,16 +296,24 @@
       <button class="login-tab" id="tabSignup">Créer un compte</button>
     </div>
     <div id="loginForm">
-      <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com"></div>
-      <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com" autocomplete="email"></div>
+      <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="login-btn" id="loginBtn">Se connecter</button>
     </div>
     <div id="signupForm" style="display:none;">
-      <div class="login-field"><label>Pseudo</label><input type="text" id="signupUsername" placeholder="Ex: VideoManiac69"></div>
-      <div class="login-field"><label>Email</label><input type="email" id="signupEmail" placeholder="ton@email.com"></div>
-      <div class="login-field"><label>Mot de passe</label><input type="password" id="signupPassword" placeholder="8 caractères minimum"></div>
+      <div class="login-field">
+        <label>Pseudo <span style="font-size:10px;color:var(--muted);">(lettres, chiffres, _ uniquement)</span></label>
+        <input type="text" id="signupUsername" placeholder="Ex: VideoManiac69" autocomplete="username">
+        <div id="usernameHint" style="font-size:10px;margin-top:4px;min-height:14px;"></div>
+      </div>
+      <div class="login-field"><label>Email</label><input type="email" id="signupEmail" placeholder="ton@email.com" autocomplete="email"></div>
+      <div class="login-field">
+        <label>Mot de passe <span style="font-size:10px;color:var(--muted);">(8 caractères minimum)</span></label>
+        <input type="password" id="signupPassword" placeholder="8 caractères minimum" autocomplete="new-password">
+        <div id="passwordStrength" style="font-size:10px;margin-top:4px;min-height:14px;"></div>
+      </div>
       <button class="login-btn" id="signupBtn">Créer mon compte</button>
-      <div class="login-info">Gratuit, sans pub, sans revente de données.</div>
+      <div class="login-info">Gratuit · Sans pub · Sans revente de données<br>Un email de confirmation te sera envoyé.</div>
     </div>
     <div class="login-error" id="loginError"></div>
     </div><!-- fin login-content -->
@@ -648,13 +656,20 @@
 <!-- MODAL COLLECTION MEMBRE -->
 <div class="overlay" id="overlayMember">
   <div class="modal" style="max-width:700px;">
-    <h2 id="memberModalTitle">Collection</h2>
+    <div id="memberProfileHeader" style="display:flex;align-items:center;gap:16px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--card-border);">
+      <div id="memberProfileAvatar" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;"></div>
+      <div>
+        <h2 id="memberModalTitle" style="margin:0 0 4px;"></h2>
+        <div id="memberProfileBadge" style="display:flex;align-items:center;gap:8px;margin-top:4px;"></div>
+      </div>
+      <div style="margin-left:auto;" id="memberMsgBtn"></div>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
       <button class="member-filter-btn active" data-filter="all">Tout voir</button>
       <button class="member-filter-btn" data-filter="trade">Échanges</button>
       <button class="member-filter-btn" data-filter="sale">Ventes</button>
     </div>
-    <div id="memberModalContent" style="max-height:70vh;overflow-y:auto;">
+    <div id="memberModalContent" style="max-height:65vh;overflow-y:auto;">
       <div class="grid" style="padding:0;" id="memberGrid"></div>
     </div>
     <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
@@ -746,32 +761,87 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
   const email=document.getElementById('loginEmail').value.trim();
   const password=document.getElementById('loginPassword').value;
   const errEl=document.getElementById('loginError');
-  errEl.textContent='Connexion...';
+  if(!email){ showLoginError("Entre ton adresse email."); return; }
+  if(!password){ showLoginError("Entre ton mot de passe."); return; }
+  showLoginMsg("Connexion en cours...");
   const {error}=await sb.auth.signInWithPassword({email,password});
   if(error){
     if(error.message.includes('Email not confirmed')){
-      errEl.textContent="Tu dois d'abord confirmer ton email. Vérifie ta boite mail (et les spams) et clique sur le lien reçu.";
+      showLoginError("❌ Email non confirmé. Vérifie ta boite mail (et les spams) et clique sur le lien reçu avant de te connecter.");
+    } else if(error.message.includes('Invalid login')||error.message.includes('invalid')){
+      showLoginError("❌ Email ou mot de passe incorrect.");
     } else {
-      errEl.textContent="Email ou mot de passe incorrect.";
+      showLoginError("❌ Erreur de connexion. Vérifie ta connexion internet et réessaie.");
     }
-  } else errEl.textContent='';
+  } else { clearLoginMsg(); }
 });
+
 document.getElementById('signupBtn').addEventListener('click',async()=>{
   const username=document.getElementById('signupUsername').value.trim();
   const email=document.getElementById('signupEmail').value.trim();
   const password=document.getElementById('signupPassword').value;
   const errEl=document.getElementById('loginError');
-  if(!username){errEl.textContent="Choisis un pseudo.";return;}
-  if(password.length<8){errEl.textContent="Mot de passe trop court.";return;}
-  errEl.textContent='Création...';
+
+  if(!username){ showLoginError("❌ Choisis un pseudo."); return; }
+  if(!/^[a-zA-Z0-9_]+$/.test(username)){ showLoginError("❌ Le pseudo ne peut contenir que des lettres, chiffres et underscores (_)."); return; }
+  if(username.length < 3){ showLoginError("❌ Le pseudo doit faire au moins 3 caractères."); return; }
+  if(!email||!email.includes('@')){ showLoginError("❌ Entre une adresse email valide."); return; }
+  if(password.length<8){ showLoginError("❌ Le mot de passe doit faire au moins 8 caractères."); return; }
+
+  showLoginMsg("Création du compte...");
   const {data,error}=await sb.auth.signUp({email,password});
-  if(error){errEl.textContent=error.message;return;}
+  if(error){
+    if(error.message.includes('rate limit')||error.message.includes('Rate limit')){
+      showLoginError("❌ Trop de tentatives. Attends quelques minutes avant de réessayer.");
+    } else if(error.message.includes('already registered')||error.message.includes('already')){
+      showLoginError("❌ Cet email est déjà utilisé. Essaie de te connecter à la place.");
+    } else {
+      showLoginError("❌ "+error.message);
+    }
+    return;
+  }
   if(data.user){ 
     await sb.from('profiles').insert({id:data.user.id,username,collection_public:true});
-    errEl.style.color='var(--cyan)';
-    errEl.textContent='✓ Compte créé ! Vérifie ta boite mail et clique sur le lien de confirmation avant de te connecter.';
+    showLoginSuccess("✓ Compte créé ! Vérifie ta boite mail (et les spams) et clique sur le lien de confirmation. Tu pourras ensuite te connecter.");
   }
 });
+
+function showLoginError(msg){
+  const el=document.getElementById('loginError');
+  el.style.color='#ff8080'; el.textContent=msg;
+}
+function showLoginMsg(msg){
+  const el=document.getElementById('loginError');
+  el.style.color='var(--muted)'; el.textContent=msg;
+}
+function showLoginSuccess(msg){
+  const el=document.getElementById('loginError');
+  el.style.color='var(--cyan)'; el.textContent=msg;
+}
+function clearLoginMsg(){
+  document.getElementById('loginError').textContent='';
+}
+
+// Validation en temps réel du pseudo
+document.getElementById('signupUsername').addEventListener('input',()=>{
+  const val=document.getElementById('signupUsername').value;
+  const hint=document.getElementById('usernameHint');
+  if(!val){ hint.textContent=''; return; }
+  if(!/^[a-zA-Z0-9_]+$/.test(val)){ hint.style.color='#ff8080'; hint.textContent='❌ Lettres, chiffres et _ uniquement'; }
+  else if(val.length<3){ hint.style.color='#ff8080'; hint.textContent='❌ Trop court (3 min)'; }
+  else { hint.style.color='#2fae5e'; hint.textContent='✓ Pseudo valide'; }
+});
+
+// Validation en temps réel du mot de passe
+document.getElementById('signupPassword').addEventListener('input',()=>{
+  const val=document.getElementById('signupPassword').value;
+  const hint=document.getElementById('passwordStrength');
+  if(!val){ hint.textContent=''; return; }
+  if(val.length<8){ hint.style.color='#ff8080'; hint.textContent='❌ Trop court ('+val.length+'/8 caractères)'; }
+  else if(val.length<12){ hint.style.color='#ffd23f'; hint.textContent='⚠️ Correct ('+val.length+' caractères)'; }
+  else { hint.style.color='#2fae5e'; hint.textContent='✓ Solide ('+val.length+' caractères)'; }
+});
+
 document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
@@ -1243,20 +1313,12 @@ async function loadNotifications(){
   }
 }
 
-async function renderPosts(posts){
+function renderPosts(posts){
   const container = document.getElementById('forumPosts');
   if(posts.length === 0){
     container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Pas encore de message. Sois le premier !</div>';
     return;
   }
-  const badgesMap = {};
-  await Promise.all(posts.map(async p=>{
-    const uid = p.user_id;
-    if(!badgesMap[uid]){
-      const {data:cnt} = await sb.from('collection').select('id',{count:'exact',head:true}).eq('user_id',uid);
-      badgesMap[uid] = await getBadge(cnt||0);
-    }
-  }));
   container.innerHTML = posts.map(p => {
     const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const isOwn = p.user_id === currentUser.id;
@@ -1272,7 +1334,6 @@ async function renderPosts(posts){
       <div style="flex:1;">
         <div class="post-header">
           <span class="post-author">${username}</span>
-          ${badgesMap[p.user_id]?`<span class="post-badge">${badgesMap[p.user_id].poster?`<img src="${badgesMap[p.user_id].poster}" title="${badgesMap[p.user_id].name}">`:''}<span>${badgesMap[p.user_id].name}</span></span>`:''}
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="post-date">${date}</span>
             ${isOwn ? `<button class="post-delete" data-pid="${p.id}">✕</button>` : ''}
@@ -1662,24 +1723,30 @@ async function loadMembers(){
   const saleMap={}; (saleCounts||[]).forEach(c=>{ saleMap[c.user_id]=(saleMap[c.user_id]||0)+1; });
   const searchVal=document.getElementById('memberSearch').value.toLowerCase();
   const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
-  // Charger les badges en parallèle
   const badgeData = await Promise.all(filtered.map(p=> getBadge(countMap[p.id]||0)));
   grid.innerHTML=filtered.map((p, idx)=>{
     const total=countMap[p.id]||0, trades=tradeMap[p.id]||0, sales=saleMap[p.id]||0;
     const isMe=p.id===currentUser.id;
     const badge = badgeData[idx];
+    const avatarPos = p.avatar_position || '50% 25%';
+    const av = p.avatar_url
+      ? '<img src="'+p.avatar_url+'" style="width:100%;height:100%;object-fit:cover;object-position:'+avatarPos+';position:absolute;top:0;left:0;">'
+      : '<span style="font-family:Bebas Neue,sans-serif;font-size:18px;color:var(--cyan);">'+((p.username||'?').slice(0,1).toUpperCase())+'</span>';
     return '<div class="member-card" data-uid="'+p.id+'" data-public="'+p.collection_public+'" data-name="'+p.username+'">'
-      +'<div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
-      +(badge?'<div class="badge-wrap">'+(badge.poster?'<img class="badge-img" src="'+badge.poster+'" title="'+badge.name+'">':'')+'<span class="badge-name">'+badge.name+'</span></div>':'')
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
+      +'<div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">'+av+'</div>'
+      +'<div><div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
+      +(badge?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--pink);">'+badge.name+'</div>':'')
+      +'</div></div>'
       +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
       +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
-      +(sales>0?'A vendre : <span>'+sales+'</span><br>':'')+'</div>'
+      +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')+'</div>'
       +'<div class="member-badges">'
-      +(p.collection_public===false?'<span class="badge private">Prive</span>':'')
-      +(trades>0?'<span class="badge trade">Echange</span>':'')
+      +(p.collection_public===false?'<span class="badge private">Privé</span>':'')
+      +(trades>0?'<span class="badge trade">Échange</span>':'')
       +(sales>0?'<span class="badge sale">Vente</span>':'')
       +'</div>'
-      +(p.id!==currentUser.id?`<button class="msg-btn" data-uid="${p.id}" data-uname="${p.username}" style="margin-top:10px;width:100%;font-size:11px;padding:6px;">✉️ Envoyer un message</button>`:'')
+      +(p.id!==currentUser.id?'<button class="msg-btn" data-uid="'+p.id+'" data-uname="'+p.username+'" style="margin-top:10px;width:100%;font-size:11px;padding:6px;">✉️ Envoyer un message</button>':'')
       +'</div>';
   }).join('');
   document.querySelectorAll('.member-card').forEach(card=>{
@@ -1703,31 +1770,59 @@ async function loadMembers(){
   });
 }
 async function openMemberCollection(userId,username){
-  document.getElementById('memberModalTitle').textContent='Collection de '+username;
+  document.getElementById('memberModalTitle').textContent = username;
   document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
   document.getElementById('overlayMember').classList.add('open');
   document.body.classList.add('modal-open');
 
-  // Réinitialiser le filtre actif
-  document.querySelectorAll('.member-filter-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('.member-filter-btn[data-filter="all"]').classList.add('active');
+  // Charger le profil du membre pour la photo et le badge
+  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position').eq('id',userId).single();
+  const {data:countData} = await sb.from('collection').select('id').eq('user_id',userId);
+  const count = (countData||[]).length;
+  const badge = await getBadge(count);
 
-  const {data}=await sb.from('collection').select('*').eq('user_id',userId);
-  const allItems=(data||[]).map(fromRow).sort((a,b)=>a.title.localeCompare(b.title));
-
-  if(allItems.length===0){
-    document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Collection vide.</div>';
-    return;
+  // Avatar
+  const avatarEl = document.getElementById('memberProfileAvatar');
+  const pos = profile?.avatar_position || '50% 25%';
+  if(profile?.avatar_url){
+    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;object-position:${pos};position:absolute;top:0;left:0;">`;
+  } else {
+    avatarEl.innerHTML = `<span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--cyan);">${username.slice(0,1).toUpperCase()}</span>`;
   }
+
+  // Badge
+  const badgeEl = document.getElementById('memberProfileBadge');
+  if(badge){
+    badgeEl.innerHTML = (badge.poster?`<img src="${badge.poster}" style="width:32px;height:48px;object-fit:cover;border-radius:3px;border:1px solid var(--card-border);">`:'')
+      +`<div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--pink);">${badge.name}</div>`;
+  }
+
+  // Bouton message
+  const msgBtnEl = document.getElementById('memberMsgBtn');
+  if(userId !== currentUser.id){
+    msgBtnEl.innerHTML = `<button id="modalMsgBtn" style="font-size:11px;padding:8px 12px;">✉️ Message</button>`;
+    document.getElementById('modalMsgBtn').addEventListener('click',()=>{
+      document.getElementById('overlayMember').classList.remove('open');
+      document.body.classList.remove('modal-open');
+      document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.querySelector('.nav-tab[data-section="sectionMessages"]')?.classList.add('active');
+      document.getElementById('sectionMessages').classList.add('active');
+      loadConversations().then(()=>openConversation(userId,username));
+    });
+  } else {
+    msgBtnEl.innerHTML = '';
+  }
+
+  const {data} = await sb.from('collection').select('*').eq('user_id',userId);
+  const allItems=(data||[]).map(fromRow).sort((a,b)=>a.title.localeCompare(b.title));
+  if(allItems.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Collection vide.</div>'; return; }
 
   function renderMemberGrid(filter){
     let items=allItems;
     if(filter==='trade') items=allItems.filter(i=>i.forTrade);
     if(filter==='sale') items=allItems.filter(i=>i.forSale);
-    if(items.length===0){
-      document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre dans cette catégorie.</div>';
-      return;
-    }
+    if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre dans cette catégorie.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>
       '<div class="tape" style="cursor:default;">'
       +'<div class="poster-wrap"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
@@ -1735,12 +1830,12 @@ async function openMemberCollection(userId,username){
       +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
         :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
       +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
+      +'<div class="tape-bottom"><div class="tape-format-row"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span></div></div>'
       +'</div>'
     ).join('');
   }
 
   renderMemberGrid('all');
-
   document.querySelectorAll('.member-filter-btn').forEach(btn=>{
     btn.onclick=()=>{
       document.querySelectorAll('.member-filter-btn').forEach(b=>b.classList.remove('active'));
@@ -1972,7 +2067,10 @@ async function searchByDirector(){
   try{
     const res=await fetch('https://api.themoviedb.org/3/search/person?api_key='+TMDB_KEY+'&query='+encodeURIComponent(name)+'&language=fr-FR');
     const data=await res.json();
-    const directors=(data.results||[]).filter(p=>p.known_for_department==='Directing').slice(0,5);
+    const directors=(data.results||[]).filter(p=>
+      p.known_for_department==='Directing' || 
+      (p.known_for||[]).some(k=>k.media_type==='movie')
+    ).slice(0,8);
     if(directors.length===0){ hint.textContent='Aucun realisateur trouve.'; return; }
     if(directors.length===1){ await loadDirectorFilms(directors[0].id,directors[0].name); }
     else{
