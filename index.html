@@ -216,7 +216,7 @@
   /* STEELBOOK */
   .tape.steelbook .poster-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,46,136,0.18) 0%,rgba(46,230,255,0.22) 20%,rgba(155,92,255,0.18) 40%,rgba(255,210,63,0.22) 60%,rgba(255,46,136,0.18) 80%,rgba(46,230,255,0.12) 100%);background-size:400% 400%;animation:holographic 3s ease infinite;pointer-events:none;mix-blend-mode:screen;z-index:4;}
   .tape.steelbook .poster-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.04) 2px,rgba(255,255,255,0.04) 4px);pointer-events:none;z-index:5;}
-  .tape.steelbook{border-color:rgba(46,230,255,0.5);box-shadow:0 0 14px rgba(46,230,255,0.2);}
+  .tape.steelbook{}
   .steelbook-badge{position:absolute;bottom:28px;left:8px;z-index:6;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;letter-spacing:0.5px;}
   @keyframes holographic{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
@@ -1286,7 +1286,7 @@ async function loadActivity(){
   const feed = document.getElementById('activityFeed');
   feed.innerHTML = '<div class="activity-empty">Chargement...</div>';
   try{
-    const {data} = await sb.from('public_activity').select('*');
+    const {data} = await sb.from('public_activity').select('*').limit(200);
     if(!data || data.length === 0){
       feed.innerHTML = '<div class="activity-empty">Pas encore d\'activité dans la communauté.<br>Sois le premier à ajouter des films !</div>';
       return;
@@ -1333,7 +1333,8 @@ async function loadActivity(){
 
     // Rendre les pseudos cliquables pour envoyer un MP
     feed.querySelectorAll('.activity-username[data-uid]').forEach(el=>{
-      el.addEventListener('click', ()=>{
+      el.addEventListener('click', e=>{
+        e.stopPropagation();
         openMemberCollection(el.dataset.uid, el.dataset.uname);
       });
     });
@@ -1630,7 +1631,6 @@ function render(){
       +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
         :'<div class="poster-placeholder">'+it.title+'</div>')
       +(it.customPhoto?'<span class="photo-badge">PHOTO</span>':'')
-      +(isSteelbook?'<span class="steelbook-badge">STEELBOOK®</span>':'')
       +'</div>'
       +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'
       +(it.year?'<span class="tape-year">'+it.year+'</span>':'')
@@ -1639,6 +1639,7 @@ function render(){
       +'<div class="tape-bottom">'
       +'<div class="tape-format-row">'
       +'<span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
+      +(isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
       +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
       +'</div>'
       +'<div class="tape-watch-row">'
