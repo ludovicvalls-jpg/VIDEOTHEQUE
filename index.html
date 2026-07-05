@@ -213,6 +213,13 @@
   .stats-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
   .stats-bar-val{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);width:50px;text-align:right;flex-shrink:0;}
   .messages-layout{display:flex;height:calc(100vh - 120px);}
+  /* STEELBOOK */
+  .tape.steelbook .poster-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,46,136,0.18) 0%,rgba(46,230,255,0.22) 20%,rgba(155,92,255,0.18) 40%,rgba(255,210,63,0.22) 60%,rgba(255,46,136,0.18) 80%,rgba(46,230,255,0.12) 100%);background-size:400% 400%;animation:holographic 3s ease infinite;pointer-events:none;mix-blend-mode:screen;z-index:4;}
+  .tape.steelbook .poster-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.04) 2px,rgba(255,255,255,0.04) 4px);pointer-events:none;z-index:5;}
+  .tape.steelbook{border-color:rgba(46,230,255,0.5);box-shadow:0 0 14px rgba(46,230,255,0.2);}
+  .steelbook-badge{position:absolute;bottom:28px;left:8px;z-index:6;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;letter-spacing:0.5px;}
+  @keyframes holographic{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
   .conversations-list{width:280px;border-right:1px solid var(--card-border);overflow-y:auto;flex-shrink:0;}
   .conversation-item{padding:14px 16px;border-bottom:1px solid var(--card-border);cursor:pointer;transition:background .15s;}
   .conversation-item:hover{background:var(--card);}
@@ -544,7 +551,10 @@
       </label>
       <div class="hint">Si décoché, ton profil apparaît dans la liste des membres mais ta collection reste privée.</div>
     </div>
-    <button id="saveProfileBtn" class="primary">Enregistrer le profil</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button id="saveProfileBtn" class="primary">Enregistrer le profil</button>
+      <button id="viewPublicProfileBtn" style="border-color:var(--cyan);color:var(--cyan);">👁️ Voir mon profil public</button>
+    </div>
     <div id="profileMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;"></div>
 
     <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
@@ -611,6 +621,13 @@
           <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">À vendre</span>
         </label>
       </div>
+    </div>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="inputSteelbook" style="width:16px;height:16px;">
+        <span style="text-transform:none;font-size:13px;letter-spacing:normal;background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff,#ffd23f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">✦ SteelBook®</span>
+      </label>
+      <div class="hint">Boîtier en métal — un effet holographique sera affiché sur l'affiche.</div>
     </div>
     <div class="field" id="saleBlock" style="display:none;">
       <label>Prix de vente (€)</label>
@@ -889,12 +906,12 @@ function toRow(it){
   return {id:it.id,user_id:currentUser.id,title:it.title,format:it.format,year:it.year||null,
     watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
-    estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null};
+    estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook};
 }
 function fromRow(r){
   return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
-    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null};
+    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false};
 }
 async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
@@ -914,6 +931,12 @@ async function saveWantItem(it){
     tmdb_id:it.tmdbId?String(it.tmdbId):null,poster_url:it.posterUrl||null,year:it.year||null});
 }
 async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
+
+document.getElementById('viewPublicProfileBtn').addEventListener('click',()=>{
+  if(currentUser && currentProfile){
+    openMemberCollection(currentUser.id, currentProfile.username || 'Moi');
+  }
+});
 
 document.getElementById('changePasswordBtn').addEventListener('click', async ()=>{
   const newPwd = document.getElementById('newPassword').value;
@@ -1599,13 +1622,15 @@ function render(){
   grid.innerHTML=groups.map(g=>{
     const it=g.primary, allWatched=g.items.every(i=>i.watched), isSelected=selectedKeys.has(g.key);
     const hasTrade=g.items.some(i=>i.forTrade), hasSale=g.items.some(i=>i.forSale);
-    return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+'" data-key="'+g.key+'">'
+    const isSteelbook=g.items.some(i=>i.isSteelbook);
+    return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+' '+(isSteelbook?'steelbook':'')+'" data-key="'+g.key+'">'
       +'<div class="poster-wrap">'
       +(selectionMode?'<div class="select-mark">&#x2713;</div>':'')
       +(g.items.length>1?'<div class="dup-badge">'+g.items.length+'</div>':'')
       +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
         :'<div class="poster-placeholder">'+it.title+'</div>')
       +(it.customPhoto?'<span class="photo-badge">PHOTO</span>':'')
+      +(isSteelbook?'<span class="steelbook-badge">STEELBOOK®</span>':'')
       +'</div>'
       +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'
       +(it.year?'<span class="tape-year">'+it.year+'</span>':'')
@@ -1894,11 +1919,14 @@ async function openMemberCollection(userId,username){
     bannerEl.innerHTML = '';
     bannerEl.style.background = '#1c1c26';
   }
+
+  // Avatar (variable locale pour ne pas écraser l'avatar du profil)
+  const memberAvatarEl = document.getElementById('memberProfileAvatar');
   const pos = profile?.avatar_position || '50% 25%';
   if(profile?.avatar_url){
-    avatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;object-position:${pos};position:absolute;top:0;left:0;">`;
+    memberAvatarEl.innerHTML = `<img src="${profile.avatar_url}" style="width:100%;height:100%;object-fit:cover;object-position:${pos};position:absolute;top:0;left:0;">`;
   } else {
-    avatarEl.innerHTML = `<span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--cyan);">${username.slice(0,1).toUpperCase()}</span>`;
+    memberAvatarEl.innerHTML = `<span style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--cyan);">${username.slice(0,1).toUpperCase()}</span>`;
   }
 
   // Badge
@@ -1949,16 +1977,45 @@ async function openMemberCollection(userId,username){
     if(filter==='sale') items=allItems.filter(i=>i.forSale);
     if(search) items=items.filter(i=>i.title.toLowerCase().includes(search));
     if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
-    document.getElementById('memberGrid').innerHTML=items.map(it=>
-      '<div class="tape" style="cursor:default;">'
-      +'<div class="poster-wrap"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
-      +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'eu':'')+'</span>':it.forTrade?'<span class="trade-badge">ECHANGE</span>':'')
-      +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
-        :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
-      +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
-      +'<div class="tape-bottom"><div class="tape-format-row"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span></div></div>'
-      +'</div>'
-    ).join('');
+    document.getElementById('memberGrid').innerHTML=items.map(it=>{
+      const clickable = (it.forSale||it.forTrade) && userId!==currentUser.id;
+      return '<div class="tape" style="cursor:'+(clickable?'pointer':'default')+';" data-title="'+it.title+'" data-sale="'+it.forSale+'" data-trade="'+it.forTrade+'">'
+        +'<div class="poster-wrap">'
+        +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
+        +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
+          :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
+        +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
+        +'<div class="tape-bottom"><div class="tape-format-row"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
+        +(clickable?'<span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);">✉️ Contacter</span>':'')
+        +'</div></div>'
+        +'</div>';
+    }).join('');
+
+    // Clic sur une fiche à vendre ou à l'échange → messagerie pré-remplie
+    if(userId !== currentUser.id){
+      document.querySelectorAll('#memberGrid .tape').forEach(card=>{
+        const isSale = card.dataset.sale === 'true';
+        const isTrade = card.dataset.trade === 'true';
+        if(!isSale && !isTrade) return;
+        card.addEventListener('click', ()=>{
+          const type = isSale ? 'en vente' : 'à l\'échange';
+          const msg = `Bonjour ${username}, je suis intéressé par "${card.dataset.title}" que tu as ${type}, est-il toujours disponible ?`;
+          document.getElementById('overlayMember').classList.remove('open');
+          document.body.classList.remove('modal-open');
+          document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+          document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+          document.querySelector('.nav-tab[data-section="sectionMessages"]')?.classList.add('active');
+          document.getElementById('sectionMessages').classList.add('active');
+          loadConversations().then(()=>{
+            openConversation(userId, username);
+            setTimeout(()=>{
+              const input = document.getElementById('msgInput');
+              if(input) input.value = msg;
+            }, 400);
+          });
+        });
+      });
+    }
   }
 
   renderMemberGrid('all');
@@ -2017,11 +2074,12 @@ async function searchAvatar(){
 
 function applyAvatarPreview(url, ox, oy){
   const wrap = document.getElementById('avatarImgWrap');
+  if(!wrap) return;
   if(!url){
-    wrap.innerHTML = '<span style="font-size:11px;color:var(--muted);text-align:center;padding:4px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">Pas d\'avatar</span>';
+    wrap.innerHTML = '<span style="font-size:11px;color:var(--muted);text-align:center;padding:4px;display:block;margin-top:30px;">Pas d\'avatar</span>';
     return;
   }
-  wrap.innerHTML = `<img src="${url}" style="width:120%;height:120%;object-fit:cover;object-position:${ox}% ${oy}%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">`;
+  wrap.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;object-position:${ox}% ${oy}%;">`;
 }
 
 function updateCurrentAvatar(url, position){
@@ -2094,7 +2152,7 @@ function resetModal(){
   document.getElementById('modalTitle').textContent='Ajouter un titre';
   ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inputFormat').value='VHS';
-  ['inputWatched','inputForTrade','inputForSale'].forEach(id=>document.getElementById(id).checked=false);
+  ['inputWatched','inputForTrade','inputForSale','inputSteelbook'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('saleBlock').style.display='none';
   document.getElementById('searchResults').innerHTML='';
   document.getElementById('modalHint').textContent='';
@@ -2120,6 +2178,7 @@ function fillFormFromItem(it){
   document.getElementById('inputWatched').checked=!!it.watched;
   document.getElementById('inputForTrade').checked=!!it.forTrade;
   document.getElementById('inputForSale').checked=!!it.forSale;
+  document.getElementById('inputSteelbook').checked=!!it.isSteelbook;
   document.getElementById('inputSalePrice').value=it.salePrice||'';
   document.getElementById('saleBlock').style.display=it.forSale?'block':'none';
   document.getElementById('inputShelf').value=it.shelf||'';
@@ -2286,6 +2345,7 @@ async function saveItemModal(){
   const it={title,format:document.getElementById('inputFormat').value,year:document.getElementById('inputYear').value.trim(),
     watched:document.getElementById('inputWatched').checked,forTrade:document.getElementById('inputForTrade').checked,
     forSale:document.getElementById('inputForSale').checked,salePrice:parseFloat(document.getElementById('inputSalePrice').value)||null,
+    isSteelbook:document.getElementById('inputSteelbook').checked,
     shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
     notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
     customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null};
