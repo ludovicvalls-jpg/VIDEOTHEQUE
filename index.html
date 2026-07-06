@@ -1410,7 +1410,6 @@ function openMemberFilm(it, memberUserId, memberUsername){
   if(it.watched) tagsEl.innerHTML += `<span style="font-family:Space Mono,monospace;font-size:9px;padding:2px 8px;border-radius:2px;background:#2fae5e;color:#fff;">VU ✓</span>`;
 
   const infos = [];
-  if(it.shelf) infos.push({label:'Emplacement', val:it.shelf});
   if(it.estimatedValue) infos.push({label:'Valeur estimée', val:it.estimatedValue+'€'});
   if(it.salePrice) infos.push({label:'Prix de vente', val:it.salePrice+'€'});
   document.getElementById('mfInfos').innerHTML = infos.map(i=>
@@ -1420,9 +1419,9 @@ function openMemberFilm(it, memberUserId, memberUsername){
     </div>`
   ).join('');
 
+  // Notes : seulement si c'est sa propre fiche
   const notesEl = document.getElementById('mfNotes');
-  if(it.notes){ notesEl.style.display='block'; notesEl.textContent=it.notes; }
-  else { notesEl.style.display='none'; }
+  notesEl.style.display='none';
 
   const msgBtn = document.getElementById('mfMsgBtn');
   if(memberUserId && memberUserId!==currentUser.id && (it.forSale||it.forTrade)){
@@ -1514,7 +1513,15 @@ async function loadActivity(){
           : `<span>${(item.username||'?').slice(0,1).toUpperCase()}</span>`;
         const forTrade = item.for_trade;
         const forSale = item.for_sale;
-        return `<div class="activity-card">
+        return `<div class="activity-card" style="cursor:pointer;"
+          data-title="${item.title.replace(/"/g,'&quot;')}"
+          data-format="${item.format}"
+          data-year="${item.year||''}"
+          data-poster="${item.poster_url||''}"
+          data-sale="${item.for_sale||false}"
+          data-trade="${item.for_trade||false}"
+          data-uid="${item.user_id}"
+          data-uname="${item.username||'Membre'}">
           <div class="activity-poster">
             <span class="tag ${item.format}">${fmtLabel(item.format)}</span>
             ${item.poster_url
@@ -1526,7 +1533,7 @@ async function loadActivity(){
             ${forSale||forTrade ? `<div class="activity-badges">${forSale?'<span class="sale-badge">VENTE</span>':''}${forTrade?'<span class="trade-badge">ÉCHANGE</span>':''}</div>` : ''}
             <div class="activity-member">
               <div class="activity-avatar">${avatarHtml}</div>
-              <span class="activity-username" data-uid="${item.user_id}" data-uname="${item.username||'Membre'}" style="cursor:pointer;text-decoration:underline;" title="Envoyer un message">${item.username||'Membre'}</span>
+              <span class="activity-username" data-uid="${item.user_id}" data-uname="${item.username||'Membre'}" style="cursor:pointer;text-decoration:underline;">${item.username||'Membre'}</span>
             </div>
           </div>
         </div>`;
@@ -1537,7 +1544,23 @@ async function loadActivity(){
       </div>`;
     }).join('');
 
-    // Rendre les pseudos cliquables pour envoyer un MP
+    // Clic sur une carte → ouvre la fiche du film
+    feed.querySelectorAll('.activity-card').forEach(card=>{
+      card.addEventListener('click', e=>{
+        if(e.target.closest('.activity-username')) return; // le pseudo gère son propre clic
+        const it = {
+          title: card.dataset.title,
+          format: card.dataset.format,
+          year: card.dataset.year,
+          posterUrl: card.dataset.poster,
+          forSale: card.dataset.sale==='true',
+          forTrade: card.dataset.trade==='true',
+        };
+        openMemberFilm(it, card.dataset.uid, card.dataset.uname);
+      });
+    });
+
+    // Clic sur le pseudo → ouvre le profil du membre
     feed.querySelectorAll('.activity-username[data-uid]').forEach(el=>{
       el.addEventListener('click', e=>{
         e.stopPropagation();
