@@ -374,7 +374,7 @@
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">Mon Rayon</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">Ma Wantlist</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">Wantlist</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">Membres</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMessages">Messages <span id="msgBadgeMenu" style="background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;display:none;"></span></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">Derniers Ajouts</div>
@@ -391,7 +391,7 @@
 <!-- NAV -->
 <div class="nav-tabs">
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
-  <button class="nav-tab" data-section="sectionWantlist">Ma Wantlist</button>
+  <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:#0d0d14;color:var(--cyan);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
   <button class="nav-tab" data-section="sectionActivity">Derniers Ajouts</button>
@@ -469,6 +469,7 @@
         <button id="csvImportBtn">📥 Importer un CSV</button>
         <div style="padding:8px 14px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--card-border);border-top:1px solid var(--card-border);">Sélection</div>
         <button id="selectModeBtn">☑️ Sélectionner plusieurs</button>
+        <button id="updateCastingBtn">🎬 Mettre à jour les castings</button>
       </div>
     </details>
     <input type="file" id="importInput" accept="application/json" style="display:none;">
@@ -510,7 +511,9 @@
 <div class="section" id="sectionWantlist">
   <div class="toolbar">
     <button id="addWantBtn" class="primary">+ Ajouter à la wantlist</button>
+    <button id="allWantlistsBtn">Voir toutes les wantlists</button>
   </div>
+  <div id="allWantlistsPanel" style="display:none;padding:0 0 16px;"></div>
   <div class="want-grid" id="wantGrid"></div>
 </div>
 
@@ -1054,12 +1057,14 @@ function toRow(it){
   return {id:it.id,user_id:currentUser.id,title:it.title,format:it.format,year:it.year||null,
     watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
-    estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook};
+    estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
+    cast_crew:it.castCrew||null};
 }
 function fromRow(r){
   return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
-    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false};
+    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
+    castCrew:r.cast_crew||''};
 }
 async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
@@ -2228,7 +2233,7 @@ function render(){
   const filterSort=document.getElementById('filterSort').value;
 
   let items=collection.filter(it=>{
-    const hay=[it.title,it.shelf,it.notes].filter(Boolean).join(' ').toLowerCase();
+    const hay=[it.title,it.shelf,it.notes,it.castCrew].filter(Boolean).join(' ').toLowerCase();
     const matchSearch=!search||hay.includes(search);
     const matchFormat=!filterFormat||it.format===filterFormat;
     const matchWatched=!filterWatched||(filterWatched==='watched'&&it.watched)||(filterWatched==='unwatched'&&!it.watched);
@@ -2901,11 +2906,31 @@ async function loadTmdbInfo(tmdbId){
   if(!tmdbId){ block.style.display='none'; return; }
   block.style.display='block'; content.innerHTML='<span>Chargement...</span>';
   try{
-    const res=await fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR');
-    const d=await res.json();
+    // Récupérer infos du film + crédits en parallèle
+    const [resMovie, resCredits] = await Promise.all([
+      fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR'),
+      fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'/credits?api_key='+TMDB_KEY+'&language=fr-FR')
+    ]);
+    const d = await resMovie.json();
+    const credits = await resCredits.json();
     if(d.success===false){ content.innerHTML='<span>Indisponible.</span>'; return; }
     const genres=(d.genres||[]).map(g=>g.name).join(', ');
-    content.innerHTML='<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' - ')+'</div><div>'+(d.overview||'Pas de synopsis.')+'</div>';
+    // Réalisateur(s)
+    const directors = (credits.crew||[]).filter(c=>c.job==='Director').map(c=>c.name);
+    // Acteurs principaux (5 max)
+    const actors = (credits.cast||[]).slice(0,5).map(c=>c.name);
+    // Construire la chaîne castCrew pour la recherche
+    const castCrewStr = [...directors, ...actors, ...(d.genres||[]).map(g=>g.name)].join(' ');
+    // Sauvegarder dans l'item en cours d'édition
+    if(editingKey){
+      const group = collection.find(g=>g.key===editingKey);
+      if(group) group.items.forEach(it=>{ it.castCrew = castCrewStr; });
+    }
+    content.innerHTML=
+      '<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' · ')+'</div>'
+      +(directors.length?'<div style="margin-top:4px;font-size:11px;color:var(--muted);">Réal. : <span style="color:var(--text);">'+directors.join(', ')+'</span></div>':'')
+      +(actors.length?'<div style="font-size:11px;color:var(--muted);">Avec : <span style="color:var(--text);">'+actors.join(', ')+'</span></div>':'')
+      +'<div style="margin-top:6px;">'+(d.overview||'Pas de synopsis.')+'</div>';
   }catch(e){ content.innerHTML='<span>Erreur TMDB.</span>'; }
 }
 function searchPriceOnline(){
@@ -3033,13 +3058,20 @@ async function handlePhotoUpload(file){
 async function saveItemModal(){
   const title=document.getElementById('inputTitle').value.trim();
   if(!title){ alert('Donne un titre.'); return; }
+  // Récupérer le castCrew existant si on édite
+  let existingCastCrew = '';
+  if(editingId){
+    const existing = collection.find(i=>i.id===editingId);
+    if(existing) existingCastCrew = existing.castCrew || '';
+  }
   const it={title,format:document.getElementById('inputFormat').value,year:document.getElementById('inputYear').value.trim(),
     watched:document.getElementById('inputWatched').checked,forTrade:document.getElementById('inputForTrade').checked,
     forSale:document.getElementById('inputForSale').checked,salePrice:parseFloat(document.getElementById('inputSalePrice').value)||null,
     isSteelbook:document.getElementById('inputSteelbook').checked,
     shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
     notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
-    customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null};
+    customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null,
+    castCrew:existingCastCrew};
   if(editingId){
     const existing=collection.find(i=>i.id===editingId);
     Object.assign(existing,it); await saveItem(existing);
@@ -3188,7 +3220,37 @@ function exportCsv(){
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
-document.getElementById('addBtn').addEventListener('click', openAdd);
+document.getElementById('updateCastingBtn').addEventListener('click', async ()=>{
+  document.querySelectorAll('.dd').forEach(d=>d.removeAttribute('open'));
+  const films = collection.filter(i=>i.tmdbId && !i.castCrew);
+  if(films.length === 0){
+    alert('Tous tes films ont déjà leur casting !');
+    return;
+  }
+  const ok = confirm(`${films.length} film(s) sans casting trouvé(s). La mise à jour va démarrer en fond, ça peut prendre quelques minutes. Continue ?`);
+  if(!ok) return;
+
+  let done = 0;
+  for(const it of films){
+    try{
+      const [resM, resC] = await Promise.all([
+        fetch(`https://api.themoviedb.org/3/movie/${it.tmdbId}?api_key=${TMDB_KEY}&language=fr-FR`),
+        fetch(`https://api.themoviedb.org/3/movie/${it.tmdbId}/credits?api_key=${TMDB_KEY}&language=fr-FR`)
+      ]);
+      const movie = await resM.json();
+      const credits = await resC.json();
+      const directors = (credits.crew||[]).filter(c=>c.job==='Director').map(c=>c.name);
+      const actors = (credits.cast||[]).slice(0,8).map(c=>c.name);
+      const genres = (movie.genres||[]).map(g=>g.name);
+      it.castCrew = [...directors, ...actors, ...genres].join(' ');
+      await saveItem(it);
+      done++;
+      // Petite pause pour ne pas surcharger l'API
+      await new Promise(r=>setTimeout(r,200));
+    }catch(e){ /* on continue si erreur sur un film */ }
+  }
+  alert(`✓ ${done} film(s) mis à jour ! Tu peux maintenant rechercher par réalisateur ou acteur.`);
+});
 document.getElementById('cancelBtn').addEventListener('click',closeModal);
 document.getElementById('saveBtn').addEventListener('click',saveItemModal);
 document.getElementById('deleteBtn').addEventListener('click',deleteItemModal);
@@ -3217,6 +3279,61 @@ document.getElementById('cancelSelectionBtn').addEventListener('click',toggleSel
 const searchBox=document.getElementById('searchBox'),searchWrap=searchBox.closest('.search-wrap');
 searchBox.addEventListener('input',()=>{ searchWrap.classList.toggle('has-value',searchBox.value.length>0); render(); });
 document.getElementById('clearSearch').addEventListener('click',()=>{ searchBox.value=''; searchWrap.classList.remove('has-value'); render(); searchBox.focus(); });
+document.getElementById('allWantlistsBtn').addEventListener('click', async ()=>{
+  const panel = document.getElementById('allWantlistsPanel');
+  const btn = document.getElementById('allWantlistsBtn');
+  if(panel.style.display !== 'none'){
+    panel.style.display = 'none';
+    btn.textContent = 'Voir toutes les wantlists';
+    return;
+  }
+  btn.textContent = 'Masquer';
+  panel.style.display = 'block';
+  panel.innerHTML = '<div style="padding:16px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement...</div>';
+
+  const {data} = await sb.from('wantlist')
+    .select('*,profiles(id,username)')
+    .neq('user_id', currentUser.id)
+    .order('created_at', {ascending:false});
+
+  if(!data || data.length === 0){
+    panel.innerHTML = '<div style="padding:16px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Aucun membre n\'a encore de wantlist.</div>';
+    return;
+  }
+
+  panel.innerHTML = `<div style="padding:12px 24px 0;border-bottom:1px solid var(--card-border);">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin-bottom:12px;">Films recherchés par la communauté</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:12px;padding-bottom:16px;" id="allWantGrid"></div>
+  </div>`;
+
+  document.getElementById('allWantGrid').innerHTML = data.map(w=>{
+    const username = w.profiles?.username || 'Membre';
+    const memberId = w.profiles?.id || '';
+    return `<div class="all-want-card" style="cursor:pointer;"
+      data-title="${(w.title||'').replace(/"/g,'&quot;')}"
+      data-poster="${w.poster_url||''}"
+      data-uid="${memberId}"
+      data-uname="${username}">
+      <div style="aspect-ratio:2/3;background:#1c1c26;border-radius:4px;overflow:hidden;border:1px solid var(--card-border);transition:border-color .15s;">
+        ${w.poster_url
+          ? `<img src="${w.poster_url}" style="width:100%;height:100%;object-fit:cover;">`
+          : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:9px;color:var(--muted);padding:4px;text-align:center;line-height:1.3;">${w.title||''}</div>`}
+      </div>
+      <div style="font-size:10px;font-weight:600;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${w.title||''}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🔍 ${username}</div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.all-want-card').forEach(card=>{
+    card.addEventListener('mouseenter',()=> card.querySelector('div').style.borderColor='var(--pink)');
+    card.addEventListener('mouseleave',()=> card.querySelector('div').style.borderColor='var(--card-border)');
+    card.addEventListener('click',()=>{
+      const it = {title:card.dataset.title, posterUrl:card.dataset.poster, forSale:false, forTrade:false, isSteelbook:false};
+      openMemberFilm(it, card.dataset.uid, card.dataset.uname);
+    });
+  });
+});
+
 document.getElementById('addWantBtn').addEventListener('click',openWantAdd);
 document.getElementById('wantCancelBtn').addEventListener('click',()=>{ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); });
 document.getElementById('wantSaveBtn').addEventListener('click',saveWant);
