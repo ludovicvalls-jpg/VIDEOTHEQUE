@@ -137,6 +137,9 @@
   .modal{background:var(--card);border:1px solid var(--card-border);border-radius:14px 14px 0 0;width:100%;max-width:480px;padding:20px 16px;max-height:92vh;overflow-y:auto;}
   @media(min-width:600px){.modal{border-radius:8px;padding:24px;max-height:calc(100vh - 32px);margin:16px;}}
   body.modal-open{overflow:hidden;}
+  .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-tile-container, .leaflet-overlay-pane, .leaflet-shadow-pane, .leaflet-marker-pane, .leaflet-tooltip-pane, .leaflet-popup-pane {z-index:1 !important;}
+  #membersMap {position:relative;z-index:1;}
+
   .modal h2{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 18px;color:var(--cyan);}
   .field{margin-bottom:14px;}
   .field label{display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
@@ -679,11 +682,6 @@
       </label>
       <div class="hint">Si décoché, ton profil apparaît dans la liste des membres mais ta collection reste privée.</div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-      <button id="saveProfileBtn" class="primary">Enregistrer le profil</button>
-      <button id="viewPublicProfileBtn" style="border-color:var(--cyan);color:var(--cyan);">👁️ Voir mon profil public</button>
-    </div>
-    <div id="profileMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;"></div>
 
     <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
       <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 6px;">Mes 3 Coups de cœur</h3>
@@ -700,6 +698,12 @@
       </div>
       <div id="geocodeMsg" class="hint" style="margin-top:6px;min-height:16px;"></div>
     </div>
+
+    <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button id="saveProfileBtn" class="primary">Enregistrer le profil</button>
+      <button id="viewPublicProfileBtn" style="border-color:var(--cyan);color:var(--cyan);">👁️ Voir mon profil public</button>
+    </div>
+    <div id="profileMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;"></div>
 
     <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
       <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 14px;">Changer mon mot de passe</h3>
@@ -1179,7 +1183,7 @@ document.getElementById('menuStats').addEventListener('click', ()=>{
 });
 
 document.getElementById('menuLogout').addEventListener('click', ()=> sb.auth.signOut());
-document.getElementById('statsCloseBtn').addEventListener('click', ()=>{ document.getElementById('overlayStats').classList.remove('open'); document.body.classList.remove('modal-open'); });
+document.getElementById('statsCloseBtn').addEventListener('click', ()=>{ document.getElementById('overlayStats').classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow=''; });
 document.getElementById('overlayStats').addEventListener('click', e=>{ if(e.target===document.getElementById('overlayStats')){ document.getElementById('overlayStats').classList.remove('open'); document.body.classList.remove('modal-open'); }});
 
 function updateHamburger(profile){
@@ -2001,11 +2005,12 @@ async function saveWant(){
     };
     document.getElementById('overlayWant').classList.remove('open');
     document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
     document.getElementById('wantSaveBtn').textContent = 'Enregistrer';
     cdcSearchingSlot = null;
     buildCDCSlots();
-    return;
-  }
+    return;  }
   // Comportement normal wantlist
   const title=document.getElementById('wantTitle').value.trim();
   if(!title){ alert('Donne un titre.'); return; }
@@ -3119,7 +3124,7 @@ function openEdit(key){
   fillFormFromItem(group[0]);
   document.getElementById('overlay').classList.add('open');
 }
-function closeModal(){ document.getElementById('overlay').classList.remove('open'); document.body.classList.remove('modal-open'); }
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow=''; document.documentElement.style.overflow=''; }
 
 async function loadTmdbInfo(tmdbId){
   const block=document.getElementById('tmdbInfoBlock'),content=document.getElementById('tmdbInfoContent');
@@ -3555,7 +3560,7 @@ document.getElementById('allWantlistsBtn').addEventListener('click', async ()=>{
 });
 
 document.getElementById('addWantBtn').addEventListener('click',openWantAdd);
-document.getElementById('wantCancelBtn').addEventListener('click',()=>{ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); });
+document.getElementById('wantCancelBtn').addEventListener('click',()=>{ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow=''; });
 document.getElementById('wantSaveBtn').addEventListener('click',saveWant);
 document.getElementById('wantDeleteBtn').addEventListener('click',deleteWant);
 document.getElementById('wantSearchBtn').addEventListener('click', ()=>{
@@ -3630,7 +3635,7 @@ async function loadWantOwners(tmdbId){
   ).join('');
 }
 document.getElementById('overlayWant').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayWant')){ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); }});
-document.getElementById('memberCloseBtn').addEventListener('click',()=>{ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); });
+document.getElementById('memberCloseBtn').addEventListener('click',()=>{ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow=''; });
 document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); }});
 const memberSearch=document.getElementById('memberSearch'),memberSearchWrap=memberSearch.closest('.search-wrap');
 memberSearch.addEventListener('input',()=>{ memberSearchWrap.classList.toggle('has-value',memberSearch.value.length>0); loadMembers(); });
