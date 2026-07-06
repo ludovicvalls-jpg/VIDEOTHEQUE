@@ -224,6 +224,25 @@
   .deal-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
   .deal-link{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);text-decoration:none;margin-left:8px;}
   .deal-link:hover{text-decoration:underline;}
+  /* EXTRAS */
+  .extras-card{background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:24px;cursor:pointer;transition:border-color .15s,transform .15s;}
+  .extras-card:hover{border-color:var(--pink);transform:translateY(-3px);}
+  .extras-card-icon{font-size:36px;margin-bottom:12px;}
+  .extras-card-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);margin-bottom:8px;}
+  .extras-card-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+  .kc-card{cursor:pointer;text-align:center;}
+  .kc-card:hover .kc-img{border-color:var(--pink);}
+  .kc-card.active .kc-img{border-color:var(--cyan);}
+  .kc-img{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--card-border);background:#1c1c26;display:block;margin:0 auto 6px;}
+  .kc-nom{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);text-align:center;line-height:1.3;}
+  .quiz-progress{display:flex;gap:4px;margin-bottom:14px;}
+  .quiz-pip{flex:1;height:3px;background:var(--card-border);border-radius:2px;}
+  .quiz-pip.done-ok{background:var(--cyan);}
+  .quiz-pip.done-ko{background:#ff4444;}
+  .quiz-pip.current{background:var(--pink);}
+  .quiz-synopsis{background:#1c1c26;border:1px solid var(--card-border);border-radius:6px;padding:14px;font-size:14px;color:var(--muted);line-height:1.7;font-style:italic;margin-bottom:12px;}
+  .quiz-reveal-ok{background:rgba(46,230,255,0.1);border:1px solid var(--cyan);border-radius:6px;padding:12px;margin-bottom:12px;display:flex;gap:12px;align-items:center;}
+  .quiz-reveal-ko{background:rgba(255,68,68,0.1);border:1px solid #ff4444;border-radius:6px;padding:12px;margin-bottom:12px;display:flex;gap:12px;align-items:center;}
   .tape.steelbook .poster-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,46,136,0.18) 0%,rgba(46,230,255,0.22) 20%,rgba(155,92,255,0.18) 40%,rgba(255,210,63,0.22) 60%,rgba(255,46,136,0.18) 80%,rgba(46,230,255,0.12) 100%);background-size:400% 400%;animation:holographic 3s ease infinite;pointer-events:none;mix-blend-mode:screen;z-index:4;}
   .tape.steelbook .poster-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.04) 2px,rgba(255,255,255,0.04) 4px);pointer-events:none;z-index:5;}
   .tape.steelbook{}
@@ -355,6 +374,7 @@
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">🎬 Activité</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionExtras">🎁 Les Extras</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">📼 Mon Rayon</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">📋 Wantlist</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">👥 Membres</div>
@@ -371,11 +391,56 @@
 <!-- NAV -->
 <div class="nav-tabs">
   <button class="nav-tab" data-section="sectionActivity">🎬 Activité</button>
+  <button class="nav-tab" data-section="sectionExtras">🎁 Les Extras</button>
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
   <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionForum">🎬 Ciné-Club <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
+</div>
+
+<!-- SECTION LES EXTRAS -->
+<div class="section" id="sectionExtras">
+  <div id="extrasHome" style="padding:24px;max-width:680px;margin:0 auto;">
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin:0 0 6px;">🎁 Les Extras</h2>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 24px;">Des petits bonus pour les vrais cinéphiles</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+      <div class="extras-card" id="extrasCardFilms" onclick="showExtrasSection('extrasFilms')">
+        <div class="extras-card-icon">🎬</div>
+        <div class="extras-card-title">Films préférés</div>
+        <div class="extras-card-desc">Découvrez les films favoris des grands réalisateurs et personnalités du cinéma (Konbini Vidéo Club)</div>
+      </div>
+      <div class="extras-card" id="extrasCardQuiz" onclick="showExtrasSection('extrasQuiz')">
+        <div class="extras-card-icon">🎯</div>
+        <div class="extras-card-title">Quiz Ciné</div>
+        <div class="extras-card-desc">Retrouvez un film à partir de son synopsis mystère. 10 films, un seul vainqueur !</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOUS-SECTION FILMS PRÉFÉRÉS -->
+  <div id="extrasFilms" style="display:none;padding:20px 24px;max-width:780px;margin:0 auto;">
+    <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">🎬 Films préférés des cinéastes</h2>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;">Vidéo Club Konbini — cliquez sur une personnalité pour voir ses films</p>
+    <input id="extrasSearch" type="text" placeholder="Rechercher une personnalité..." oninput="filterExtrasCards(this.value)" style="width:100%;margin-bottom:16px;">
+    <div id="extrasKonbiniGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:12px;margin-bottom:24px;"></div>
+    <div id="extrasShelfSection" style="display:none;">
+      <div id="extrasShelfLabel" style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin-bottom:12px;"></div>
+      <div id="extrasShelf" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;"></div>
+      <a id="extrasLetterboxdLink" href="#" target="_blank" style="display:inline-block;margin-top:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);">Voir la liste complète sur Letterboxd →</a>
+    </div>
+  </div>
+
+  <!-- SOUS-SECTION QUIZ -->
+  <div id="extrasQuiz" style="display:none;padding:20px 24px;max-width:560px;margin:0 auto;">
+    <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">🎯 Le Synopsis Mystère</h2>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;">Retrouvez le film à partir de son synopsis</p>
+    <div id="extrasQuizCard" style="background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:20px;">
+      <button onclick="initExtrasQuiz()" class="primary">Lancer le quiz</button>
+    </div>
+  </div>
 </div>
 
 <!-- SECTION ACTIVITÉ -->
@@ -1521,6 +1586,280 @@ document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
     loadDeals(btn.dataset.url);
   });
 });
+
+// ── LES EXTRAS ──
+
+function showExtrasSection(id){
+  document.getElementById('extrasHome').style.display = id ? 'none' : 'block';
+  document.getElementById('extrasFilms').style.display = id==='extrasFilms' ? 'block' : 'none';
+  document.getElementById('extrasQuiz').style.display = id==='extrasQuiz' ? 'block' : 'none';
+  if(id==='extrasFilms') buildExtrasKonbiniGrid();
+  if(id==='extrasQuiz') document.getElementById('extrasQuizCard').innerHTML = '<button onclick="initExtrasQuiz()" class="primary">Lancer le quiz</button>';
+}
+
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  if(tab.dataset.section==='sectionExtras') tab.addEventListener('click',()=>{
+    document.getElementById('extrasHome').style.display='block';
+    document.getElementById('extrasFilms').style.display='none';
+    document.getElementById('extrasQuiz').style.display='none';
+  });
+});
+
+// ── FILMS PRÉFÉRÉS ──
+const KONBINI_PREVIEWS = {"video-club-de-ben-stiller-120-2025":["Come and See","Stalker","The Count of Monte Cristo","Anora","Sullivan's Travels"],"video-club-de-vincent-cassel-119-2025":["Divorce Italian Style","Marriage Italian Style","La Grande Bouffe","L'Avventura","La Dolce Vita"],"video-club-dhideo-kojima-special-cinema-francais":["Beauty and the Beast","Le Trou","The Wages of Fear","Sorcerer","Alphaville"],"video-club-de-jesse-eisenberg-117-2025":["The Death of Stalin","EO","The Girl with the Needle","Sweat","Crimes and Misdemeanors"],"video-club-de-luca-guadagnino-116-2025":["Uncle Boonmee Who Can Recall His Past Lives","Dream of Light","Close Your Eyes","The Conformist","Luna"],"video-club-de-denis-villeneuve-113-2025":["Persona","Seven Samurai","Sicario","Lawrence of Arabia","Dune Part Two"],"video-club-de-wes-anderson-86-2023":["Vengeance Is Mine","Drunken Angel","Simon of the Desert","City Streets","Love Me Tonight"],"video-club-dari-aster-84-2023":["Visitor Q","Ichi the Killer","Audition","Dead or Alive","In the Realm of the Senses"],"video-club-de-bong-joon-ho-83-2023":["Tokyo!","The Wages of Fear","Happening","Atlantics","Stranger by the Lake"],"video-club-de-christopher-nolan-et-cillian":["There Will Be Blood","Punch-Drunk Love","Amadeus","American Psycho","Dr. Strangelove"],"video-club-de-xavier-dolan-78-2023":["I Killed My Mother","In the Mood for Love","The Killing of a Sacred Deer","The Banshees of Inisherin","Ammonite"],"video-club-de-rian-johnson-77-2022":["First Cow","Meek's Cutoff","Nightmare Alley","The Conformist","Miller's Crossing"],"video-club-de-ruben-ostlund-71-2022":["Code Unknown","Benny's Video","The Worst Person in the World","Parasite","Scenes from a Marriage"],"video-club-dasghar-farhadi-57-2021":["The Great Beauty","Dogman","Bicycle Thieves","La Strada","Rashomon"],"video-club-de-chloe-zhao-53-2021":["Happy Together","Raise the Red Lantern","Lust Caution","Eternals","Into the Abyss"],"video-club-de-pedro-almodovar-112-2025":["Viridiana","The Criminal Life of Archibaldo de la Cruz","Nazarin","The Discreet Charm of the Bourgeoisie","Jamon Jamon"],"video-club-de-gilles-lellouche-105-2024":["Drive","Pusher","Come and See","The Fall Guy","Men Who Swim"],"video-club-de-justine-triet-88-2023":["Toni Erdmann","Anatomy of a Fall","The Worst Person in the World","Dekalog","Force Majeure"],"video-club-de-michel-gondry-89-2023":["Big Deal on Madonna Street","Summer with Monika","Force Majeure","Tokyo!","The Host"],"video-club-de-wim-wenders-92-2023":["Good Morning","The End of Summer","The Third Murder","On Body and Soul","Toni Erdmann"],"video-club-de-ladj-ly-93-2023":["Leila's Brothers","Parasite","Love According to Dalva","La Haine","Satan"],"video-club-de-mathieu-kassovitz-42-2020":["I Am Cuba","1917","Mad Max Fury Road","Django Unchained","Jaws"],"video-club-de-thomas-vinterberg-40-2020":["Stalker","Fanny and Alexander","The Celebration","The Leopard","Nocturne"],"video-club-dalbert-dupontel-39-2020":["Oldboy","Heimat","See You Up There","Das Boot","Woman at War"],"video-club-de-gaspar-noe-2-2018":["Orchestra Rehearsal","The Towering Inferno","The Poseidon Adventure","Wake in Fright","The Mother and the Whore"],"video-club-de-quentin-dupieux-1-2018":["Re-Animator","It Follows","The Magnificent One","The Florida Project","Get Out Your Handkerchiefs"],"video-club-de-claire-denis-4-2018":["Au Hasard Balthazar","Pierrot le Fou","The Lovers on the Bridge","La Haine","The Life Aquatic with Steve Zissou"],"video-club-de-jacques-audiard-3-2018":["Holy Motors","Reality","The Sisters Brothers","No Country for Old Men","Ordet"]};
+
+const KONBINI_LISTS = [
+  {nom:"Ben Stiller",slug:"video-club-de-ben-stiller-120-2025"},{nom:"Vincent Cassel",slug:"video-club-de-vincent-cassel-119-2025"},
+  {nom:"Hideo Kojima",slug:"video-club-dhideo-kojima-special-cinema-francais"},{nom:"Jesse Eisenberg",slug:"video-club-de-jesse-eisenberg-117-2025"},
+  {nom:"Luca Guadagnino",slug:"video-club-de-luca-guadagnino-116-2025"},{nom:"Denis Villeneuve",slug:"video-club-de-denis-villeneuve-113-2025"},
+  {nom:"Pedro Almodovar",slug:"video-club-de-pedro-almodovar-112-2025"},{nom:"Wes Anderson",slug:"video-club-de-wes-anderson-86-2023"},
+  {nom:"Ari Aster",slug:"video-club-dari-aster-84-2023"},{nom:"Bong Joon-ho",slug:"video-club-de-bong-joon-ho-83-2023"},
+  {nom:"Christopher Nolan",slug:"video-club-de-christopher-nolan-et-cillian"},{nom:"Xavier Dolan",slug:"video-club-de-xavier-dolan-78-2023"},
+  {nom:"Rian Johnson",slug:"video-club-de-rian-johnson-77-2022"},{nom:"Ruben Ostlund",slug:"video-club-de-ruben-ostlund-71-2022"},
+  {nom:"Asghar Farhadi",slug:"video-club-dasghar-farhadi-57-2021"},{nom:"Chloe Zhao",slug:"video-club-de-chloe-zhao-53-2021"},
+  {nom:"Gilles Lellouche",slug:"video-club-de-gilles-lellouche-105-2024"},{nom:"Justine Triet",slug:"video-club-de-justine-triet-88-2023"},
+  {nom:"Michel Gondry",slug:"video-club-de-michel-gondry-89-2023"},{nom:"Wim Wenders",slug:"video-club-de-wim-wenders-92-2023"},
+  {nom:"Ladj Ly",slug:"video-club-de-ladj-ly-93-2023"},{nom:"Mathieu Kassovitz",slug:"video-club-de-mathieu-kassovitz-42-2020"},
+  {nom:"Thomas Vinterberg",slug:"video-club-de-thomas-vinterberg-40-2020"},{nom:"Albert Dupontel",slug:"video-club-dalbert-dupontel-39-2020"},
+  {nom:"Gaspar Noé",slug:"video-club-de-gaspar-noe-2-2018"},{nom:"Quentin Dupieux",slug:"video-club-de-quentin-dupieux-1-2018"},
+  {nom:"Claire Denis",slug:"video-club-de-claire-denis-4-2018"},{nom:"Jacques Audiard",slug:"video-club-de-jacques-audiard-3-2018"}
+];
+
+const extrasTmdbCache = {};
+async function getExtrasTmdbPhoto(nom){
+  if(extrasTmdbCache[nom]) return extrasTmdbCache[nom];
+  try{
+    const r = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_KEY}&query=${encodeURIComponent(nom)}&language=fr-FR`);
+    const d = await r.json();
+    const p = d.results?.[0]?.profile_path;
+    const url = p ? `https://image.tmdb.org/t/p/w185${p}` : null;
+    extrasTmdbCache[nom] = url;
+    return url;
+  }catch{ return null; }
+}
+
+function buildExtrasKonbiniGrid(){
+  const grid = document.getElementById('extrasKonbiniGrid');
+  if(grid.children.length > 0) return; // déjà construit
+  KONBINI_LISTS.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'kc-card';
+    card.dataset.nom = item.nom.toLowerCase();
+    card.innerHTML = `<img class="kc-img" src="" alt="${item.nom}"><div class="kc-nom">${item.nom}</div>`;
+    card.addEventListener('click',()=> loadExtrasShelf(item, card));
+    grid.appendChild(card);
+    getExtrasTmdbPhoto(item.nom).then(url=>{ if(url) card.querySelector('.kc-img').src = url; });
+  });
+}
+
+function filterExtrasCards(q){
+  document.querySelectorAll('#extrasKonbiniGrid .kc-card').forEach(card=>{
+    card.style.display = (!q || card.dataset.nom.includes(q.toLowerCase())) ? '' : 'none';
+  });
+}
+
+async function loadExtrasShelf(item, cardEl){
+  document.querySelectorAll('#extrasKonbiniGrid .kc-card').forEach(c=>c.classList.remove('active'));
+  if(cardEl) cardEl.classList.add('active');
+  const section = document.getElementById('extrasShelfSection');
+  const label = document.getElementById('extrasShelfLabel');
+  const shelf = document.getElementById('extrasShelf');
+  const link = document.getElementById('extrasLetterboxdLink');
+  section.style.display = 'block';
+  label.textContent = 'Les films préférés de ' + item.nom;
+  link.href = 'https://letterboxd.com/konbinifr/list/' + item.slug + '/';
+  shelf.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
+  section.scrollIntoView({behavior:'smooth',block:'start'});
+  const titres = KONBINI_PREVIEWS[item.slug] || [];
+  if(!titres.length){ shelf.innerHTML = '<div style="color:var(--muted);">Aucun film trouvé.</div>'; return; }
+  const films = await Promise.all(titres.map(async t=>{
+    try{
+      const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(t)}&language=fr-FR`);
+      const d = await r.json();
+      const m = d.results?.[0];
+      return m ? {title:m.title||t, poster:m.poster_path, year:(m.release_date||'').slice(0,4)} : {title:t,poster:null,year:''};
+    }catch{ return {title:t,poster:null,year:''}; }
+  }));
+  shelf.innerHTML = films.map(f=>`
+    <div style="cursor:default;">
+      <div style="aspect-ratio:2/3;background:#1c1c26;border-radius:4px;overflow:hidden;margin-bottom:4px;">
+        ${f.poster?`<img src="https://image.tmdb.org/t/p/w185${f.poster}" style="width:100%;height:100%;object-fit:cover;">`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:10px;color:var(--muted);padding:4px;text-align:center;">${f.title}</div>`}
+      </div>
+      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.title}</div>
+      ${f.year?`<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">${f.year}</div>`:''}
+    </div>
+  `).join('');
+}
+
+// ── QUIZ ──
+let extrasQuizState = null;
+
+function getAllQuizTitres(){
+  const pool = [];
+  Object.values(KONBINI_PREVIEWS).forEach(titres=>titres.forEach(t=>{ if(!pool.includes(t)) pool.push(t); }));
+  return pool;
+}
+
+function shuffleArr(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+async function initExtrasQuiz(){
+  const card = document.getElementById('extrasQuizCard');
+  card.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Préparation du quiz…</div>';
+  const pool = shuffleArr(getAllQuizTitres()).slice(0,30);
+  const results = await Promise.all(pool.map(async t=>{
+    try{
+      const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(t)}&language=fr-FR`);
+      const d = await r.json();
+      const m = d.results?.[0];
+      return (m&&m.overview&&m.overview.length>40&&m.poster_path) ? {id:m.id,titre:m.title,annee:(m.release_date||'').slice(0,4),poster:m.poster_path,overview:m.overview} : null;
+    }catch{ return null; }
+  }));
+  const films = results.filter(Boolean).slice(0,10);
+  if(!films.length){ card.innerHTML='<div style="color:var(--muted);">Impossible de charger le quiz.</div>'; return; }
+  extrasQuizState = {films,idx:0,score:0,pips:[],jokerLettre:true};
+  renderExtrasQuiz();
+}
+
+let _extrasQuizSelected = null;
+
+function renderExtrasQuiz(){
+  const s = extrasQuizState;
+  const card = document.getElementById('extrasQuizCard');
+  if(!card) return;
+  if(s.idx >= s.films.length){ renderExtrasQuizFin(); return; }
+  const film = s.films[s.idx];
+  const pips = s.films.map((_,i)=>{
+    let cls='quiz-pip';
+    if(i<s.idx) cls+=' '+(s.pips[i]==='ok'?'done-ok':'done-ko');
+    if(i===s.idx) cls+=' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  _extrasQuizSelected = null;
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">Score : <strong style="color:var(--cyan);">${s.score}</strong></div>
+      <button onclick="extrasQuizJoker()" style="font-size:10px;padding:4px 10px;" ${s.jokerLettre?'':'disabled'}>💡 Indice</button>
+    </div>
+    <div class="quiz-progress">${pips}</div>
+    <div class="quiz-synopsis">${film.overview}</div>
+    <div id="extrasQuizIndice" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--pink);margin-bottom:10px;min-height:16px;"></div>
+    <div style="position:relative;margin-bottom:12px;">
+      <input id="extrasQuizInput" type="text" placeholder="Nom du film…" autocomplete="off" oninput="extrasQuizSearch(this.value)" style="width:100%;">
+      <div id="extrasQuizSugg" style="position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--card-border);border-radius:0 0 6px 6px;z-index:10;max-height:200px;overflow-y:auto;display:none;"></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="extrasQuizValider" onclick="extrasQuizValider()" class="primary" disabled>Valider</button>
+      <button onclick="extrasQuizPasser()" style="font-size:12px;">Je sais pas</button>
+    </div>`;
+  document.getElementById('extrasQuizInput').focus();
+}
+
+async function extrasQuizSearch(val){
+  const sugg = document.getElementById('extrasQuizSugg');
+  const btn = document.getElementById('extrasQuizValider');
+  _extrasQuizSelected = null;
+  if(btn) btn.disabled = true;
+  if(!val||val.length<2){ if(sugg) sugg.style.display='none'; return; }
+  try{
+    const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(val)}&language=fr-FR`);
+    const d = await r.json();
+    const res = (d.results||[]).slice(0,6);
+    if(!res.length){ sugg.style.display='none'; return; }
+    sugg.innerHTML = res.map(m=>{
+      const yr = m.release_date ? m.release_date.slice(0,4) : '';
+      const img = m.poster_path ? `<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" style="width:28px;height:42px;object-fit:cover;border-radius:2px;flex-shrink:0;">` : '<div style="width:28px;height:42px;background:#1c1c26;border-radius:2px;flex-shrink:0;"></div>';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;" onclick="extrasQuizSelect(${m.id},'${m.title.replace(/'/g,"\\'")}')">
+        ${img}<div><div style="font-size:13px;">${m.title}</div><div style="font-size:11px;color:var(--muted);">${yr}</div></div></div>`;
+    }).join('');
+    sugg.style.display='block';
+  }catch{ sugg.style.display='none'; }
+}
+
+function extrasQuizSelect(id, titre){
+  _extrasQuizSelected = {id,titre};
+  const inp = document.getElementById('extrasQuizInput');
+  const sugg = document.getElementById('extrasQuizSugg');
+  const btn = document.getElementById('extrasQuizValider');
+  if(inp) inp.value = titre;
+  if(sugg) sugg.style.display='none';
+  if(btn) btn.disabled = false;
+}
+
+function extrasQuizValider(){
+  if(!_extrasQuizSelected) return;
+  const s = extrasQuizState;
+  const film = s.films[s.idx];
+  const ok = _extrasQuizSelected.id === film.id;
+  if(ok) s.score++;
+  s.pips[s.idx] = ok?'ok':'ko';
+  renderExtrasQuizReveal(ok, film);
+}
+
+function extrasQuizPasser(){
+  const s = extrasQuizState;
+  s.pips[s.idx] = 'ko';
+  renderExtrasQuizReveal(false, s.films[s.idx]);
+}
+
+function extrasQuizJoker(){
+  const s = extrasQuizState;
+  s.jokerLettre = false;
+  const el = document.getElementById('extrasQuizIndice');
+  if(el){
+    const t = s.films[s.idx].titre;
+    el.textContent = `💡 Le titre commence par "${t[0].toUpperCase()}" · ${t.length} lettres`;
+  }
+  const btn = document.querySelector('button[onclick="extrasQuizJoker()"]');
+  if(btn) btn.disabled = true;
+}
+
+function renderExtrasQuizReveal(ok, film){
+  const card = document.getElementById('extrasQuizCard');
+  const s = extrasQuizState;
+  const pips = s.films.map((_,i)=>{
+    let cls='quiz-pip';
+    if(i<=s.idx) cls+=' '+(s.pips[i]==='ok'?'done-ok':'done-ko');
+    if(i===s.idx+1) cls+=' current';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  const poster = film.poster ? `<img src="https://image.tmdb.org/t/p/w92${film.poster}" style="width:50px;height:75px;object-fit:cover;border-radius:3px;flex-shrink:0;">` : '';
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">Score : <strong style="color:var(--cyan);">${s.score}</strong></div>
+    </div>
+    <div class="quiz-progress">${pips}</div>
+    <div class="${ok?'quiz-reveal-ok':'quiz-reveal-ko'}">
+      ${poster}
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${ok?'var(--cyan)':'#ff4444'};margin-bottom:4px;">${ok?'✅ BONNE RÉPONSE !':'❌ MAUVAISE RÉPONSE'}</div>
+        <div style="font-size:14px;font-weight:600;">${film.titre}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">${film.annee}</div>
+      </div>
+    </div>
+    <button onclick="extrasQuizSuivant()" class="primary">Film suivant →</button>`;
+}
+
+function extrasQuizSuivant(){
+  extrasQuizState.idx++;
+  extrasQuizState.jokerLettre = true;
+  renderExtrasQuiz();
+}
+
+function renderExtrasQuizFin(){
+  const s = extrasQuizState;
+  const card = document.getElementById('extrasQuizCard');
+  const pct = Math.round(s.score/s.films.length*100);
+  card.innerHTML = `
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:48px;color:var(--cyan);">${s.score}/${s.films.length}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:4px;">${pct}% de bonnes réponses</div>
+      <div style="font-size:24px;margin:12px 0;">${pct>=80?'🏆':pct>=50?'🎬':'🎥'}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:12px;color:var(--pink);margin-bottom:20px;">
+        ${pct>=80?'Expert ciné !':pct>=50?'Bon cinéphile !':'Continue à regarder des films !'}
+      </div>
+      <button onclick="initExtrasQuiz()" class="primary">Rejouer</button>
+    </div>`;
+}
 
 // ── ACTIVITÉ RÉCENTE ──
 async function loadActivity(){
