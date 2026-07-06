@@ -1320,33 +1320,25 @@ async function loadDeals(rssUrl){
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement des deals...</div>';
   try{
     const proxy = 'https://corsproxy.io/?' + encodeURIComponent(rssUrl);
-    const res = await fetch(proxy);
-    const text = await res.text();
+    const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl) + '&api_key=qhxlhvjdpjxbfkwp6bkzxvr5tpaqxvjfxkjuiom&count=20';
+    const res = await fetch(apiUrl);
+    const data = await res.json();
     const parser = new DOMParser();
-    const xml = parser.parseFromString(text, 'text/xml');
-    const items = [...xml.querySelectorAll('item')].slice(0, 20);
-    if(!items.length){
+    if(!data.items || !data.items.length){
       grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Aucun deal trouvé pour le moment.</div>';
       return;
     }
-    grid.innerHTML = items.map(item=>{
-      const title = item.querySelector('title')?.textContent || 'Deal sans titre';
-      const link = item.querySelector('link')?.textContent || '#';
-      const desc = item.querySelector('description')?.textContent || '';
-      const date = item.querySelector('pubDate')?.textContent || '';
-      const d = date ? new Date(date).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      // Extraire la température du deal si dispo
-      const tempMatch = desc.match(/(\d+)\s*°/);
-      const temp = tempMatch ? tempMatch[1]+'°' : '🔥';
-      // Extraire le prix si présent dans le titre
+    grid.innerHTML = data.items.slice(0,20).map(item=>{
+      const title = (item.title||'Deal').replace(/\[.*?\]/g,'').trim();
+      const link = item.link || '#';
+      const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
       const priceMatch = title.match(/(\d+[\.,]\d+\s*€|\d+\s*€)/);
       const price = priceMatch ? priceMatch[0] : '';
-      const cleanTitle = title.replace(/\[.*?\]/g,'').trim();
       return `<div class="deal-card">
-        <div class="deal-temp">${temp}</div>
+        <div class="deal-temp">🔥</div>
         <div style="flex:1;min-width:0;">
-          <div class="deal-title">${cleanTitle}</div>
-          <div class="deal-meta">${d}${price?' · <span style="color:var(--cyan);font-weight:700;">'+price+'</span>':''}
+          <div class="deal-title">${title}</div>
+          <div class="deal-meta">${date}${price?' · <span style="color:var(--cyan);font-weight:700;">'+price+'</span>':''}
             <a href="${link}" target="_blank" class="deal-link">Voir sur Dealabs →</a>
           </div>
         </div>
