@@ -54,10 +54,10 @@
 
   /* NAV ONGLETS */
   .nav-tabs{display:none;}
-  @media(min-width:600px){.nav-tabs{display:flex;gap:0;border-bottom:2px solid var(--card-border);padding:0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:sticky;top:0;z-index:41;background:var(--bg);}}
-  .nav-tab{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:12px 14px;cursor:pointer;border:none;background:transparent;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;flex-shrink:0;}
-  .nav-tab:hover{color:var(--text);}
-  .nav-tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+  @media(min-width:600px){.nav-tabs{display:flex;gap:4px;border-bottom:2px solid var(--card-border);padding:8px 16px 0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:sticky;top:0;z-index:41;background:var(--bg);}}
+  .nav-tab{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:8px 16px;cursor:pointer;border:1px solid var(--card-border);border-bottom:none;background:transparent;color:var(--muted);border-radius:6px 6px 0 0;margin-bottom:-2px;flex-shrink:0;transition:all .15s;}
+  .nav-tab:hover{color:var(--text);border-color:var(--card-border);background:rgba(255,255,255,0.04);}
+  .nav-tab.active{color:#0d0d14;background:var(--cyan);border-color:var(--cyan);font-weight:700;}
 
   /* SECTIONS */
   .section{display:none;}.section.active{display:block;}
@@ -373,13 +373,13 @@
       </button>
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">🎬 Activité</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionExtras">🎁 Les Extras</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">📼 Mon Rayon</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">📋 Wantlist</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">👥 Membres</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionForum">🎞️ Ciné-Club</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionMessages">✉️ Messages <span id="msgBadgeMenu" style="background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;display:none;"></span></div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">Mon Rayon</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">Ma Wantlist</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">Membres</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionMessages">Messages <span id="msgBadgeMenu" style="background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;display:none;"></span></div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">Derniers Ajouts</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionForum">Le Mur</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionExtras">Les Extras</div>
         <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
         <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
         <div class="hamburger-item hamburger-danger" id="menuLogout">⏻ Déconnexion</div>
@@ -390,13 +390,13 @@
 
 <!-- NAV -->
 <div class="nav-tabs">
-  <button class="nav-tab" data-section="sectionActivity">🎬 Activité</button>
-  <button class="nav-tab" data-section="sectionExtras">🎁 Les Extras</button>
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
-  <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
+  <button class="nav-tab" data-section="sectionWantlist">Ma Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
-  <button class="nav-tab" data-section="sectionForum">🎬 Ciné-Club <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
-  <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
+  <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:#0d0d14;color:var(--cyan);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
+  <button class="nav-tab" data-section="sectionActivity">Derniers Ajouts</button>
+  <button class="nav-tab" data-section="sectionForum">Le Mur <span id="notifBadge" style="display:none;background:#0d0d14;color:var(--pink);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
+  <button class="nav-tab" data-section="sectionExtras">Les Extras</button>
 </div>
 
 <!-- SECTION LES EXTRAS -->
@@ -792,9 +792,24 @@
     <div class="field" id="wantPosterField">
       <label>Affiche</label>
       <div class="poster-preview" id="wantPosterPreview"><span>Pas encore d'affiche</span></div>
-      <button id="wantSearchBtn" type="button">Chercher l'affiche</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="wantSearchBtn" type="button">Chercher par titre</button>
+        <button id="wantSearchDirectorBtn" type="button">Par réalisateur</button>
+      </div>
+      <div id="wantDirectorWrap" style="display:none;margin-top:8px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="wantDirectorInput" placeholder="Nom du réalisateur..." style="flex:1;">
+          <button id="wantDirectorGoBtn" type="button">Chercher</button>
+        </div>
+        <div id="wantDirectorResults" style="margin-top:8px;"></div>
+      </div>
       <div id="wantResults" class="search-results" style="margin-top:10px;"></div>
       <div class="hint" id="wantHint"></div>
+    </div>
+    <!-- Qui possède ce film dans la communauté -->
+    <div id="wantOwnersBlock" style="display:none;margin-top:4px;padding:10px 12px;background:#1c1c26;border-radius:6px;">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:6px;">DANS LA COMMUNAUTÉ</div>
+      <div id="wantOwnersList"></div>
     </div>
     <div class="modal-actions">
       <button id="wantDeleteBtn" class="danger" style="display:none;">Supprimer</button>
@@ -2329,7 +2344,7 @@ async function renderWantlist(){
       +'<div class="poster-wrap">'+(w.posterUrl?'<img src="'+w.posterUrl+'">'
         :'<div class="poster-placeholder">'+w.title+'</div>')+'</div>'
       +'<div class="tape-info"><p class="tape-title">'+w.title+'</p>'+(w.year?'<span class="tape-year">'+w.year+'</span>':'')+'</div>'
-      +(owners.length>0?'<div class="want-owners">Posside par : '+owners.join(', ')+'</div>':'')
+      +(owners.length>0?'<div class="want-owners">Possédé par : '+owners.join(', ')+'</div>':'')
       +'</div>';
   }).join('');
   grid.querySelectorAll('.want-card').forEach(el=>el.addEventListener('click',()=>openWantEdit(el.dataset.wid)));
@@ -2355,8 +2370,13 @@ function openWantEdit(id){
   document.getElementById('wantPosterPreview').innerHTML=w.posterUrl?'<img src="'+w.posterUrl+'">':"<span>Pas d'affiche</span>";
   document.getElementById('wantResults').innerHTML='';
   document.getElementById('wantHint').textContent='';
+  document.getElementById('wantDirectorWrap').style.display='none';
   document.getElementById('wantDeleteBtn').style.display='inline-block';
   document.getElementById('overlayWant').classList.add('open');
+  document.body.classList.add('modal-open');
+  // Afficher qui possède ce film
+  if(w.tmdbId) loadWantOwners(w.tmdbId);
+  else document.getElementById('wantOwnersBlock').style.display='none';
 }
 async function saveWant(){
   const title=document.getElementById('wantTitle').value.trim();
@@ -2400,7 +2420,8 @@ async function searchWantPoster(){
         img.classList.add('selected');
         pendingWantPoster={url:img.dataset.url}; pendingWantTmdbId=img.dataset.id;
         document.getElementById('wantPosterPreview').innerHTML='<img src="'+img.dataset.url+'">';
-        document.getElementById('wantHint').textContent='Film selectionne.';
+        document.getElementById('wantHint').textContent='Film sélectionné.';
+        loadWantOwners(img.dataset.id);
       });
     });
   }catch(e){ document.getElementById('wantHint').textContent='Erreur.'; }
@@ -3200,7 +3221,77 @@ document.getElementById('addWantBtn').addEventListener('click',openWantAdd);
 document.getElementById('wantCancelBtn').addEventListener('click',()=>{ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); });
 document.getElementById('wantSaveBtn').addEventListener('click',saveWant);
 document.getElementById('wantDeleteBtn').addEventListener('click',deleteWant);
-document.getElementById('wantSearchBtn').addEventListener('click',searchWantPoster);
+document.getElementById('wantSearchBtn').addEventListener('click', ()=>{
+  document.getElementById('wantDirectorWrap').style.display='none';
+  searchWantPoster();
+});
+
+document.getElementById('wantSearchDirectorBtn').addEventListener('click', ()=>{
+  const wrap = document.getElementById('wantDirectorWrap');
+  wrap.style.display = wrap.style.display==='none' ? 'block' : 'none';
+  if(wrap.style.display==='block') document.getElementById('wantDirectorInput').focus();
+});
+
+document.getElementById('wantDirectorGoBtn').addEventListener('click', searchWantByDirector);
+document.getElementById('wantDirectorInput').addEventListener('keydown', e=>{ if(e.key==='Enter') searchWantByDirector(); });
+
+async function searchWantByDirector(){
+  const query = document.getElementById('wantDirectorInput').value.trim();
+  if(!query) return;
+  document.getElementById('wantHint').textContent = 'Recherche...';
+  document.getElementById('wantDirectorResults').innerHTML = '';
+  try{
+    const r = await fetch(`https://api.themoviedb.org/3/search/person?api_key=${TMDB_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
+    const d = await r.json();
+    const directors = (d.results||[]).filter(p=>
+      p.known_for_department==='Directing' || (p.known_for||[]).some(k=>k.media_type==='movie')
+    ).slice(0,5);
+    if(!directors.length){ document.getElementById('wantHint').textContent='Aucun réalisateur trouvé.'; return; }
+    document.getElementById('wantHint').textContent='Clique sur un réalisateur pour voir ses films.';
+    document.getElementById('wantDirectorResults').innerHTML = directors.map(p=>
+      `<button class="director-name-btn" data-did="${p.id}" data-dname="${p.name}">${p.name}</button>`
+    ).join('');
+    document.querySelectorAll('#wantDirectorResults .director-name-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        document.getElementById('wantHint').textContent='Chargement des films...';
+        document.getElementById('wantResults').innerHTML='';
+        const r2 = await fetch(`https://api.themoviedb.org/3/person/${btn.dataset.did}/movie_credits?api_key=${TMDB_KEY}&language=fr-FR`);
+        const d2 = await r2.json();
+        const films = (d2.crew||[]).filter(f=>f.job==='Director'&&f.poster_path).sort((a,b)=>(b.popularity||0)-(a.popularity||0)).slice(0,12);
+        document.getElementById('wantResults').innerHTML = films.map(f=>
+          `<img src="https://image.tmdb.org/t/p/w92${f.poster_path}" data-id="${f.id}" data-title="${f.title}" data-year="${(f.release_date||'').slice(0,4)}" data-poster="https://image.tmdb.org/t/p/w500${f.poster_path}" title="${f.title}">`
+        ).join('');
+        document.getElementById('wantHint').textContent='Clique sur une affiche pour la sélectionner.';
+        document.getElementById('wantDirectorWrap').style.display='none';
+        document.querySelectorAll('#wantResults img').forEach(img=>{
+          img.addEventListener('click',()=>{
+            document.querySelectorAll('#wantResults img').forEach(i=>i.classList.remove('selected'));
+            img.classList.add('selected');
+            pendingWantPoster=img.dataset.poster;
+            pendingWantTmdbId=parseInt(img.dataset.id);
+            document.getElementById('wantPosterPreview').innerHTML=`<img src="${pendingWantPoster}">`;
+            document.getElementById('wantTitle').value=img.dataset.title;
+            document.getElementById('wantHint').textContent='✓ Film sélectionné !';
+            loadWantOwners(pendingWantTmdbId);
+          });
+        });
+      });
+    });
+  }catch(e){ document.getElementById('wantHint').textContent='Erreur de recherche.'; }
+}
+
+async function loadWantOwners(tmdbId){
+  const block = document.getElementById('wantOwnersBlock');
+  const list = document.getElementById('wantOwnersList');
+  if(!tmdbId){ block.style.display='none'; return; }
+  const {data} = await sb.from('collection').select('user_id,profiles(username)').eq('tmdb_id',tmdbId);
+  const others = (data||[]).filter(o=>o.user_id!==currentUser.id&&o.profiles);
+  if(!others.length){ block.style.display='none'; return; }
+  block.style.display='block';
+  list.innerHTML = others.map(o=>
+    `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-right:8px;">📀 ${o.profiles.username}</span>`
+  ).join('');
+}
 document.getElementById('overlayWant').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayWant')){ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); }});
 document.getElementById('memberCloseBtn').addEventListener('click',()=>{ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); });
 document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); }});
