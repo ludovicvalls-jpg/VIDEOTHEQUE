@@ -872,8 +872,10 @@ async function onLogin(user){
 
   // Si le profil n'existe pas encore, on le crée avec le pseudo choisi à l'inscription
   if(!profile){
+    // Chercher le pseudo dans les métadonnées Supabase (fonctionne sur tous les appareils)
+    const metaUsername = user.user_metadata?.username;
     const savedUsername = localStorage.getItem('pendingUsername');
-    const username = savedUsername || ('Membre_' + Math.random().toString(36).slice(2,7).toUpperCase());
+    const username = metaUsername || savedUsername || ('Membre_' + Math.random().toString(36).slice(2,7).toUpperCase());
     await sb.from('profiles').insert({id:user.id, username, collection_public:true});
     localStorage.removeItem('pendingUsername');
     const {data:newProfile}=await sb.from('profiles').select('*').eq('id',user.id).single();
@@ -893,12 +895,16 @@ async function onLogin(user){
   updateCurrentAvatar(profile.avatar_url||null, profile.avatar_position||null);
   updateBannerPreview(profile.banner_url||null);
 
-  // Si le pseudo ressemble à un pseudo auto-généré (Membre_XXXXX), on redirige vers le profil
+  // Si le pseudo est auto-généré, afficher un message discret dans le profil
+  // (sans redirection ni popup)
   if(!profile.username || profile.username.startsWith('Membre_')){
-    alert("Bienvenue ! Commence par choisir un pseudo dans l'onglet Mon Profil.");
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.getElementById('sectionProfile').classList.add('active');
+    setTimeout(()=>{
+      const msg = document.getElementById('profileMsg');
+      if(msg){
+        msg.style.color='var(--pink)';
+        msg.textContent='⚠️ Choisis un pseudo pour que les autres membres puissent te reconnaître !';
+      }
+    }, 1000);
   }
 
   await loadCollection();
@@ -961,7 +967,10 @@ document.getElementById('signupBtn').addEventListener('click',async()=>{
   if(password.length<8){ showLoginError("❌ Le mot de passe doit faire au moins 8 caractères."); return; }
 
   showLoginMsg("Création du compte...");
-  const {data,error}=await sb.auth.signUp({email,password});
+  const {data,error}=await sb.auth.signUp({
+    email, password,
+    options: { data: { username } }  // sauvegardé dans les métadonnées du compte
+  });
   if(error){
     if(error.message.includes('rate limit')||error.message.includes('Rate limit')){
       showLoginError("❌ Trop de tentatives. Attends quelques minutes avant de réessayer.");
