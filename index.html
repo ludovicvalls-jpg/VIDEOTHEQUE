@@ -2274,13 +2274,14 @@ async function openMemberCollection(userId,username){
     if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>{
       const clickable = (it.forSale||it.forTrade) && userId!==currentUser.id;
-      return '<div class="tape" style="cursor:'+(clickable?'pointer':'default')+';" data-title="'+it.title+'" data-sale="'+it.forSale+'" data-trade="'+it.forTrade+'">'
+      return '<div class="tape '+(it.isSteelbook?'steelbook':'')+'" style="cursor:'+(clickable?'pointer':'default')+';" data-title="'+it.title+'" data-sale="'+it.forSale+'" data-trade="'+it.forTrade+'">'
         +'<div class="poster-wrap">'
         +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
         +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
           :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
         +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
         +'<div class="tape-bottom"><div class="tape-format-row"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
+        +(it.isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
         +(clickable?'<span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);">✉️ Contacter</span>':'')
         +'</div></div>'
         +'</div>';
