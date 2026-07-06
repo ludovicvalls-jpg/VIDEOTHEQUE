@@ -355,7 +355,6 @@
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">🎬 Activité</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionDeals">🔥 Bons Plans</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">📼 Mon Rayon</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">📋 Wantlist</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">👥 Membres</div>
@@ -372,30 +371,11 @@
 <!-- NAV -->
 <div class="nav-tabs">
   <button class="nav-tab" data-section="sectionActivity">🎬 Activité</button>
-  <button class="nav-tab" data-section="sectionDeals">🔥 Bons Plans</button>
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
   <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionForum">🎬 Ciné-Club <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
-</div>
-
-<!-- SECTION BONS PLANS -->
-<div class="section" id="sectionDeals">
-  <div style="padding:20px 24px;max-width:680px;margin:0 auto;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin:0;">🔥 Bons Plans Blu-ray & 4K</h2>
-      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">Source : Dealabs</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="dealsFilters">
-      <button class="deals-filter-btn active" data-url="https://www.dealabs.com/groupe/blu-ray.rss">Tout</button>
-      <button class="deals-filter-btn" data-url="https://www.dealabs.com/groupe/blu-ray.rss">Blu-ray</button>
-      <button class="deals-filter-btn" data-url="https://www.dealabs.com/groupe/4k-ultra-hd.rss">4K Ultra HD</button>
-    </div>
-    <div id="dealsGrid" style="display:flex;flex-direction:column;gap:12px;">
-      <div style="text-align:center;padding:40px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;">Clique sur l'onglet pour charger les deals...</div>
-    </div>
-  </div>
 </div>
 
 <!-- SECTION ACTIVITÉ -->
@@ -596,8 +576,13 @@
     <div class="field"><label>Pseudo</label><input type="text" id="profileUsername"></div>
     <div class="field">
       <label>Pseudo Letterboxd <span style="font-size:10px;color:var(--muted);">(optionnel)</span></label>
-      <input type="text" id="profileLetterboxd" placeholder="Ex: monpseudo">
-      <div class="hint">Tes dernières critiques Letterboxd s'afficheront sur ton profil.</div>
+      <input type="text" id="profileLetterboxd" placeholder="Ex: MonPseudo">
+      <div class="hint">Les autres membres pourront visiter ton profil Letterboxd.</div>
+    </div>
+    <div class="field">
+      <label>Pseudo Sens Critique <span style="font-size:10px;color:var(--muted);">(optionnel)</span></label>
+      <input type="text" id="profileSensCritique" placeholder="Ex: MonPseudo">
+      <div class="hint">Les autres membres pourront visiter ton profil Sens Critique.</div>
     </div>
     <div class="field">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
@@ -762,6 +747,7 @@
         <div>
           <h2 id="memberModalTitle" style="margin:0 0 4px;"></h2>
           <div id="memberProfileBadge" style="display:flex;align-items:center;gap:8px;margin-top:4px;"></div>
+        <div id="memberExternalLinks" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
         </div>
         <div style="margin-left:auto;" id="memberMsgBtn"></div>
       </div>
@@ -834,6 +820,7 @@ async function onLogin(user){
 
   document.getElementById('profileUsername').value=profile.username||'';
   document.getElementById('profileLetterboxd').value=profile.letterboxd_username||'';
+  document.getElementById('profileSensCritique').value=profile.senscritique_username||'';
   document.getElementById('profilePublic').checked=profile.collection_public!==false;
   updateCurrentAvatar(profile.avatar_url||null, profile.avatar_position||null);
   updateBannerPreview(profile.banner_url||null);
@@ -1042,7 +1029,6 @@ document.querySelectorAll('.nav-mobile-item').forEach(item=>{
     if(section==='sectionForum') loadForum();
     if(section==='sectionActivity') loadActivity();
     if(section==='sectionMessages') loadMessages();
-    if(section==='sectionDeals') loadDeals('https://www.dealabs.com/groupe/blu-ray.rss');
   });
 });
 
@@ -1527,39 +1513,6 @@ function openMemberFilm(it, memberUserId, memberUsername){
 document.getElementById('mfCloseBtn').addEventListener('click',()=>document.getElementById('overlayMemberFilm').classList.remove('open'));
 document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) document.getElementById('overlayMemberFilm').classList.remove('open'); });
 
-async function loadDeals(rssUrl){
-  const grid = document.getElementById('dealsGrid');
-  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement des deals...</div>';
-  try{
-    const proxy = 'https://corsproxy.io/?' + encodeURIComponent(rssUrl);
-    const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(rssUrl) + '&api_key=qhxlhvjdpjxbfkwp6bkzxvr5tpaqxvjfxkjuiom&count=20';
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-    const parser = new DOMParser();
-    if(!data.items || !data.items.length){
-      grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Aucun deal trouvé pour le moment.</div>';
-      return;
-    }
-    grid.innerHTML = data.items.slice(0,20).map(item=>{
-      const title = (item.title||'Deal').replace(/\[.*?\]/g,'').trim();
-      const link = item.link || '#';
-      const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-      const priceMatch = title.match(/(\d+[\.,]\d+\s*€|\d+\s*€)/);
-      const price = priceMatch ? priceMatch[0] : '';
-      return `<div class="deal-card">
-        <div class="deal-temp">🔥</div>
-        <div style="flex:1;min-width:0;">
-          <div class="deal-title">${title}</div>
-          <div class="deal-meta">${date}${price?' · <span style="color:var(--cyan);font-weight:700;">'+price+'</span>':''}
-            <a href="${link}" target="_blank" class="deal-link">Voir sur Dealabs →</a>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-  }catch(e){
-    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Impossible de charger les deals.<br>Vérifie ta connexion et réessaie.</div>';
-  }
-}
 
 document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1887,7 +1840,6 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if(tab.dataset.section==='sectionForum') loadForum();
     if(tab.dataset.section==='sectionActivity') loadActivity();
     if(tab.dataset.section==='sectionMessages') loadMessages();
-    if(tab.dataset.section==='sectionDeals') loadDeals('https://www.dealabs.com/groupe/blu-ray.rss');
   });
 });
 
@@ -2220,7 +2172,7 @@ async function openMemberCollection(userId,username){
   document.body.classList.add('modal-open');
 
   // Charger le profil du membre pour la photo et le badge
-  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username').eq('id',userId).single();
+  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username,senscritique_username').eq('id',userId).single();
   const {data:countData} = await sb.from('collection').select('id').eq('user_id',userId);
   const count = (countData||[]).length;
   const badge = await getBadge(count);
@@ -2271,13 +2223,18 @@ async function openMemberCollection(userId,username){
   const lbBlock = document.getElementById('memberLetterboxd');
   const lbContent = document.getElementById('memberLetterboxdContent');
   const critiquesBtn = document.getElementById('memberCritiquesBtn');
-  if(profile?.letterboxd_username){
-    critiquesBtn.style.display = 'inline-block';
-    loadLetterboxd(profile.letterboxd_username, lbContent);
-  } else {
-    critiquesBtn.style.display = 'none';
-    lbBlock.style.display = 'none';
-  }
+
+  // Liens externes
+  const linksHtml = [
+    profile?.letterboxd_username ? `<a href="https://letterboxd.com/${profile.letterboxd_username}/" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);text-decoration:none;border:1px solid var(--card-border);padding:5px 10px;border-radius:4px;">🎬 Letterboxd</a>` : '',
+    profile?.senscritique_username ? `<a href="https://www.senscritique.com/${profile.senscritique_username}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);text-decoration:none;border:1px solid var(--card-border);padding:5px 10px;border-radius:4px;">🌟 Sens Critique</a>` : ''
+  ].filter(Boolean).join('');
+
+  const linksEl = document.getElementById('memberExternalLinks');
+  if(linksEl) linksEl.innerHTML = linksHtml;
+
+  critiquesBtn.style.display = 'none';
+  lbBlock.style.display = 'none';
 
   const {data} = await sb.from('collection').select('*').eq('user_id',userId);
   const allItems=(data||[]).map(fromRow).sort((a,b)=>a.title.localeCompare(b.title));
@@ -2475,10 +2432,12 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
   if(!username){ alert('Le pseudo ne peut pas être vide.'); return; }
   const position = `${Math.round(avatarOffsetX)}% ${Math.round(avatarOffsetY)}%`;
   const letterboxd = document.getElementById('profileLetterboxd').value.trim();
+  const senscritique = document.getElementById('profileSensCritique').value.trim();
   const updates = {username, collection_public:isPublic, avatar_position:position};
   if(pendingAvatarUrl) updates.avatar_url = pendingAvatarUrl;
   if(pendingBannerUrl) updates.banner_url = pendingBannerUrl;
-  if(letterboxd !== undefined) updates.letterboxd_username = letterboxd || null;
+  updates.letterboxd_username = letterboxd || null;
+  updates.senscritique_username = senscritique || null;
   await sb.from('profiles').update(updates).eq('id',currentUser.id);
   currentProfile={...currentProfile,...updates};
   updateHamburger({...currentProfile, username});
