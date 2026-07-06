@@ -1670,17 +1670,23 @@ async function loadExtrasShelf(item, cardEl, type){
   section.style.display = 'block';
   label.textContent = 'Les films préférés de ' + item.nom;
   if(type === 'criterion'){
-    link.href = 'https://letterboxd.com/criterion/' + item.slug + '/';
-    link.textContent = 'Voir la liste complète sur Letterboxd (Criterion) →';
+    link.href = 'https://letterboxd.com/closetpicks/list/' + item.slug + '/';
+    link.textContent = 'Voir la liste complète sur Letterboxd →';
   } else {
     link.href = 'https://letterboxd.com/konbinifr/list/' + item.slug + '/';
-    link.textContent = 'Voir la liste complète sur Letterboxd (Konbini) →';
+    link.textContent = 'Voir la liste complète sur Letterboxd →';
   }
   shelf.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
   section.scrollIntoView({behavior:'smooth',block:'start'});
   const previews = type === 'criterion' ? CRITERION_PREVIEWS : KONBINI_PREVIEWS;
   const titres = previews[item.slug] || [];
-  if(!titres.length){ shelf.innerHTML = '<div style="color:var(--muted);">Aucun film trouvé.</div>'; return; }
+  if(!titres.length){
+    shelf.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">
+      Pas d'aperçu disponible pour cette liste.<br>
+      <a href="${link.href}" target="_blank" style="color:var(--cyan);">Voir les films sur Letterboxd →</a>
+    </div>`;
+    return;
+  }
   const films = await Promise.all(titres.map(async t=>{
     try{
       const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(t)}&language=fr-FR`);
