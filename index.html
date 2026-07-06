@@ -213,7 +213,17 @@
   .stats-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
   .stats-bar-val{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);width:50px;text-align:right;flex-shrink:0;}
   .messages-layout{display:flex;height:calc(100vh - 120px);}
-  /* STEELBOOK */
+  /* BONS PLANS */
+  .deals-filter-btn{font-family:'Space Mono',monospace;font-size:11px;padding:6px 14px;border-radius:3px;cursor:pointer;background:transparent;border:1px solid var(--card-border);color:var(--muted);transition:all .15s;}
+  .deals-filter-btn:hover{border-color:var(--pink);color:var(--pink);}
+  .deals-filter-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(46,230,255,0.05);}
+  .deal-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;display:flex;gap:14px;align-items:flex-start;transition:border-color .15s;}
+  .deal-card:hover{border-color:var(--cyan);}
+  .deal-temp{display:flex;align-items:center;gap:4px;font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--pink);flex-shrink:0;min-width:48px;}
+  .deal-title{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:6px;}
+  .deal-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+  .deal-link{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);text-decoration:none;margin-left:8px;}
+  .deal-link:hover{text-decoration:underline;}
   .tape.steelbook .poster-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,46,136,0.18) 0%,rgba(46,230,255,0.22) 20%,rgba(155,92,255,0.18) 40%,rgba(255,210,63,0.22) 60%,rgba(255,46,136,0.18) 80%,rgba(46,230,255,0.12) 100%);background-size:400% 400%;animation:holographic 3s ease infinite;pointer-events:none;mix-blend-mode:screen;z-index:4;}
   .tape.steelbook .poster-wrap::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.04) 2px,rgba(255,255,255,0.04) 4px);pointer-events:none;z-index:5;}
   .tape.steelbook{}
@@ -345,6 +355,7 @@
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">🎬 Activité</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionDeals">🔥 Bons Plans</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">📼 Mon Rayon</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">📋 Wantlist</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">👥 Membres</div>
@@ -361,11 +372,30 @@
 <!-- NAV -->
 <div class="nav-tabs">
   <button class="nav-tab" data-section="sectionActivity">🎬 Activité</button>
+  <button class="nav-tab" data-section="sectionDeals">🔥 Bons Plans</button>
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
   <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionForum">🎬 Ciné-Club <span id="notifBadge" style="display:none;background:var(--pink);color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
+</div>
+
+<!-- SECTION BONS PLANS -->
+<div class="section" id="sectionDeals">
+  <div style="padding:20px 24px;max-width:680px;margin:0 auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin:0;">🔥 Bons Plans Blu-ray & 4K</h2>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">Source : Dealabs</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="dealsFilters">
+      <button class="deals-filter-btn active" data-url="https://www.dealabs.com/groupe/blu-ray.rss">Tout</button>
+      <button class="deals-filter-btn" data-url="https://www.dealabs.com/groupe/blu-ray.rss">Blu-ray</button>
+      <button class="deals-filter-btn" data-url="https://www.dealabs.com/groupe/4k-ultra-hd.rss">4K Ultra HD</button>
+    </div>
+    <div id="dealsGrid" style="display:flex;flex-direction:column;gap:12px;">
+      <div style="text-align:center;padding:40px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;">Clique sur l'onglet pour charger les deals...</div>
+    </div>
+  </div>
 </div>
 
 <!-- SECTION ACTIVITÉ -->
@@ -975,6 +1005,7 @@ document.querySelectorAll('.nav-mobile-item').forEach(item=>{
     if(section==='sectionForum') loadForum();
     if(section==='sectionActivity') loadActivity();
     if(section==='sectionMessages') loadMessages();
+    if(section==='sectionDeals') loadDeals('https://www.dealabs.com/groupe/blu-ray.rss');
   });
 });
 
@@ -1283,6 +1314,57 @@ async function sendMessage(){
   loadConversations();
 }
 
+// ── BONS PLANS ──
+async function loadDeals(rssUrl){
+  const grid = document.getElementById('dealsGrid');
+  grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement des deals...</div>';
+  try{
+    const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl);
+    const res = await fetch(proxy);
+    const data = await res.json();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(data.contents, 'text/xml');
+    const items = [...xml.querySelectorAll('item')].slice(0, 20);
+    if(!items.length){
+      grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Aucun deal trouvé pour le moment.</div>';
+      return;
+    }
+    grid.innerHTML = items.map(item=>{
+      const title = item.querySelector('title')?.textContent || 'Deal sans titre';
+      const link = item.querySelector('link')?.textContent || '#';
+      const desc = item.querySelector('description')?.textContent || '';
+      const date = item.querySelector('pubDate')?.textContent || '';
+      const d = date ? new Date(date).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+      // Extraire la température du deal si dispo
+      const tempMatch = desc.match(/(\d+)\s*°/);
+      const temp = tempMatch ? tempMatch[1]+'°' : '🔥';
+      // Extraire le prix si présent dans le titre
+      const priceMatch = title.match(/(\d+[\.,]\d+\s*€|\d+\s*€)/);
+      const price = priceMatch ? priceMatch[0] : '';
+      const cleanTitle = title.replace(/\[.*?\]/g,'').trim();
+      return `<div class="deal-card">
+        <div class="deal-temp">${temp}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="deal-title">${cleanTitle}</div>
+          <div class="deal-meta">${d}${price?' · <span style="color:var(--cyan);font-weight:700;">'+price+'</span>':''}
+            <a href="${link}" target="_blank" class="deal-link">Voir sur Dealabs →</a>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Impossible de charger les deals.<br>Vérifie ta connexion et réessaie.</div>';
+  }
+}
+
+document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.deals-filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadDeals(btn.dataset.url);
+  });
+});
+
 // ── ACTIVITÉ RÉCENTE ──
 async function loadActivity(){
   const feed = document.getElementById('activityFeed');
@@ -1577,6 +1659,7 @@ document.querySelectorAll('.nav-tab').forEach(tab=>{
     if(tab.dataset.section==='sectionForum') loadForum();
     if(tab.dataset.section==='sectionActivity') loadActivity();
     if(tab.dataset.section==='sectionMessages') loadMessages();
+    if(tab.dataset.section==='sectionDeals') loadDeals('https://www.dealabs.com/groupe/blu-ray.rss');
   });
 });
 
