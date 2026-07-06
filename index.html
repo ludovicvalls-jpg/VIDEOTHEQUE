@@ -12,7 +12,8 @@
 <link rel="preconnect" href="https://api.themoviedb.org">
 <link rel="preconnect" href="https://image.tmdb.org">
 <link rel="dns-prefetch" href="https://enykcstuektwkflccyae.supabase.co">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap');
   :root{--bg:#0d0d14;--card:#16161f;--card-border:#25252f;--pink:#ff2e88;--cyan:#2ee6ff;--text:#f0eee6;--muted:#8a8a9a;}
@@ -408,12 +409,17 @@
       <div class="extras-card" id="extrasCardFilms" onclick="showExtrasSection('extrasFilms')">
         <div class="extras-card-icon">🎬</div>
         <div class="extras-card-title">Films préférés</div>
-        <div class="extras-card-desc">Découvrez les films favoris des grands réalisateurs et personnalités du cinéma (Konbini Vidéo Club)</div>
+        <div class="extras-card-desc">Découvrez les films favoris des grands réalisateurs et personnalités du cinéma</div>
       </div>
       <div class="extras-card" id="extrasCardQuiz" onclick="showExtrasSection('extrasQuiz')">
         <div class="extras-card-icon">🎯</div>
         <div class="extras-card-title">Quiz Ciné</div>
-        <div class="extras-card-desc">Retrouvez un film à partir de son synopsis mystère. 10 films, un seul vainqueur !</div>
+        <div class="extras-card-desc">Retrouvez un film à partir de son synopsis mystère</div>
+      </div>
+      <div class="extras-card" onclick="showExtrasSection('extrasCDC')">
+        <div class="extras-card-icon">❤️</div>
+        <div class="extras-card-title">Coups de cœur</div>
+        <div class="extras-card-desc">Les 3 films préférés de chaque membre de la communauté</div>
       </div>
     </div>
   </div>
@@ -433,6 +439,14 @@
       <div id="extrasShelf" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;"></div>
       <a id="extrasLetterboxdLink" href="#" target="_blank" style="display:inline-block;margin-top:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);">Voir la liste complète sur Letterboxd →</a>
     </div>
+  </div>
+
+  <!-- SOUS-SECTION COUPS DE CŒUR -->
+  <div id="extrasCDC" style="display:none;padding:20px 24px;max-width:780px;margin:0 auto;">
+    <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">❤️ Coups de cœur de la communauté</h2>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;">Les 3 films chouchous de chaque membre</p>
+    <div id="cdcGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:16px;"></div>
   </div>
 
   <!-- SOUS-SECTION QUIZ -->
@@ -524,6 +538,10 @@
       <input type="text" id="memberSearch" placeholder="Rechercher un membre...">
       <button id="clearMemberSearch" class="clear-btn">✕</button>
     </div>
+    <button id="mapBtn">🗺️ Carte des membres</button>
+  </div>
+  <div id="membersMapPanel" style="display:none;margin:0 16px 16px;border-radius:8px;overflow:hidden;border:1px solid var(--card-border);">
+    <div id="membersMap" style="height:360px;"></div>
   </div>
   <div class="members-grid" id="membersGrid"></div>
 </div>
@@ -667,6 +685,22 @@
       <button id="viewPublicProfileBtn" style="border-color:var(--cyan);color:var(--cyan);">👁️ Voir mon profil public</button>
     </div>
     <div id="profileMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-top:10px;"></div>
+
+    <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 6px;">Mes 3 Coups de cœur</h3>
+      <div class="hint" style="margin-bottom:14px;">Ces 3 films seront affichés dans la section Les Extras et visibles par tous les membres.</div>
+      <div id="coupsDeCœurSlots" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+    </div>
+
+    <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 6px;">Ma ville</h3>
+      <div class="hint" style="margin-bottom:10px;">Ta ville sera affichée sur la carte des membres. Tu peux laisser ce champ vide si tu ne veux pas apparaître.</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="profileCity" placeholder="Ex: Paris, Lyon, Marseille..." style="flex:1;max-width:280px;">
+        <button id="geocodeBtn" type="button">📍 Localiser</button>
+      </div>
+      <div id="geocodeMsg" class="hint" style="margin-top:6px;min-height:16px;"></div>
+    </div>
 
     <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
       <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 14px;">Changer mon mot de passe</h3>
@@ -909,6 +943,8 @@ async function onLogin(user){
   document.getElementById('profileUsername').value=profile.username||'';
   document.getElementById('profileLetterboxd').value=profile.letterboxd_username||'';
   document.getElementById('profileSensCritique').value=profile.senscritique_username||'';
+  document.getElementById('profileCity').value=profile.city||'';
+  loadCDCFromProfile(profile);
   document.getElementById('profilePublic').checked=profile.collection_public!==false;
   updateCurrentAvatar(profile.avatar_url||null, profile.avatar_position||null);
   updateBannerPreview(profile.banner_url||null);
@@ -1905,6 +1941,179 @@ function renderExtrasQuizFin(){
     </div>`;
 }
 
+// ── COUPS DE CŒUR ──
+const CDC_SLOTS = 3;
+let cdcData = [{}, {}, {}]; // [{tmdb_id, title, poster_url, text}, ...]
+
+function buildCDCSlots(){
+  const container = document.getElementById('coupsDeCœurSlots');
+  if(!container) return;
+  container.innerHTML = cdcData.map((slot, i) => `
+    <div style="width:120px;">
+      <div id="cdcSlot${i}" style="width:120px;height:170px;background:#1c1c26;border:2px dashed var(--card-border);border-radius:6px;overflow:hidden;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;" onclick="openCDCSearch(${i})">
+        ${slot.poster_url
+          ? `<img src="${slot.poster_url}" style="width:100%;height:100%;object-fit:cover;"><div style="position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .15s;" onmouseover="this.style.background='rgba(0,0,0,0.4)'" onmouseout="this.style.background='rgba(0,0,0,0)'"></div>`
+          : `<div style="text-align:center;color:var(--muted);font-size:11px;padding:8px;">+ Choisir<br>un film</div>`}
+      </div>
+      <textarea id="cdcText${i}" placeholder="Pourquoi ce film ? (facultatif)" rows="2" style="width:100%;margin-top:6px;font-size:11px;resize:none;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:4px 6px;border-radius:4px;">${slot.text||''}</textarea>
+      ${slot.title ? `<div style="font-size:9px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${slot.title}</div>` : ''}
+      ${slot.tmdb_id ? `<button onclick="clearCDCSlot(${i})" style="font-size:9px;color:#ff8080;padding:2px 6px;margin-top:2px;width:100%;">✕ Retirer</button>` : ''}
+    </div>
+  `).join('');
+}
+
+let cdcSearchingSlot = null;
+
+function openCDCSearch(slotIndex){
+  cdcSearchingSlot = slotIndex;
+  document.getElementById('overlayWant').classList.add('open');
+  document.body.classList.add('modal-open');
+  document.getElementById('wantModalTitle').textContent = `Coup de cœur #${slotIndex+1}`;
+  document.getElementById('wantTitle').value = '';
+  document.getElementById('wantPosterPreview').innerHTML = '<span>Pas encore d\'affiche</span>';
+  document.getElementById('wantResults').innerHTML = '';
+  document.getElementById('wantHint').textContent = '';
+  document.getElementById('wantDirectorWrap').style.display = 'none';
+  document.getElementById('wantDeleteBtn').style.display = 'none';
+  document.getElementById('wantSaveBtn').textContent = 'Choisir ce film';
+  document.getElementById('wantOwnersBlock').style.display = 'none';
+  pendingWantPoster = null; pendingWantTmdbId = null; editingWantId = null;
+}
+
+function clearCDCSlot(i){
+  cdcData[i] = {};
+  buildCDCSlots();
+}
+
+// Intercept wantSaveBtn pour les coups de cœur
+const origSaveWant = window.saveWant;
+
+async function saveWant(){
+  if(cdcSearchingSlot !== null){
+    const i = cdcSearchingSlot;
+    if(!pendingWantTmdbId){ alert('Sélectionne un film.'); return; }
+    cdcData[i] = {
+      tmdb_id: pendingWantTmdbId,
+      title: document.getElementById('wantTitle').value.trim(),
+      poster_url: pendingWantPoster ? pendingWantPoster.url : null,
+      text: ''
+    };
+    document.getElementById('overlayWant').classList.remove('open');
+    document.body.classList.remove('modal-open');
+    document.getElementById('wantSaveBtn').textContent = 'Enregistrer';
+    cdcSearchingSlot = null;
+    buildCDCSlots();
+    return;
+  }
+  // Comportement normal wantlist
+  const title=document.getElementById('wantTitle').value.trim();
+  if(!title){ alert('Donne un titre.'); return; }
+  if(editingWantId){
+    const w=wantlist.find(x=>x.id===editingWantId);
+    w.title=title;
+    if(pendingWantPoster) w.posterUrl=pendingWantPoster.url;
+    if(pendingWantTmdbId) w.tmdbId=pendingWantTmdbId;
+    await saveWantItem(w);
+  } else {
+    const w={id:uid(),title,posterUrl:pendingWantPoster?pendingWantPoster.url:null,tmdbId:pendingWantTmdbId||null,year:''};
+    wantlist.push(w); await saveWantItem(w);
+  }
+  document.getElementById('overlayWant').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  renderWantlist();
+}
+
+// Sauvegarder les coups de cœur dans saveProfileBtn
+const origSaveProfile = document.getElementById('saveProfileBtn').onclick;
+
+// Chargement des coups de cœur au login
+function loadCDCFromProfile(profile){
+  cdcData = profile.coups_de_coeur || [{},{},{}];
+  if(cdcData.length < 3) while(cdcData.length < 3) cdcData.push({});
+  buildCDCSlots();
+}
+
+// Section Extras avec CDC
+function showExtrasSection(id){
+  document.getElementById('extrasHome').style.display = id ? 'none' : 'block';
+  document.getElementById('extrasFilms').style.display = id==='extrasFilms' ? 'block' : 'none';
+  document.getElementById('extrasQuiz').style.display = id==='extrasQuiz' ? 'block' : 'none';
+  document.getElementById('extrasCDC').style.display = id==='extrasCDC' ? 'block' : 'none';
+  if(id==='extrasFilms') buildExtrasKonbiniGrid();
+  if(id==='extrasQuiz') document.getElementById('extrasQuizCard').innerHTML = '<button onclick="initExtrasQuiz()" class="primary">Lancer le quiz</button>';
+  if(id==='extrasCDC') loadAllCDC();
+}
+
+async function loadAllCDC(){
+  const grid = document.getElementById('cdcGrid');
+  grid.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
+  const {data} = await sb.from('profiles').select('username,avatar_url,coups_de_coeur').not('coups_de_coeur','is',null);
+  const all = [];
+  (data||[]).forEach(p=>{
+    (p.coups_de_coeur||[]).forEach(f=>{
+      if(f.tmdb_id) all.push({...f, username: p.username, avatar: p.avatar_url});
+    });
+  });
+  // Mélanger aléatoirement
+  all.sort(()=>Math.random()-0.5);
+  if(!all.length){ grid.innerHTML='<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Aucun coup de cœur pour le moment.</div>'; return; }
+  grid.innerHTML = all.map(f=>`
+    <div>
+      <div style="aspect-ratio:2/3;background:#1c1c26;border-radius:6px;overflow:hidden;border:1px solid var(--card-border);margin-bottom:6px;">
+        ${f.poster_url?`<img src="${f.poster_url}" style="width:100%;height:100%;object-fit:cover;">`:`<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:9px;color:var(--muted);padding:4px;text-align:center;">${f.title||''}</div>`}
+      </div>
+      <div style="font-size:10px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.title||''}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:var(--cyan);">❤️ ${f.username||'Membre'}</div>
+      ${f.text?`<div style="font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-style:italic;">"${f.text}"</div>`:''}
+    </div>
+  `).join('');
+}
+
+// ── GÉOCODAGE ET CARTE ──
+let mapInstance = null;
+
+document.getElementById('geocodeBtn').addEventListener('click', async ()=>{
+  const city = document.getElementById('profileCity').value.trim();
+  const msg = document.getElementById('geocodeMsg');
+  if(!city){ msg.textContent='Entre le nom de ta ville.'; return; }
+  msg.textContent='Localisation en cours...';
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`);
+    const data = await res.json();
+    if(!data.length){ msg.textContent='Ville non trouvée, essaie un nom plus précis.'; return; }
+    currentProfile.city = city;
+    currentProfile.city_lat = parseFloat(data[0].lat);
+    currentProfile.city_lng = parseFloat(data[0].lon);
+    msg.style.color='var(--cyan)';
+    msg.textContent=`✓ Localisé : ${data[0].display_name.split(',')[0]}`;
+  }catch(e){ msg.textContent='Erreur de localisation.'; }
+});
+
+document.getElementById('mapBtn').addEventListener('click', async ()=>{
+  const panel = document.getElementById('membersMapPanel');
+  const btn = document.getElementById('mapBtn');
+  if(panel.style.display!=='none'){
+    panel.style.display='none';
+    btn.textContent='🗺️ Carte des membres';
+    return;
+  }
+  panel.style.display='block';
+  btn.textContent='Masquer la carte';
+  if(!mapInstance){
+    mapInstance = L.map('membersMap').setView([46.5, 2.3], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapInstance);
+  }
+  // Effacer les anciens marqueurs
+  mapInstance.eachLayer(l=>{ if(l instanceof L.Marker) mapInstance.removeLayer(l); });
+  // Charger les membres avec une ville
+  const {data} = await sb.from('profiles').select('username,city,city_lat,city_lng,avatar_url').not('city_lat','is',null);
+  (data||[]).forEach(p=>{
+    if(!p.city_lat||!p.city_lng) return;
+    const marker = L.marker([p.city_lat, p.city_lng]).addTo(mapInstance);
+    marker.bindPopup(`<strong>${p.username||'Membre'}</strong><br>${p.city||''}`);
+  });
+});
+
 // ── ACTIVITÉ RÉCENTE ──
 async function loadActivity(){
   const feed = document.getElementById('activityFeed');
@@ -2828,6 +3037,16 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
   if(pendingBannerUrl) updates.banner_url = pendingBannerUrl;
   updates.letterboxd_username = letterboxd || null;
   updates.senscritique_username = senscritique || null;
+  // Sauvegarder coups de cœur avec les textes à jour
+  const cdcFinal = cdcData.map((slot, i) => ({
+    ...slot,
+    text: document.getElementById(`cdcText${i}`) ? document.getElementById(`cdcText${i}`).value.trim() : (slot.text||'')
+  }));
+  updates.coups_de_coeur = cdcFinal;
+  // Sauvegarder ville
+  updates.city = document.getElementById('profileCity').value.trim() || null;
+  updates.city_lat = currentProfile.city_lat || null;
+  updates.city_lng = currentProfile.city_lng || null;
   await sb.from('profiles').update(updates).eq('id',currentUser.id);
   currentProfile={...currentProfile,...updates};
   updateHamburger({...currentProfile, username});
