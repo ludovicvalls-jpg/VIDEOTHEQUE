@@ -1400,54 +1400,66 @@ async function loadLetterboxd(lbUsername, container){
   container.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Chargement des critiques...</div>';
   try{
     const rssUrl = `https://letterboxd.com/${lbUsername}/rss/`;
-    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=8`;
+    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
     const res = await fetch(proxy);
-    const data = await res.json();
+    const text = await res.text();
+    const parser = new DOMParser();
+    const xml = parser.parseFromString(text, 'text/xml');
+    const allItems = [...xml.querySelectorAll('item')];
 
-    if(data.status !== 'ok' || !data.items || data.items.length===0){
-      container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">
-        Aucune critique trouvée pour <strong>@${lbUsername}</strong>.<br>
-        Vérifie que le pseudo est correct et que le profil est public sur Letterboxd.
-      </div>`;
+    if(!allItems.length){
+      container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Aucune critique trouvée pour <strong>@${lbUsername}</strong>.<br>Vérifie que le pseudo est correct et que le profil est public.</div>`;
       return;
     }
 
-    // Filtrer uniquement les entrées qui sont des critiques de films (pas les listes)
-    const reviews = data.items.filter(item => item.title && !item.title.toLowerCase().includes('list'));
+    const reviews = allItems.filter(item => {
+      const t = item.querySelector('title')?.textContent || '';
+      return t && !t.toLowerCase().includes('list');
+    }).slice(0, 8);
 
     container.innerHTML = reviews.map(item=>{
-      // Format Letterboxd : "Titre, 2024 - ★★★★½"
-      let filmTitle = item.title || '';
+      let filmTitle = item.querySelector('title')?.textContent || '';
+      const link = item.querySelector('link')?.textContent || '#';
+      const pubDate = item.querySelector('pubDate')?.textContent || '';
+      const descRaw = item.querySelector('description')?.textContent || '';
+      // Note depuis letterboxd:memberRating
+      const ratingEl = item.getElementsByTagNameNS('*','memberRating')[0];
+      // Titre depuis letterboxd:filmTitle
+      const titleEl = item.getElementsByTagNameNS('*','filmTitle')[0];
+      if(titleEl) filmTitle = titleEl.textContent;
       let starsHtml = '';
-      const sep = filmTitle.lastIndexOf(' - ');
-      if(sep !== -1){
-        const potRating = filmTitle.substring(sep + 3);
-        if(potRating.startsWith('★') || potRating.startsWith('½')){
-          const s = (potRating.match(/★/g)||[]).length + ((potRating.match(/½/g)||[]).length * 0.5);
-          starsHtml = `<span style="color:#ffd23f;font-size:13px;">${'★'.repeat(Math.floor(s))}${s%1?'½':''}</span>`;
-          filmTitle = filmTitle.substring(0, sep).trim();
+      if(ratingEl){
+        const r = parseFloat(ratingEl.textContent)||0;
+        if(r>0) starsHtml = `<span style="color:#ffd23f;font-size:13px;">${'★'.repeat(Math.floor(r))}${r%1?'½':''}</span>`;
+      }
+      if(!starsHtml){
+        const sep = filmTitle.lastIndexOf(' - ');
+        if(sep !== -1){
+          const pot = filmTitle.substring(sep+3);
+          if(pot.startsWith('★')||pot.startsWith('½')){
+            const s=(pot.match(/★/g)||[]).length+((pot.match(/½/g)||[]).length*0.5);
+            starsHtml=`<span style="color:#ffd23f;font-size:13px;">${'★'.repeat(Math.floor(s))}${s%1?'½':''}</span>`;
+            filmTitle=filmTitle.substring(0,sep).trim();
+          }
         }
       }
-      if(!starsHtml) starsHtml = '<span style="color:var(--muted);font-size:11px;">Pas de note</span>';
-      const imgMatch = (item.description||'').match(/<img[^>]+src="([^"]+)"/);
+      if(!starsHtml) starsHtml='<span style="color:var(--muted);font-size:11px;">Pas de note</span>';
+      const imgMatch = descRaw.match(/<img[^>]+src="([^"]+)"/);
       const img = imgMatch ? imgMatch[1] : '';
-      const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
-      // Extraire le texte de la critique
+      const date = pubDate ? new Date(pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = item.description || '';
+      tempDiv.innerHTML = descRaw;
       const paras = tempDiv.querySelectorAll('p');
       let critique = '';
-      paras.forEach(p=>{ if(p.textContent.trim() && !p.querySelector('img')) critique = critique || p.textContent.trim(); });
+      paras.forEach(p=>{ if(p.textContent.trim()&&!p.querySelector('img')) critique=critique||p.textContent.trim(); });
 
       return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--card-border);">
-        ${img
-          ? `<img src="${img}" style="width:44px;height:64px;object-fit:cover;border-radius:3px;flex-shrink:0;">`
-          : `<div style="width:44px;height:64px;background:#1c1c26;border-radius:3px;flex-shrink:0;"></div>`}
+        ${img?`<img src="${img}" style="width:44px;height:64px;object-fit:cover;border-radius:3px;flex-shrink:0;">`:`<div style="width:44px;height:64px;background:#1c1c26;border-radius:3px;flex-shrink:0;"></div>`}
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${filmTitle}</div>
           <div style="margin-bottom:6px;">${starsHtml}</div>
-          ${critique ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${critique}</div>` : ''}
-          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">${date} · <a href="${item.link}" target="_blank" style="color:var(--cyan);">Voir sur Letterboxd →</a></div>
+          ${critique?`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${critique}</div>`:''}
+          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">${date} · <a href="${link}" target="_blank" style="color:var(--cyan);">Voir sur Letterboxd →</a></div>
         </div>
       </div>`;
     }).join('');
