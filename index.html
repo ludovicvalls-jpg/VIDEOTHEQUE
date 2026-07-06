@@ -1416,11 +1416,19 @@ async function loadLetterboxd(lbUsername, container){
     const reviews = data.items.filter(item => item.title && !item.title.toLowerCase().includes('list'));
 
     container.innerHTML = reviews.map(item=>{
-      const stars = (item.title.match(/★/g)||[]).length + ((item.title.match(/½/g)||[]).length * 0.5);
-      const starsHtml = stars > 0
-        ? `<span style="color:#ffd23f;font-size:13px;">${'★'.repeat(Math.floor(stars))}${stars%1?'½':''}</span>`
-        : '<span style="color:var(--muted);font-size:11px;">Pas de note</span>';
-      const filmTitle = item.title.replace(/★+/g,'').replace(/½/g,'').trim();
+      // Format Letterboxd : "Titre, 2024 - ★★★★½"
+      let filmTitle = item.title || '';
+      let starsHtml = '';
+      const sep = filmTitle.lastIndexOf(' - ');
+      if(sep !== -1){
+        const potRating = filmTitle.substring(sep + 3);
+        if(potRating.startsWith('★') || potRating.startsWith('½')){
+          const s = (potRating.match(/★/g)||[]).length + ((potRating.match(/½/g)||[]).length * 0.5);
+          starsHtml = `<span style="color:#ffd23f;font-size:13px;">${'★'.repeat(Math.floor(s))}${s%1?'½':''}</span>`;
+          filmTitle = filmTitle.substring(0, sep).trim();
+        }
+      }
+      if(!starsHtml) starsHtml = '<span style="color:var(--muted);font-size:11px;">Pas de note</span>';
       const imgMatch = (item.description||'').match(/<img[^>]+src="([^"]+)"/);
       const img = imgMatch ? imgMatch[1] : '';
       const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
