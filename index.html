@@ -511,6 +511,26 @@
   </div>
   <div id="forumPosts" class="forum-posts"></div>
 </div>
+<!-- MODAL FICHE FILM MEMBRE -->
+<div class="overlay" id="overlayMemberFilm">
+  <div class="modal" style="max-width:480px;">
+    <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;">
+      <div id="mfPoster" style="width:80px;flex-shrink:0;"></div>
+      <div style="flex:1;">
+        <h2 id="mfTitle" style="margin:0 0 6px;font-size:22px;"></h2>
+        <div id="mfMeta" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:8px;"></div>
+        <div id="mfTags" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+    <div id="mfInfos" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="mfNotes" style="display:none;margin-top:12px;padding:12px;background:#1c1c26;border-radius:6px;font-size:13px;line-height:1.6;"></div>
+    <div class="modal-actions">
+      <button id="mfMsgBtn" style="display:none;">✉️ Contacter</button>
+      <button id="mfCloseBtn">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL STATS -->
 <div class="overlay" id="overlayStats">
   <div class="modal" style="max-width:560px;">
@@ -1366,6 +1386,65 @@ async function loadCommunityInfo(tmdbId, currentItemId){
     makeChip(sellers.length, 'la vendent', '💰', sellers) +
     makeChip(traders.length, 'l\'échangent', '🔄', traders);
 }
+// ── FICHE FILM MEMBRE ──
+let currentMemberFilmUserId = null;
+let currentMemberFilmUsername = null;
+
+function openMemberFilm(it, memberUserId, memberUsername){
+  currentMemberFilmUserId = memberUserId;
+  currentMemberFilmUsername = memberUsername;
+
+  const posterEl = document.getElementById('mfPoster');
+  posterEl.innerHTML = it.posterUrl
+    ? `<img src="${it.posterUrl}" style="width:80px;border-radius:4px;">`
+    : `<div style="width:80px;height:110px;background:#1c1c26;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);">Pas d'affiche</div>`;
+
+  document.getElementById('mfTitle').textContent = it.title;
+  document.getElementById('mfMeta').textContent = [it.year||'', fmtLabel(it.format)].filter(Boolean).join(' · ');
+
+  const tagsEl = document.getElementById('mfTags');
+  tagsEl.innerHTML = '';
+  if(it.isSteelbook) tagsEl.innerHTML += `<span style="font-family:Space Mono,monospace;font-size:9px;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;font-weight:700;">STEELBOOK®</span>`;
+  if(it.forSale) tagsEl.innerHTML += `<span class="sale-badge">VENTE${it.salePrice?' '+it.salePrice+'€':''}</span>`;
+  if(it.forTrade) tagsEl.innerHTML += `<span class="trade-badge">ÉCHANGE</span>`;
+  if(it.watched) tagsEl.innerHTML += `<span style="font-family:Space Mono,monospace;font-size:9px;padding:2px 8px;border-radius:2px;background:#2fae5e;color:#fff;">VU ✓</span>`;
+
+  const infos = [];
+  if(it.shelf) infos.push({label:'Emplacement', val:it.shelf});
+  if(it.estimatedValue) infos.push({label:'Valeur estimée', val:it.estimatedValue+'€'});
+  if(it.salePrice) infos.push({label:'Prix de vente', val:it.salePrice+'€'});
+  document.getElementById('mfInfos').innerHTML = infos.map(i=>
+    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--card-border);">
+      <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">${i.label}</span>
+      <span style="font-size:13px;font-weight:600;">${i.val}</span>
+    </div>`
+  ).join('');
+
+  const notesEl = document.getElementById('mfNotes');
+  if(it.notes){ notesEl.style.display='block'; notesEl.textContent=it.notes; }
+  else { notesEl.style.display='none'; }
+
+  const msgBtn = document.getElementById('mfMsgBtn');
+  if(memberUserId && memberUserId!==currentUser.id && (it.forSale||it.forTrade)){
+    msgBtn.style.display='inline-block';
+    msgBtn.onclick=()=>{
+      const type=it.forSale?"en vente":"à l'échange";
+      const msg=`Bonjour ${memberUsername}, je suis intéressé par "${it.title}" que tu as ${type}, est-il toujours disponible ?`;
+      document.getElementById('overlayMemberFilm').classList.remove('open');
+      document.getElementById('overlayMember').classList.remove('open');
+      document.body.classList.remove('modal-open');
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.getElementById('sectionMessages').classList.add('active');
+      loadConversations().then(()=>{ openConversation(memberUserId,memberUsername); setTimeout(()=>{ const inp=document.getElementById('msgInput'); if(inp) inp.value=msg; },400); });
+    };
+  } else { msgBtn.style.display='none'; }
+
+  document.getElementById('overlayMemberFilm').classList.add('open');
+}
+
+document.getElementById('mfCloseBtn').addEventListener('click',()=>document.getElementById('overlayMemberFilm').classList.remove('open'));
+document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) document.getElementById('overlayMemberFilm').classList.remove('open'); });
+
 async function loadDeals(rssUrl){
   const grid = document.getElementById('dealsGrid');
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement des deals...</div>';
