@@ -595,6 +595,11 @@
 
     <div class="field"><label>Pseudo</label><input type="text" id="profileUsername"></div>
     <div class="field">
+      <label>Pseudo Letterboxd <span style="font-size:10px;color:var(--muted);">(optionnel)</span></label>
+      <input type="text" id="profileLetterboxd" placeholder="Ex: monpseudo">
+      <div class="hint">Tes dernières critiques Letterboxd s'afficheront sur ton profil.</div>
+    </div>
+    <div class="field">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
         <input type="checkbox" id="profilePublic" style="width:16px;height:16px;">
         <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">Rendre ma collection visible par les autres membres</span>
@@ -775,6 +780,10 @@
       <div id="memberModalContent" style="max-height:55vh;overflow-y:auto;">
         <div class="grid" style="padding:0;" id="memberGrid"></div>
       </div>
+      <div id="memberLetterboxd" style="display:none;border-top:1px solid var(--card-border);padding-top:16px;margin-top:8px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--pink);margin-bottom:12px;">🎬 Dernières critiques Letterboxd</div>
+        <div id="memberLetterboxdContent"></div>
+      </div>
       <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
     </div>
   </div>
@@ -824,6 +833,7 @@ async function onLogin(user){
   updateHamburger(profile);
 
   document.getElementById('profileUsername').value=profile.username||'';
+  document.getElementById('profileLetterboxd').value=profile.letterboxd_username||'';
   document.getElementById('profilePublic').checked=profile.collection_public!==false;
   updateCurrentAvatar(profile.avatar_url||null, profile.avatar_position||null);
   updateBannerPreview(profile.banner_url||null);
@@ -1386,6 +1396,42 @@ async function loadCommunityInfo(tmdbId, currentItemId){
     makeChip(sellers.length, 'la vendent', '💰', sellers) +
     makeChip(traders.length, 'l\'échangent', '🔄', traders);
 }
+async function loadLetterboxd(lbUsername, container){
+  try{
+    const rssUrl = `https://letterboxd.com/${lbUsername}/rss/`;
+    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=5`;
+    const res = await fetch(proxy);
+    const data = await res.json();
+    if(!data.items || data.items.length===0){
+      container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Aucune critique trouvée pour @${lbUsername}.</div>`;
+      return;
+    }
+    container.innerHTML = data.items.map(item=>{
+      // Extraire la note (★ dans le titre)
+      const stars = (item.title.match(/★/g)||[]).length + (item.title.match(/½/g)||[]).length*0.5;
+      const starsHtml = stars > 0 ? `<span style="color:#ffd23f;font-size:14px;">${'★'.repeat(Math.floor(stars))}${stars%1?'½':''}</span>` : '';
+      // Extraire le titre du film (sans la note)
+      const filmTitle = item.title.replace(/★+½?/g,'').replace(/½/g,'').trim();
+      // Extraire l'image si présente
+      const imgMatch = (item.description||'').match(/<img[^>]+src="([^"]+)"/);
+      const img = imgMatch ? imgMatch[1] : '';
+      // Date
+      const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
+      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--card-border);">
+        ${img?`<img src="${img}" style="width:40px;height:60px;object-fit:cover;border-radius:3px;flex-shrink:0;">`:
+          `<div style="width:40px;height:60px;background:#1c1c26;border-radius:3px;flex-shrink:0;"></div>`}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${filmTitle}</div>
+          <div style="margin-bottom:4px;">${starsHtml}</div>
+          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">${date} · <a href="${item.link}" target="_blank" style="color:var(--cyan);">Lire sur Letterboxd →</a></div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Impossible de charger les critiques.</div>`;
+  }
+}
+
 // ── FICHE FILM MEMBRE ──
 let currentMemberFilmUserId = null;
 let currentMemberFilmUsername = null;
@@ -2137,7 +2183,7 @@ async function openMemberCollection(userId,username){
   document.body.classList.add('modal-open');
 
   // Charger le profil du membre pour la photo et le badge
-  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url').eq('id',userId).single();
+  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username').eq('id',userId).single();
   const {data:countData} = await sb.from('collection').select('id').eq('user_id',userId);
   const count = (countData||[]).length;
   const badge = await getBadge(count);
@@ -2182,6 +2228,17 @@ async function openMemberCollection(userId,username){
     });
   } else {
     msgBtnEl.innerHTML = '';
+  }
+
+  // Critiques Letterboxd
+  const lbBlock = document.getElementById('memberLetterboxd');
+  const lbContent = document.getElementById('memberLetterboxdContent');
+  if(profile?.letterboxd_username){
+    lbBlock.style.display = 'block';
+    lbContent.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
+    loadLetterboxd(profile.letterboxd_username, lbContent);
+  } else {
+    lbBlock.style.display = 'none';
   }
 
   const {data} = await sb.from('collection').select('*').eq('user_id',userId);
@@ -2367,9 +2424,11 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
   const isPublic=document.getElementById('profilePublic').checked;
   if(!username){ alert('Le pseudo ne peut pas être vide.'); return; }
   const position = `${Math.round(avatarOffsetX)}% ${Math.round(avatarOffsetY)}%`;
+  const letterboxd = document.getElementById('profileLetterboxd').value.trim();
   const updates = {username, collection_public:isPublic, avatar_position:position};
   if(pendingAvatarUrl) updates.avatar_url = pendingAvatarUrl;
   if(pendingBannerUrl) updates.banner_url = pendingBannerUrl;
+  if(letterboxd !== undefined) updates.letterboxd_username = letterboxd || null;
   await sb.from('profiles').update(updates).eq('id',currentUser.id);
   currentProfile={...currentProfile,...updates};
   updateHamburger({...currentProfile, username});
