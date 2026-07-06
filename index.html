@@ -602,6 +602,24 @@
   </div>
 </div>
 
+<!-- MODAL COUP DE CŒUR -->
+<div class="overlay" id="overlayCDC">
+  <div class="modal" style="max-width:420px;">
+    <h2>Choisir un coup de cœur</h2>
+    <div class="field">
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="cdcSearchInput" placeholder="Titre du film..." style="flex:1;">
+        <button id="cdcSearchGoBtn" type="button">Chercher</button>
+      </div>
+    </div>
+    <div id="cdcSearchResults" class="search-results" style="margin-top:10px;"></div>
+    <div id="cdcSearchHint" class="hint" style="margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button id="cdcCancelBtn">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL STATS -->
 <div class="overlay" id="overlayStats">
   <div class="modal" style="max-width:560px;">
@@ -1947,95 +1965,86 @@ function renderExtrasQuizFin(){
 }
 
 // ── COUPS DE CŒUR ──
-const CDC_SLOTS = 3;
-let cdcData = [{}, {}, {}]; // [{tmdb_id, title, poster_url, text}, ...]
+let cdcData = [{},{},{}];
+let cdcSearchingSlot = null;
 
 function buildCDCSlots(){
   const container = document.getElementById('coupsDeCœurSlots');
   if(!container) return;
   container.innerHTML = cdcData.map((slot, i) => `
     <div style="width:120px;">
-      <div id="cdcSlot${i}" style="width:120px;height:170px;background:#1c1c26;border:2px dashed var(--card-border);border-radius:6px;overflow:hidden;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;" onclick="openCDCSearch(${i})">
+      <div style="width:120px;height:170px;background:#1c1c26;border:2px dashed ${slot.poster_url?'var(--cyan)':'var(--card-border)'};border-radius:6px;overflow:hidden;cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;" onclick="openCDCSearch(${i})">
         ${slot.poster_url
-          ? `<img src="${slot.poster_url}" style="width:100%;height:100%;object-fit:cover;"><div style="position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .15s;" onmouseover="this.style.background='rgba(0,0,0,0.4)'" onmouseout="this.style.background='rgba(0,0,0,0)'"></div>`
+          ? `<img src="${slot.poster_url}" style="width:100%;height:100%;object-fit:cover;">`
           : `<div style="text-align:center;color:var(--muted);font-size:11px;padding:8px;">+ Choisir<br>un film</div>`}
       </div>
       <textarea id="cdcText${i}" placeholder="Pourquoi ce film ? (facultatif)" rows="2" style="width:100%;margin-top:6px;font-size:11px;resize:none;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:4px 6px;border-radius:4px;">${slot.text||''}</textarea>
-      ${slot.title ? `<div style="font-size:9px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${slot.title}</div>` : ''}
-      ${slot.tmdb_id ? `<button onclick="clearCDCSlot(${i})" style="font-size:9px;color:#ff8080;padding:2px 6px;margin-top:2px;width:100%;">✕ Retirer</button>` : ''}
+      ${slot.title?`<div style="font-size:9px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${slot.title}</div>`:''}
+      ${slot.poster_url?`<button onclick="clearCDCSlot(${i})" style="font-size:9px;color:#ff8080;padding:2px 6px;margin-top:2px;width:100%;border-color:#ff8080;">✕ Retirer</button>`:''}
     </div>
   `).join('');
 }
 
-let cdcSearchingSlot = null;
+function clearCDCSlot(i){ cdcData[i]={}; buildCDCSlots(); }
 
 function openCDCSearch(slotIndex){
   cdcSearchingSlot = slotIndex;
-  document.getElementById('overlayWant').classList.add('open');
+  document.getElementById('cdcSearchInput').value='';
+  document.getElementById('cdcSearchResults').innerHTML='';
+  document.getElementById('cdcSearchHint').textContent='';
+  document.getElementById('overlayCDC').classList.add('open');
   document.body.classList.add('modal-open');
-  document.getElementById('wantModalTitle').textContent = `Coup de cœur #${slotIndex+1}`;
-  document.getElementById('wantTitle').value = '';
-  document.getElementById('wantPosterPreview').innerHTML = '<span>Pas encore d\'affiche</span>';
-  document.getElementById('wantResults').innerHTML = '';
-  document.getElementById('wantHint').textContent = '';
-  document.getElementById('wantDirectorWrap').style.display = 'none';
-  document.getElementById('wantDeleteBtn').style.display = 'none';
-  document.getElementById('wantSaveBtn').textContent = 'Choisir ce film';
-  document.getElementById('wantOwnersBlock').style.display = 'none';
-  pendingWantPoster = null; pendingWantTmdbId = null; editingWantId = null;
+  setTimeout(()=>document.getElementById('cdcSearchInput').focus(),100);
 }
 
-function clearCDCSlot(i){
-  cdcData[i] = {};
-  buildCDCSlots();
-}
-
-// Intercept wantSaveBtn pour les coups de cœur
-const origSaveWant = window.saveWant;
-
-async function saveWant(){
-  if(cdcSearchingSlot !== null){
-    const i = cdcSearchingSlot;
-    if(!pendingWantTmdbId){ alert('Sélectionne un film.'); return; }
-    cdcData[i] = {
-      tmdb_id: pendingWantTmdbId,
-      title: document.getElementById('wantTitle').value.trim(),
-      poster_url: pendingWantPoster ? pendingWantPoster.url : null,
-      text: ''
-    };
-    document.getElementById('overlayWant').classList.remove('open');
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
-    document.getElementById('wantSaveBtn').textContent = 'Enregistrer';
-    cdcSearchingSlot = null;
-    buildCDCSlots();
-    return;  }
-  // Comportement normal wantlist
-  const title=document.getElementById('wantTitle').value.trim();
-  if(!title){ alert('Donne un titre.'); return; }
-  if(editingWantId){
-    const w=wantlist.find(x=>x.id===editingWantId);
-    w.title=title;
-    if(pendingWantPoster) w.posterUrl=pendingWantPoster.url;
-    if(pendingWantTmdbId) w.tmdbId=pendingWantTmdbId;
-    await saveWantItem(w);
-  } else {
-    const w={id:uid(),title,posterUrl:pendingWantPoster?pendingWantPoster.url:null,tmdbId:pendingWantTmdbId||null,year:''};
-    wantlist.push(w); await saveWantItem(w);
-  }
-  document.getElementById('overlayWant').classList.remove('open');
+document.getElementById('cdcCancelBtn').addEventListener('click',()=>{
+  document.getElementById('overlayCDC').classList.remove('open');
   document.body.classList.remove('modal-open');
-  renderWantlist();
+  document.body.style.overflow='';
+  cdcSearchingSlot=null;
+});
+document.getElementById('overlayCDC').addEventListener('click',e=>{
+  if(e.target===document.getElementById('overlayCDC')){
+    document.getElementById('overlayCDC').classList.remove('open');
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow='';
+    cdcSearchingSlot=null;
+  }
+});
+document.getElementById('cdcSearchGoBtn').addEventListener('click',searchCDCFilm);
+document.getElementById('cdcSearchInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchCDCFilm();});
+
+async function searchCDCFilm(){
+  const q=document.getElementById('cdcSearchInput').value.trim();
+  if(!q) return;
+  document.getElementById('cdcSearchHint').textContent='Recherche...';
+  document.getElementById('cdcSearchResults').innerHTML='';
+  try{
+    const res=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&language=fr-FR`);
+    const d=await res.json();
+    const films=(d.results||[]).filter(f=>f.poster_path).slice(0,8);
+    if(!films.length){document.getElementById('cdcSearchHint').textContent='Aucun résultat.';return;}
+    document.getElementById('cdcSearchHint').textContent='Clique sur une affiche pour la choisir.';
+    document.getElementById('cdcSearchResults').innerHTML=films.map(f=>
+      `<img src="https://image.tmdb.org/t/p/w92${f.poster_path}" data-id="${f.id}" data-title="${f.title.replace(/"/g,"&quot;")}" data-poster="https://image.tmdb.org/t/p/w500${f.poster_path}" title="${f.title}" style="cursor:pointer;">`
+    ).join('');
+    document.querySelectorAll('#cdcSearchResults img').forEach(img=>{
+      img.addEventListener('click',()=>{
+        const i=cdcSearchingSlot;
+        cdcData[i]={tmdb_id:img.dataset.id,title:img.dataset.title,poster_url:img.dataset.poster,text:''};
+        document.getElementById('overlayCDC').classList.remove('open');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow='';
+        cdcSearchingSlot=null;
+        buildCDCSlots();
+      });
+    });
+  }catch(e){document.getElementById('cdcSearchHint').textContent='Erreur de recherche.';}
 }
 
-// Sauvegarder les coups de cœur dans saveProfileBtn
-const origSaveProfile = document.getElementById('saveProfileBtn').onclick;
-
-// Chargement des coups de cœur au login
 function loadCDCFromProfile(profile){
-  cdcData = profile.coups_de_coeur || [{},{},{}];
-  if(cdcData.length < 3) while(cdcData.length < 3) cdcData.push({});
+  cdcData=profile.coups_de_coeur||[{},{},{}];
+  while(cdcData.length<3) cdcData.push({});
   buildCDCSlots();
 }
 
