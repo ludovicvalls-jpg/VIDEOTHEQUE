@@ -776,13 +776,13 @@
         <button class="member-filter-btn active" data-filter="all">Tout voir</button>
         <button class="member-filter-btn" data-filter="trade">Échanges</button>
         <button class="member-filter-btn" data-filter="sale">Ventes</button>
+        <button class="member-filter-btn" data-filter="critiques" id="memberCritiquesBtn" style="display:none;">🎬 Critiques</button>
       </div>
       <div id="memberModalContent" style="max-height:55vh;overflow-y:auto;">
         <div class="grid" style="padding:0;" id="memberGrid"></div>
-      </div>
-      <div id="memberLetterboxd" style="display:none;border-top:1px solid var(--card-border);padding-top:16px;margin-top:8px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--pink);margin-bottom:12px;">🎬 Dernières critiques Letterboxd</div>
-        <div id="memberLetterboxdContent"></div>
+        <div id="memberLetterboxd" style="display:none;padding:12px 0;">
+          <div id="memberLetterboxdContent"></div>
+        </div>
       </div>
       <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
     </div>
@@ -1397,38 +1397,55 @@ async function loadCommunityInfo(tmdbId, currentItemId){
     makeChip(traders.length, 'l\'échangent', '🔄', traders);
 }
 async function loadLetterboxd(lbUsername, container){
+  container.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Chargement des critiques...</div>';
   try{
     const rssUrl = `https://letterboxd.com/${lbUsername}/rss/`;
-    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=5`;
+    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}&count=8`;
     const res = await fetch(proxy);
     const data = await res.json();
-    if(!data.items || data.items.length===0){
-      container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Aucune critique trouvée pour @${lbUsername}.</div>`;
+
+    if(data.status !== 'ok' || !data.items || data.items.length===0){
+      container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">
+        Aucune critique trouvée pour <strong>@${lbUsername}</strong>.<br>
+        Vérifie que le pseudo est correct et que le profil est public sur Letterboxd.
+      </div>`;
       return;
     }
-    container.innerHTML = data.items.map(item=>{
-      // Extraire la note (★ dans le titre)
-      const stars = (item.title.match(/★/g)||[]).length + (item.title.match(/½/g)||[]).length*0.5;
-      const starsHtml = stars > 0 ? `<span style="color:#ffd23f;font-size:14px;">${'★'.repeat(Math.floor(stars))}${stars%1?'½':''}</span>` : '';
-      // Extraire le titre du film (sans la note)
-      const filmTitle = item.title.replace(/★+½?/g,'').replace(/½/g,'').trim();
-      // Extraire l'image si présente
+
+    // Filtrer uniquement les entrées qui sont des critiques de films (pas les listes)
+    const reviews = data.items.filter(item => item.title && !item.title.toLowerCase().includes('list'));
+
+    container.innerHTML = reviews.map(item=>{
+      const stars = (item.title.match(/★/g)||[]).length + ((item.title.match(/½/g)||[]).length * 0.5);
+      const starsHtml = stars > 0
+        ? `<span style="color:#ffd23f;font-size:13px;">${'★'.repeat(Math.floor(stars))}${stars%1?'½':''}</span>`
+        : '<span style="color:var(--muted);font-size:11px;">Pas de note</span>';
+      const filmTitle = item.title.replace(/★+/g,'').replace(/½/g,'').trim();
       const imgMatch = (item.description||'').match(/<img[^>]+src="([^"]+)"/);
       const img = imgMatch ? imgMatch[1] : '';
-      // Date
       const date = item.pubDate ? new Date(item.pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}) : '';
-      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--card-border);">
-        ${img?`<img src="${img}" style="width:40px;height:60px;object-fit:cover;border-radius:3px;flex-shrink:0;">`:
-          `<div style="width:40px;height:60px;background:#1c1c26;border-radius:3px;flex-shrink:0;"></div>`}
+      // Extraire le texte de la critique
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = item.description || '';
+      const paras = tempDiv.querySelectorAll('p');
+      let critique = '';
+      paras.forEach(p=>{ if(p.textContent.trim() && !p.querySelector('img')) critique = critique || p.textContent.trim(); });
+
+      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--card-border);">
+        ${img
+          ? `<img src="${img}" style="width:44px;height:64px;object-fit:cover;border-radius:3px;flex-shrink:0;">`
+          : `<div style="width:44px;height:64px;background:#1c1c26;border-radius:3px;flex-shrink:0;"></div>`}
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${filmTitle}</div>
-          <div style="margin-bottom:4px;">${starsHtml}</div>
-          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">${date} · <a href="${item.link}" target="_blank" style="color:var(--cyan);">Lire sur Letterboxd →</a></div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${filmTitle}</div>
+          <div style="margin-bottom:6px;">${starsHtml}</div>
+          ${critique ? `<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${critique}</div>` : ''}
+          <div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">${date} · <a href="${item.link}" target="_blank" style="color:var(--cyan);">Voir sur Letterboxd →</a></div>
         </div>
       </div>`;
     }).join('');
+
   }catch(e){
-    container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Impossible de charger les critiques.</div>`;
+    container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Impossible de charger les critiques pour le moment.</div>`;
   }
 }
 
@@ -2233,11 +2250,12 @@ async function openMemberCollection(userId,username){
   // Critiques Letterboxd
   const lbBlock = document.getElementById('memberLetterboxd');
   const lbContent = document.getElementById('memberLetterboxdContent');
+  const critiquesBtn = document.getElementById('memberCritiquesBtn');
   if(profile?.letterboxd_username){
-    lbBlock.style.display = 'block';
-    lbContent.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
+    critiquesBtn.style.display = 'inline-block';
     loadLetterboxd(profile.letterboxd_username, lbContent);
   } else {
+    critiquesBtn.style.display = 'none';
     lbBlock.style.display = 'none';
   }
 
@@ -2259,6 +2277,18 @@ async function openMemberCollection(userId,username){
   };
 
   function renderMemberGrid(filter){
+    const memberGrid = document.getElementById('memberGrid');
+    const lbBlock = document.getElementById('memberLetterboxd');
+
+    if(filter === 'critiques'){
+      memberGrid.style.display = 'none';
+      lbBlock.style.display = 'block';
+      return;
+    }
+
+    memberGrid.style.display = '';
+    lbBlock.style.display = 'none';
+
     const search = memberSB.value.toLowerCase();
     let items=allItems;
     if(filter==='trade') items=allItems.filter(i=>i.forTrade);
