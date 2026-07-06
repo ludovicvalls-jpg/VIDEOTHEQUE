@@ -1319,11 +1319,11 @@ async function loadDeals(rssUrl){
   const grid = document.getElementById('dealsGrid');
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement des deals...</div>';
   try{
-    const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(rssUrl);
+    const proxy = 'https://corsproxy.io/?' + encodeURIComponent(rssUrl);
     const res = await fetch(proxy);
-    const data = await res.json();
+    const text = await res.text();
     const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, 'text/xml');
+    const xml = parser.parseFromString(text, 'text/xml');
     const items = [...xml.querySelectorAll('item')].slice(0, 20);
     if(!items.length){
       grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Aucun deal trouvé pour le moment.</div>';
