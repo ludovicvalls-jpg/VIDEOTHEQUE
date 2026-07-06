@@ -663,7 +663,6 @@
       <label>Prix de vente (€)</label>
       <input type="number" id="inputSalePrice" placeholder="Ex: 12.00" min="0" step="0.50" style="width:140px;">
     </div>
-    <div class="field"><label>Emplacement</label><input type="text" id="inputShelf" placeholder="Ex: Étagère 1"></div>
     <div class="field">
       <label>Valeur estimée (€)</label>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -671,9 +670,17 @@
         <button id="searchPriceBtn" type="button">🔍 Prix en ligne</button>
       </div>
     </div>
+    <div class="field"><label>Emplacement</label><input type="text" id="inputShelf" placeholder="Ex: Étagère 1"></div>
     <div class="field"><label>Notes</label><textarea id="inputNotes" rows="3" placeholder="Jaquette abîmée, édition japonaise..." style="width:100%;resize:vertical;"></textarea></div>
+
+    <!-- INFOS COMMUNAUTAIRES -->
+    <div class="field" id="communityInfoBlock" style="display:none;">
+      <label>Dans la communauté</label>
+      <div id="communityInfoContent" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
+    </div>
+
     <div class="field">
-      <label>Affiche</label>
+      <label>Recherche d'affiche</label>
       <div class="poster-preview" id="posterPreview"><span>Pas encore d'affiche</span></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button id="searchPosterBtn" type="button">Par titre</button>
@@ -1314,7 +1321,51 @@ async function sendMessage(){
   loadConversations();
 }
 
-// ── BONS PLANS ──
+async function loadCommunityInfo(tmdbId, currentItemId){
+  const block = document.getElementById('communityInfoBlock');
+  const content = document.getElementById('communityInfoContent');
+  if(!tmdbId){ block.style.display='none'; return; }
+
+  const {data} = await sb.from('collection')
+    .select('user_id, for_trade, for_sale, profiles(username)')
+    .eq('tmdb_id', tmdbId);
+
+  if(!data || data.length === 0){ block.style.display='none'; return; }
+
+  // Filtrer pour exclure l'item courant de l'utilisateur
+  const others = data.filter(r => r.user_id !== currentUser.id);
+  const own = data.filter(r => r.user_id === currentUser.id);
+
+  const owners = data; // tous
+  const sellers = data.filter(r => r.for_sale);
+  const traders = data.filter(r => r.for_trade);
+
+  // Chercher dans la wantlist
+  const {data:wantData} = await sb.from('wantlist')
+    .select('user_id, profiles(username)')
+    .eq('tmdb_id', tmdbId);
+  const seekers = wantData || [];
+
+  block.style.display = 'block';
+
+  const makeChip = (count, label, emoji, list) => {
+    if(count === 0) return '';
+    const names = list.map(r => r.profiles?.username || 'Membre').join(', ');
+    return `<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:8px 12px;cursor:pointer;transition:border-color .15s;"
+      onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--card-border)'"
+      title="${names}"
+      onclick="alert('${label} :\\n${names}')">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--cyan);">${count}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);display:block;">${emoji} ${label}</span>
+    </div>`;
+  };
+
+  content.innerHTML =
+    makeChip(owners.length, 'possèdent cette édition', '📀', owners) +
+    makeChip(seekers.length, 'la recherchent', '🔍', seekers) +
+    makeChip(sellers.length, 'la vendent', '💰', sellers) +
+    makeChip(traders.length, 'l\'échangent', '🔄', traders);
+}
 async function loadDeals(rssUrl){
   const grid = document.getElementById('dealsGrid');
   grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Chargement des deals...</div>';
@@ -2231,6 +2282,7 @@ function resetModal(){
   ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inputFormat').value='VHS';
   ['inputWatched','inputForTrade','inputForSale','inputSteelbook'].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById('communityInfoBlock').style.display='none';
   document.getElementById('saleBlock').style.display='none';
   document.getElementById('searchResults').innerHTML='';
   document.getElementById('modalHint').textContent='';
@@ -2257,6 +2309,12 @@ function fillFormFromItem(it){
   document.getElementById('inputForTrade').checked=!!it.forTrade;
   document.getElementById('inputForSale').checked=!!it.forSale;
   document.getElementById('inputSteelbook').checked=!!it.isSteelbook;
+  // Infos communautaires si le film a un tmdb_id
+  if(it.tmdbId){
+    loadCommunityInfo(it.tmdbId, it.id);
+  } else {
+    document.getElementById('communityInfoBlock').style.display='none';
+  }
   document.getElementById('inputSalePrice').value=it.salePrice||'';
   document.getElementById('saleBlock').style.display=it.forSale?'block':'none';
   document.getElementById('inputShelf').value=it.shelf||'';
