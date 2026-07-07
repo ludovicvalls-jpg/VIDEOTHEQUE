@@ -127,6 +127,7 @@
   .tape-watch-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
   .trade-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ffd23f;color:#1a0410;}
   .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
+  .loan-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ff8c42;color:#1a0410;}
   .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);}
   .empty .logo{font-size:28px;margin-bottom:10px;opacity:.6;}
 
@@ -549,6 +550,7 @@
         <option value="price_desc">Prix décroissant</option>
         <option value="trade">À l'échange</option>
         <option value="sale">À la vente</option>
+        <option value="loaned">Prêtés</option>
       </select>
     </div>
   </div>
@@ -844,6 +846,14 @@
         <span style="text-transform:none;font-size:13px;letter-spacing:normal;background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff,#ffd23f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">✦ SteelBook®</span>
       </label>
       <div class="hint">Boîtier en métal — un effet holographique sera affiché sur l'affiche.</div>
+    </div>
+    <div class="field">
+      <label style="color:#ff8c42;">📼 Prêté à</label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="inputLoanedTo" placeholder="Nom de la personne" style="flex:1;min-width:140px;">
+        <input type="date" id="inputLoanedAt" style="width:150px;">
+      </div>
+      <div class="hint" id="loanHint">Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.</div>
     </div>
     <div class="field" id="saleBlock" style="display:none;">
       <label>Prix de vente (€)</label>
@@ -1169,13 +1179,13 @@ function toRow(it){
     watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
     estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
-    cast_crew:it.castCrew||null};
+    cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null};
 }
 function fromRow(r){
   return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
     estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
-    castCrew:r.cast_crew||''};
+    castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null};
 }
 async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
@@ -2588,14 +2598,15 @@ function render(){
     const matchWatched=!filterWatched||(filterWatched==='watched'&&it.watched)||(filterWatched==='unwatched'&&!it.watched);
     const matchTrade=filterSort!=='trade'||it.forTrade;
     const matchSale=filterSort!=='sale'||it.forSale;
-    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale;
+    const matchLoaned=filterSort!=='loaned'||it.loanedTo;
+    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned;
   });
 
   lastGroups=new Map();
   items.forEach(it=>{ const k=groupKeyOf(it.title); if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
   let groups=Array.from(lastGroups.entries()).map(([key,gi])=>({key,items:gi,primary:gi.find(i=>i.posterUrl)||gi[0]}));
 
-  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'){
+  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'){
     groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
   } else if(filterSort==='date_added'){
     groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
@@ -2614,13 +2625,20 @@ function render(){
     '<div><span class="stat-num">'+collection.length+'</span><span class="stat-label">titres</span></div>'+
     '<div><span class="stat-num">'+collection.filter(i=>i.format==='VHS').length+'</span><span class="stat-label">vhs</span></div>'+
     '<div><span class="stat-num">'+collection.filter(i=>!i.watched).length+'</span><span class="stat-label">a voir</span></div>'+
-    (totalValue>0?'<div title="'+valuedCount+' evalues"><span class="stat-num">'+totalValue.toFixed(0)+'eu</span><span class="stat-label">valeur</span></div>':'');
+    (totalValue>0?'<div title="'+valuedCount+' evalues"><span class="stat-num">'+totalValue.toFixed(0)+'eu</span><span class="stat-label">valeur</span></div>':'')+
+    (collection.some(i=>i.loanedTo)?'<div><span class="stat-num" style="color:#ff8c42;">'+collection.filter(i=>i.loanedTo).length+'</span><span class="stat-label">pretes</span></div>':'');
   const grid=document.getElementById('grid');
   if(groups.length===0){ grid.innerHTML='<div class="empty"><div class="logo">RAYON VIDE</div><div>Ajoute ton premier titre.</div></div>'; return; }
   grid.innerHTML=groups.map(g=>{
     const it=g.primary, allWatched=g.items.every(i=>i.watched), isSelected=selectedKeys.has(g.key);
     const hasTrade=g.items.some(i=>i.forTrade), hasSale=g.items.some(i=>i.forSale);
     const isSteelbook=g.items.some(i=>i.isSteelbook);
+    const loanedItem=g.items.find(i=>i.loanedTo);
+    let loanTitle='';
+    if(loanedItem){
+      const d=loanedItem.loanedAt?Math.max(0,Math.floor((Date.now()-new Date(loanedItem.loanedAt).getTime())/86400000)):null;
+      loanTitle='Prêté à '+loanedItem.loanedTo+(d!==null?' depuis '+(d===0?"aujourd'hui":d+' jour'+(d>1?'s':'')):'');
+    }
     return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+' '+(isSteelbook?'steelbook':'')+'" data-key="'+g.key+'">'
       +'<div class="poster-wrap">'
       +(selectionMode?'<div class="select-mark">&#x2713;</div>':'')
@@ -2638,6 +2656,7 @@ function render(){
       +'<span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
       +(isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
       +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
+      +(loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'')
       +'</div>'
       +'<div class="tape-watch-row">'
       +'<span class="tape-watch-label">'+(allWatched?'Vu ✓':'À voir')+'</span>'
@@ -3198,7 +3217,8 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
 function resetModal(){
   editingId=null; pendingPoster=null; pendingTmdbId=null;
   document.getElementById('modalTitle').textContent='Ajouter un titre';
-  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector'].forEach(id=>document.getElementById(id).value='');
+  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loanHint').textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
   document.getElementById('inputFormat').value='VHS';
   ['inputWatched','inputForTrade','inputForSale','inputSteelbook'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('communityInfoBlock').style.display='none';
@@ -3236,6 +3256,17 @@ function fillFormFromItem(it){
   }
   document.getElementById('inputSalePrice').value=it.salePrice||'';
   document.getElementById('saleBlock').style.display=it.forSale?'block':'none';
+  document.getElementById('inputLoanedTo').value=it.loanedTo||'';
+  document.getElementById('inputLoanedAt').value=it.loanedAt||'';
+  const loanHint=document.getElementById('loanHint');
+  if(it.loanedTo&&it.loanedAt){
+    const days=Math.max(0,Math.floor((Date.now()-new Date(it.loanedAt).getTime())/86400000));
+    loanHint.innerHTML='<span style="color:#ff8c42;font-weight:600;">Prêté à '+it.loanedTo+' depuis '+(days===0?"aujourd'hui":days+' jour'+(days>1?'s':''))+'.</span> Efface le nom quand on te le rend.';
+  } else if(it.loanedTo){
+    loanHint.innerHTML='<span style="color:#ff8c42;font-weight:600;">Prêté à '+it.loanedTo+'.</span> Efface le nom quand on te le rend.';
+  } else {
+    loanHint.textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
+  }
   document.getElementById('inputShelf').value=it.shelf||'';
   document.getElementById('inputValue').value=it.estimatedValue||'';
   document.getElementById('inputNotes').value=it.notes||'';
@@ -3423,10 +3454,15 @@ async function saveItemModal(){
     const existing = collection.find(i=>i.id===editingId);
     if(existing) existingCastCrew = existing.castCrew || '';
   }
+  const loanedTo=document.getElementById('inputLoanedTo').value.trim();
+  let loanedAt=document.getElementById('inputLoanedAt').value||null;
+  if(loanedTo&&!loanedAt) loanedAt=new Date().toISOString().slice(0,10); // date du jour par défaut
+  if(!loanedTo) loanedAt=null; // pas de nom = pas de prêt
   const it={title,format:document.getElementById('inputFormat').value,year:document.getElementById('inputYear').value.trim(),
     watched:document.getElementById('inputWatched').checked,forTrade:document.getElementById('inputForTrade').checked,
     forSale:document.getElementById('inputForSale').checked,salePrice:parseFloat(document.getElementById('inputSalePrice').value)||null,
     isSteelbook:document.getElementById('inputSteelbook').checked,
+    loanedTo:loanedTo||null,loanedAt:loanedAt,
     shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
     notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
     customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null,
