@@ -58,6 +58,19 @@
     19%,21%,61%,63%{ opacity:0.6; text-shadow:none; }
     62%{ opacity:0.7; }
   }
+  .site-footer{padding:14px 20px;border-top:1px solid var(--card-border);text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg);}
+  .site-footer a{color:var(--muted);text-decoration:underline;cursor:pointer;}
+  .site-footer a:hover{color:var(--cyan);}
+  .cgu-modal{max-width:700px;max-height:80vh;overflow-y:auto;padding:28px 32px;}
+  .cgu-modal h1{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin:0 0 4px;color:var(--cyan);}
+  .cgu-modal h2{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin:24px 0 8px;color:var(--text);border-bottom:1px solid var(--card-border);padding-bottom:4px;}
+  .cgu-modal h3{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin:14px 0 6px;color:var(--cyan);}
+  .cgu-modal p,.cgu-modal li{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.7;margin:0 0 8px;}
+  .cgu-modal ul{padding-left:20px;margin:6px 0 10px;}
+  .cgu-modal strong{color:var(--text);}
+  .cgu-modal .update-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:20px;}
+  .cgu-modal .warning-box{background:#1c1c26;border:1px solid var(--pink);border-radius:6px;padding:12px 16px;margin:16px 0;}
+  .cgu-modal .warning-box p{color:var(--text);margin:0;}
   .neon-title{
     font-family:'Bebas Neue',sans-serif;
     font-size:clamp(28px,5vw,52px);
@@ -367,6 +380,7 @@
       <button class="login-tab active" id="tabLogin">Connexion</button>
       <button class="login-tab" id="tabSignup">Créer un compte</button>
     </div>
+    <div style="text-align:center;padding:6px 0 2px;"><a onclick="openCGU()" style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);text-decoration:underline;cursor:pointer;">Conditions Générales d'Utilisation</a></div>
     <div id="loginForm">
       <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com" autocomplete="email"></div>
       <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
@@ -1064,17 +1078,39 @@
         <div style="margin-left:auto;" id="memberMsgBtn"></div>
       </div>
       <!-- Recherche dans la collection -->
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div class="search-wrap" style="flex:1;">
           <input type="text" id="memberSearchBox" placeholder="Chercher dans sa collection...">
           <button id="clearMemberSearchBox" class="clear-btn">✕</button>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-        <button class="member-filter-btn active" data-filter="all">Tout voir</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
+        <button class="member-filter-btn active" data-filter="all">Tous</button>
         <button class="member-filter-btn" data-filter="trade">Échanges</button>
         <button class="member-filter-btn" data-filter="sale">Ventes</button>
+        <button class="member-filter-btn" data-filter="steelbook">✦ SteelBook</button>
+        <button class="member-filter-btn" data-filter="watched">Vus</button>
         <button class="member-filter-btn" data-filter="critiques" id="memberCritiquesBtn" style="display:none;">🎬 Critiques</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
+        <select id="memberFormatFilter" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
+          <option value="">Tous formats</option>
+          <option value="VHS">VHS</option>
+          <option value="DVD">DVD</option>
+          <option value="BLURAY">Blu-ray</option>
+          <option value="BLURAY4K">Blu-ray 4K</option>
+          <option value="LASERDISC">Laser Disc</option>
+        </select>
+        <select id="memberSortOrder" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
+          <option value="alpha">A → Z</option>
+          <option value="alpha_desc">Z → A</option>
+          <option value="year_desc">Année ↓</option>
+          <option value="year_asc">Année ↑</option>
+          <option value="added_desc">Ajout récent</option>
+          <option value="added_asc">Ajout ancien</option>
+          <option value="format">Par format</option>
+        </select>
+        <span id="memberCollCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px;"></span>
       </div>
       <div id="memberModalContent" style="max-height:55vh;overflow-y:auto;">
         <div class="grid" style="padding:0;" id="memberGrid"></div>
@@ -1083,6 +1119,78 @@
         </div>
       </div>
       <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  Ma Vidéothèque — Plateforme communautaire privée &nbsp;·&nbsp;
+  <a onclick="openCGU()">Conditions Générales d'Utilisation</a>
+</footer>
+
+<!-- MODAL CGU -->
+<div class="overlay" id="cguOverlay" style="z-index:100001;">
+  <div class="modal cgu-modal">
+    <h1>Conditions Générales d'Utilisation</h1>
+    <p class="update-date">Dernière mise à jour : juillet 2025</p>
+
+    <h2>Article 1 — Présentation du site</h2>
+    <p>Ma Vidéothèque est une plateforme communautaire en ligne permettant à ses membres de recenser, partager et échanger des informations relatives à leur collection personnelle de supports vidéo (VHS, DVD, Blu-ray, 4K UHD, Laser Disc, etc.).</p>
+    <p>Le Site est édité à titre personnel et non commercial par son administrateur (ci-après « l'Éditeur »). Il ne constitue pas une boutique en ligne, une place de marché professionnelle, ni un service de courtage ou d'intermédiation commerciale au sens du Code de la consommation.</p>
+
+    <h2>Article 2 — Acceptation des CGU</h2>
+    <p>L'accès et l'utilisation du Site impliquent l'acceptation pleine et entière des présentes Conditions Générales d'Utilisation. Toute personne qui s'inscrit ou utilise le Site reconnaît les avoir lues, comprises et acceptées sans réserve.</p>
+
+    <h2>Article 3 — Accès au Site</h2>
+    <p>L'inscription est réservée aux personnes majeures ou aux mineurs disposant de l'autorisation de leur représentant légal. L'Éditeur se réserve le droit de suspendre ou supprimer tout compte sans préavis en cas de manquement aux présentes CGU.</p>
+
+    <h2>Article 4 — Transactions entre membres</h2>
+    <h3>4.1 Rôle de l'Éditeur</h3>
+    <p>Le Site propose une fonctionnalité permettant aux membres de signaler qu'un titre de leur collection est disponible à la vente ou à l'échange. <strong>Cette fonctionnalité est purement informative.</strong></p>
+    <p>L'Éditeur agit exclusivement en tant qu'hébergeur de contenu au sens de l'article 6-I-2 de la loi n°2004-575 du 21 juin 2004 pour la Confiance dans l'Économie Numérique (LCEN). Il n'est en aucun cas partie aux transactions conclues entre membres.</p>
+
+    <h3>4.2 Responsabilité exclusive des membres</h3>
+    <div class="warning-box"><p>Toute transaction (vente, échange, prêt, don) réalisée entre membres est conclue <strong>directement et exclusivement entre les membres concernés</strong>, sous leur entière responsabilité. L'Éditeur ne pourra en aucun cas être tenu responsable d'un litige survenant entre membres.</p></div>
+    <p><strong>L'Éditeur décline toute responsabilité en cas de :</strong></p>
+    <ul>
+      <li>Non-livraison d'un article vendu ou échangé</li>
+      <li>Article non conforme à la description publiée</li>
+      <li>Arnaque, escroquerie ou comportement frauduleux d'un membre</li>
+      <li>Litige survenu avant, pendant ou après une transaction</li>
+      <li>Perte, vol ou détérioration d'un colis expédié entre membres</li>
+      <li>Tout préjudice matériel, financier ou moral résultant d'une transaction</li>
+    </ul>
+
+    <h3>4.3 Recommandations</h3>
+    <p>Il est fortement conseillé d'utiliser des moyens de paiement sécurisés offrant une protection acheteur, de conserver toute preuve des échanges, et de ne jamais envoyer d'argent sans garanties suffisantes.</p>
+
+    <h2>Article 5 — Section « Bons Plans »</h2>
+    <h3>5.1 Nature des informations</h3>
+    <p>La section « Bons Plans » permet aux membres de signaler des offres promotionnelles chez des commerçants tiers. Ces informations sont publiées <strong>par les membres</strong>, à titre indicatif et bénévole. L'Éditeur ne vérifie, ne contrôle et ne valide pas ces informations.</p>
+
+    <div class="warning-box"><p><strong>L'Éditeur ne garantit pas</strong> l'exactitude des prix, la disponibilité des offres, ni la conformité des produits proposés par les commerçants tiers. Tout achat est réalisé sous la seule responsabilité du membre, auprès du commerçant tiers concerné.</p></div>
+
+    <p>L'Éditeur n'entretient aucune relation commerciale ou de partenariat rémunéré avec les commerçants mentionnés sur le Site.</p>
+
+    <h2>Article 6 — Contenu publié par les membres</h2>
+    <p>Les membres sont seuls responsables des contenus qu'ils publient. Ils garantissent que ces contenus ne portent pas atteinte aux droits de tiers et ne sont pas illicites. L'Éditeur se réserve le droit de supprimer tout contenu contraire aux présentes CGU.</p>
+
+    <h2>Article 7 — Limitation de responsabilité générale</h2>
+    <p>Le Site est fourni « en l'état », sans garantie d'aucune sorte. L'Éditeur ne peut être tenu responsable d'interruptions, de pannes, de pertes de données ou de tout dommage résultant de l'utilisation du Site.</p>
+
+    <h2>Article 8 — Propriété intellectuelle</h2>
+    <p>Le nom et les éléments graphiques du Site sont la propriété de l'Éditeur. Les contenus publiés par les membres restent leur propriété ; en les publiant, ils accordent à l'Éditeur une licence non exclusive et gratuite pour les afficher sur le Site.</p>
+
+    <h2>Article 9 — Données personnelles</h2>
+    <p>Les données collectées (adresse email, pseudo, ville) sont utilisées exclusivement pour le fonctionnement du Site et ne sont pas cédées à des tiers. Conformément au RGPD, chaque membre dispose d'un droit d'accès, de rectification et de suppression de ses données.</p>
+
+    <h2>Article 10 — Droit applicable</h2>
+    <p>Les présentes CGU sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents.</p>
+
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--card-border);">
+      <button onclick="closeCGU()" class="primary">J'ai lu et compris</button>
     </div>
   </div>
 </div>
@@ -1687,45 +1795,40 @@ async function loadCommunityInfo(tmdbId, currentItemId){
   const content = document.getElementById('communityInfoContent');
   if(!tmdbId){ block.style.display='none'; return; }
 
-  const {data} = await sb.from('collection')
-    .select('user_id, for_trade, for_sale, profiles(username)')
-    .eq('tmdb_id', tmdbId);
+  const [{data:collData},{data:wantData}] = await Promise.all([
+    sb.from('collection').select('user_id,for_trade,for_sale,profiles(username)').eq('tmdb_id',tmdbId),
+    sb.from('wantlist').select('user_id,profiles(username)').eq('tmdb_id',tmdbId)
+  ]);
 
-  if(!data || data.length === 0){ block.style.display='none'; return; }
+  const owners  = (collData||[]);
+  const seekers = (wantData||[]);
+  const sellers = owners.filter(r=>r.for_sale);
+  const traders = owners.filter(r=>r.for_trade);
 
-  // Filtrer pour exclure l'item courant de l'utilisateur
-  const others = data.filter(r => r.user_id !== currentUser.id);
-  const own = data.filter(r => r.user_id === currentUser.id);
+  if(owners.length===0 && seekers.length===0){ block.style.display='none'; return; }
+  block.style.display='block';
 
-  const owners = data; // tous
-  const sellers = data.filter(r => r.for_sale);
-  const traders = data.filter(r => r.for_trade);
-
-  // Chercher dans la wantlist
-  const {data:wantData} = await sb.from('wantlist')
-    .select('user_id, profiles(username)')
-    .eq('tmdb_id', tmdbId);
-  const seekers = wantData || [];
-
-  block.style.display = 'block';
-
-  const makeChip = (count, label, emoji, list) => {
-    if(count === 0) return '';
-    const names = list.map(r => r.profiles?.username || 'Membre').join(', ');
-    return `<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:8px 12px;cursor:pointer;transition:border-color .15s;"
-      onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--card-border)'"
-      title="${names}"
-      onclick="alert('${label} :\\n${names}')">
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--cyan);">${count}</span>
-      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);display:block;">${emoji} ${label}</span>
+  const makeChip = (list, label, emoji, color) => {
+    if(!list.length) return '';
+    const names = list.map(r=>{
+      const uname = r.profiles?.username||'Membre';
+      const uid   = r.user_id;
+      return `<span onclick="event.stopPropagation();document.getElementById('overlay').classList.remove('open');document.body.classList.remove('modal-open');openMemberCollection('${uid}','${uname.replace(/'/g,"\\'")}');" style="font-family:'Space Mono',monospace;font-size:10px;color:${color};cursor:pointer;text-decoration:underline;white-space:nowrap;" title="Voir la collection de ${uname}">${uname}</span>`;
+    }).join('<span style="color:var(--muted);"> · </span>');
+    return `<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:8px 12px;min-width:90px;">
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${color};line-height:1;">${list.length}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);">${emoji} ${label}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px 8px;">${names}</div>
     </div>`;
   };
 
   content.innerHTML =
-    makeChip(owners.length, 'possèdent cette édition', '📀', owners) +
-    makeChip(seekers.length, 'la recherchent', '🔍', seekers) +
-    makeChip(sellers.length, 'la vendent', '💰', sellers) +
-    makeChip(traders.length, 'l\'échangent', '🔄', traders);
+    makeChip(owners,  'possèdent', '📀', 'var(--cyan)') +
+    makeChip(seekers, 'cherchent', '🔍', 'var(--pink)') +
+    makeChip(sellers, 'vendent',   '💰', '#2fae5e') +
+    makeChip(traders, 'échangent', '🔄', '#ff8c42');
 }
 async function loadLetterboxd(lbUsername, container){
   container.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Chargement des critiques...</div>';
@@ -3117,16 +3220,22 @@ async function openMemberCollection(userId,username){
 
   const memberSB = document.getElementById('memberSearchBox');
   const memberClear = document.getElementById('clearMemberSearchBox');
+  const memberFormatFilter = document.getElementById('memberFormatFilter');
+  const memberSortOrder = document.getElementById('memberSortOrder');
+  const memberCollCount = document.getElementById('memberCollCount');
   memberSB.value = '';
-  memberSB.oninput = ()=>{
+  memberFormatFilter.value = '';
+  memberSortOrder.value = 'alpha';
+
+  const refreshMemberGrid = ()=>{
     memberClear.style.display = memberSB.value ? 'block' : 'none';
     const active = document.querySelector('.member-filter-btn.active');
     renderMemberGrid(active ? active.dataset.filter : 'all');
   };
-  memberClear.onclick = ()=>{
-    memberSB.value = ''; memberClear.style.display = 'none';
-    renderMemberGrid('all');
-  };
+  memberSB.oninput = refreshMemberGrid;
+  memberFormatFilter.onchange = refreshMemberGrid;
+  memberSortOrder.onchange = refreshMemberGrid;
+  memberClear.onclick = ()=>{ memberSB.value = ''; refreshMemberGrid(); };
 
   function renderMemberGrid(filter){
     const memberGrid = document.getElementById('memberGrid');
@@ -3135,6 +3244,7 @@ async function openMemberCollection(userId,username){
     if(filter === 'critiques'){
       memberGrid.style.display = 'none';
       lbBlock.style.display = 'block';
+      memberCollCount.textContent = '';
       return;
     }
 
@@ -3142,10 +3252,33 @@ async function openMemberCollection(userId,username){
     lbBlock.style.display = 'none';
 
     const search = memberSB.value.toLowerCase();
-    let items=allItems;
-    if(filter==='trade') items=allItems.filter(i=>i.forTrade);
-    if(filter==='sale') items=allItems.filter(i=>i.forSale);
-    if(search) items=items.filter(i=>i.title.toLowerCase().includes(search));
+    const fmt = memberFormatFilter.value;
+    const sort = memberSortOrder.value;
+
+    let items = allItems.slice();
+    if(filter==='trade') items=items.filter(i=>i.forTrade);
+    else if(filter==='sale') items=items.filter(i=>i.forSale);
+    else if(filter==='steelbook') items=items.filter(i=>i.isSteelbook);
+    else if(filter==='watched') items=items.filter(i=>i.watched);
+    if(fmt) items=items.filter(i=>i.format===fmt);
+    if(search) items=items.filter(i=>{
+      const hay=[i.title,i.notes,i.castCrew,i.shelf].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(search);
+    });
+
+    // Tri
+    items.sort((a,b)=>{
+      if(sort==='alpha') return a.title.localeCompare(b.title);
+      if(sort==='alpha_desc') return b.title.localeCompare(a.title);
+      if(sort==='year_desc') return (parseInt(b.year)||0)-(parseInt(a.year)||0);
+      if(sort==='year_asc') return (parseInt(a.year)||0)-(parseInt(b.year)||0);
+      if(sort==='added_desc') return (b.id||'').localeCompare(a.id||'');
+      if(sort==='added_asc') return (a.id||'').localeCompare(b.id||'');
+      if(sort==='format') return (a.format||'').localeCompare(b.format||'')||a.title.localeCompare(b.title);
+      return 0;
+    });
+
+    memberCollCount.textContent = items.length + ' titre' + (items.length>1?'s':'');
     if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>{
       const clickable = (it.forSale||it.forTrade) && userId!==currentUser.id;
@@ -3959,6 +4092,18 @@ async function loadLoginCarousel(){
 }
 
 
+function openCGU(){
+  document.getElementById('cguOverlay').style.display='flex';
+  document.body.classList.add('modal-open');
+}
+function closeCGU(){
+  document.getElementById('cguOverlay').style.display='none';
+  document.body.classList.remove('modal-open');
+}
+document.getElementById('cguOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('cguOverlay')) closeCGU();
+});
+
 initAuth();
 
 // ═══════════════════════════════════════════════
@@ -4034,28 +4179,33 @@ async function loadDeals(){
 
 async function voteDeal(dealId, vote){
   if(!currentUserId){ alert('Connecte-toi pour voter.'); return; }
-  const {data:existing}=await sb.from('deal_votes').select('vote').eq('deal_id',dealId).eq('user_id',currentUserId).single();
+
+  // Lire le vote existant
+  const {data:existing}=await sb.from('deal_votes').select('vote').eq('deal_id',dealId).eq('user_id',currentUserId).maybeSingle();
+  const {data:deal}=await sb.from('deals').select('votes_hot,votes_dead').eq('id',dealId).single();
+  if(!deal) return;
+
+  let newHot=deal.votes_hot||0, newDead=deal.votes_dead||0;
+
   if(existing){
+    // Toujours supprimer l'ancien vote d'abord
+    await sb.from('deal_votes').delete().eq('deal_id',dealId).eq('user_id',currentUserId);
+    // Décrémenter l'ancien compteur
+    if(existing.vote==='hot') newHot=Math.max(0,newHot-1);
+    else newDead=Math.max(0,newDead-1);
+
     if(existing.vote===vote){
-      // Retirer le vote
-      await sb.from('deal_votes').delete().eq('deal_id',dealId).eq('user_id',currentUserId);
-      const col=vote==='hot'?'votes_hot':'votes_dead';
-      const {data:d}=await sb.from('deals').select(col).eq('id',dealId).single();
-      await sb.from('deals').update({[col]:Math.max(0,(d[col]||1)-1)}).eq('id',dealId);
-    } else {
-      // Changer de vote
-      await sb.from('deal_votes').update({vote}).eq('deal_id',dealId).eq('user_id',currentUserId);
-      const addCol=vote==='hot'?'votes_hot':'votes_dead';
-      const remCol=vote==='hot'?'votes_dead':'votes_hot';
-      const {data:d}=await sb.from('deals').select('votes_hot,votes_dead').eq('id',dealId).single();
-      await sb.from('deals').update({[addCol]:(d[addCol]||0)+1,[remCol]:Math.max(0,(d[remCol]||1)-1)}).eq('id',dealId);
+      // Même vote → simple annulation, on ne réinsère pas
+      await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
+      loadDeals(); return;
     }
-  } else {
-    await sb.from('deal_votes').insert({deal_id:dealId,user_id:currentUserId,vote});
-    const col=vote==='hot'?'votes_hot':'votes_dead';
-    const {data:d}=await sb.from('deals').select(col).eq('id',dealId).single();
-    await sb.from('deals').update({[col]:(d[col]||0)+1}).eq('id',dealId);
   }
+
+  // Insérer le nouveau vote et incrémenter
+  await sb.from('deal_votes').insert({deal_id:dealId,user_id:currentUserId,vote});
+  if(vote==='hot') newHot++;
+  else newDead++;
+  await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
   loadDeals();
 }
 
