@@ -425,7 +425,11 @@
         <div class="extras-card-title">Quiz Ciné</div>
         <div class="extras-card-desc">Retrouvez un film à partir de son synopsis mystère</div>
       </div>
-      <div class="extras-card" onclick="showExtrasSection('extrasCDC')">
+      <div class="extras-card" onclick="showExtrasSection('extrasBonbon')">
+        <div class="extras-card-icon">🍬</div>
+        <div class="extras-card-title">Bonbon ciné du jour</div>
+        <div class="extras-card-desc">Une image vintage ciné chaque jour, sélectionnée à la main</div>
+      </div>
         <div class="extras-card-icon">❤️</div>
         <div class="extras-card-title">Coups de cœur</div>
         <div class="extras-card-desc">Les 3 films préférés de chaque membre de la communauté</div>
@@ -448,6 +452,14 @@
       <div id="extrasShelf" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;"></div>
       <a id="extrasLetterboxdLink" href="#" target="_blank" style="display:inline-block;margin-top:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);">Voir la liste complète sur Letterboxd →</a>
     </div>
+  </div>
+
+  <!-- SOUS-SECTION BONBON CINÉ -->
+  <div id="extrasBonbon" style="display:none;padding:20px 24px;max-width:680px;margin:0 auto;">
+    <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">🍬 Bonbon ciné du jour</h2>
+    <p id="bonbonDate" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;"></p>
+    <div id="bonbonImg" style="width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--card-border);"></div>
   </div>
 
   <!-- SOUS-SECTION COUPS DE CŒUR -->
@@ -605,6 +617,24 @@
     <div class="modal-actions">
       <button id="mfMsgBtn" style="display:none;">✉️ Contacter</button>
       <button id="mfCloseBtn">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- POPUP BONBON CINÉ DU JOUR -->
+<div class="overlay" id="overlayBonbon">
+  <div class="modal" style="max-width:560px;padding:0;overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#1a0a1a,#0a1a2a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:2px;color:var(--pink);">🍬 Bonbon ciné du jour</div>
+        <div id="bonbonPopupDate" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);"></div>
+      </div>
+      <button id="bonbonCloseBtn" style="font-size:18px;color:var(--muted);background:none;border:none;cursor:pointer;">✕</button>
+    </div>
+    <div id="bonbonPopupImg" style="width:100%;"></div>
+    <div style="padding:12px 20px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--card-border);">
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">Une image vintage chaque jour</span>
+      <button id="bonbonVoirBtn" style="font-size:11px;">Voir dans Les Extras</button>
     </div>
   </div>
 </div>
@@ -995,6 +1025,8 @@ async function onLogin(user){
   await loadWantlist();
   await loadNotifications();
   loadActivity();
+  // Popup Bonbon ciné du jour (une fois par jour)
+  setTimeout(showBonbonPopup, 1500);
   // Vérifier les messages non lus
   const {data:unread} = await sb.from('messages').select('id').eq('to_user_id',user.id).eq('seen',false);
   updateMsgBadge((unread||[]).length);
@@ -2066,9 +2098,11 @@ function showExtrasSection(id){
   document.getElementById('extrasFilms').style.display = id==='extrasFilms' ? 'block' : 'none';
   document.getElementById('extrasQuiz').style.display = id==='extrasQuiz' ? 'block' : 'none';
   document.getElementById('extrasCDC').style.display = id==='extrasCDC' ? 'block' : 'none';
+  document.getElementById('extrasBonbon').style.display = id==='extrasBonbon' ? 'block' : 'none';
   if(id==='extrasFilms') buildExtrasKonbiniGrid();
   if(id==='extrasQuiz') document.getElementById('extrasQuizCard').innerHTML = '<button onclick="initExtrasQuiz()" class="primary">Lancer le quiz</button>';
   if(id==='extrasCDC') loadAllCDC();
+  if(id==='extrasBonbon') showBonbonExtras();
 }
 
 async function loadAllCDC(){
@@ -2139,6 +2173,72 @@ document.getElementById('mapBtn').addEventListener('click', async ()=>{
     const marker = L.marker([p.city_lat, p.city_lng]).addTo(mapInstance);
     marker.bindPopup(`<strong>${p.username||'Membre'}</strong><br>${p.city||''}`);
   });
+});
+
+// ── BONBON CINÉ DU JOUR ──
+// Ajoute tes images ici ! Nomme-les jour_1.jpg, jour_2.jpg etc. dans GitHub
+const BONBON_BASE = 'https://raw.githubusercontent.com/ludovicvalls-jpg/VIDEOTHEQUE/main/';
+const BONBON_IMAGES = [
+  'jour_1.jpg',
+  'jour_2.jpg',
+  // Ajoute ici tes prochaines images : 'jour_3.jpg', 'jour_4.jpg', etc.
+];
+
+function getBonbonDuJour(){
+  const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  return BONBON_IMAGES[dayOfYear % BONBON_IMAGES.length];
+}
+
+function getBonbonDateStr(){
+  return new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+function showBonbonExtras(){
+  const img = getBonbonDuJour();
+  const dateStr = getBonbonDateStr();
+  document.getElementById('bonbonDate').textContent = dateStr;
+  document.getElementById('bonbonImg').innerHTML = `<img src="${BONBON_BASE}${img}" style="width:100%;display:block;">`;
+}
+
+function showBonbonPopup(){
+  const img = getBonbonDuJour();
+  const dateStr = getBonbonDateStr();
+  const lastSeen = localStorage.getItem('bonbonLastSeen');
+  const today = new Date().toDateString();
+  if(lastSeen === today) return; // Déjà vu aujourd'hui
+  document.getElementById('bonbonPopupDate').textContent = dateStr;
+  document.getElementById('bonbonPopupImg').innerHTML = `<img src="${BONBON_BASE}${img}" style="width:100%;display:block;">`;
+  document.getElementById('overlayBonbon').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+
+document.getElementById('bonbonCloseBtn').addEventListener('click',()=>{
+  document.getElementById('overlayBonbon').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow='';
+  localStorage.setItem('bonbonLastSeen', new Date().toDateString());
+});
+
+document.getElementById('overlayBonbon').addEventListener('click',e=>{
+  if(e.target===document.getElementById('overlayBonbon')){
+    document.getElementById('overlayBonbon').classList.remove('open');
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow='';
+    localStorage.setItem('bonbonLastSeen', new Date().toDateString());
+  }
+});
+
+document.getElementById('bonbonVoirBtn').addEventListener('click',()=>{
+  document.getElementById('overlayBonbon').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow='';
+  localStorage.setItem('bonbonLastSeen', new Date().toDateString());
+  // Aller dans Les Extras > Bonbon
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelector('.nav-tab[data-section="sectionExtras"]')?.classList.add('active');
+  document.getElementById('sectionExtras').classList.add('active');
+  showExtrasSection('extrasBonbon');
 });
 
 // ── ACTIVITÉ RÉCENTE ──
