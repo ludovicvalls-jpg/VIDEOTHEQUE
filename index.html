@@ -430,6 +430,7 @@
         <div class="extras-card-title">Bonbon ciné du jour</div>
         <div class="extras-card-desc">Une image vintage ciné chaque jour, sélectionnée à la main</div>
       </div>
+      <div class="extras-card" onclick="showExtrasSection('extrasCDC')">
         <div class="extras-card-icon">❤️</div>
         <div class="extras-card-title">Coups de cœur</div>
         <div class="extras-card-desc">Les 3 films préférés de chaque membre de la communauté</div>
@@ -2177,11 +2178,10 @@ document.getElementById('mapBtn').addEventListener('click', async ()=>{
 
 // ── BONBON CINÉ DU JOUR ──
 // Ajoute tes images ici ! Nomme-les jour_1.jpg, jour_2.jpg etc. dans GitHub
-const BONBON_BASE = 'https://raw.githubusercontent.com/ludovicvalls-jpg/VIDEOTHEQUE/main/';
+const BONBON_BASE = 'https://raw.githubusercontent.com/ludovicvalls-jpg/VIDEOTHEQUE/main/images/';
 const BONBON_IMAGES = [
-  'jour_1.jpg',
-  'jour_2.jpg',
-  // Ajoute ici tes prochaines images : 'jour_3.jpg', 'jour_4.jpg', etc.
+  'jour%201.jpg',
+  'jour%202.jpg',
 ];
 
 function getBonbonDuJour(){
