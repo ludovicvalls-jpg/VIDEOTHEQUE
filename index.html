@@ -391,6 +391,7 @@
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">Derniers Ajouts</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionForum">Le Mur</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionExtras">Les Extras</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionDeals">🔥 Bons Plans</div>
         <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
         <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
         <div class="hamburger-item hamburger-danger" id="menuLogout">⏻ Déconnexion</div>
@@ -408,6 +409,7 @@
   <button class="nav-tab" data-section="sectionActivity">Derniers Ajouts</button>
   <button class="nav-tab" data-section="sectionForum">Le Mur <span id="notifBadge" style="display:none;background:#0d0d14;color:var(--pink);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionExtras">Les Extras</button>
+  <button class="nav-tab" data-section="sectionDeals">🔥 Bons Plans</button>
 </div>
 
 <!-- SECTION LES EXTRAS -->
@@ -559,6 +561,66 @@
 </div>
 
 <!-- SECTION WANTLIST -->
+<div class="section" id="sectionDeals">
+  <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--card-border);">
+    <div>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--cyan);">🔥 Bons Plans</span>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:10px;">Films à prix cassés signalés par la communauté</span>
+    </div>
+    <button id="addDealBtn" class="primary" style="font-size:12px;padding:8px 16px;">+ Signaler un bon plan</button>
+  </div>
+  <div id="dealsList" style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+</div>
+
+<!-- MODAL BON PLAN -->
+<div class="overlay" id="dealOverlay" style="z-index:100000;">
+  <div class="modal" style="max-width:480px;">
+    <h2 id="dealModalTitle" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 16px;">Signaler un bon plan</h2>
+    <div class="field"><label>Titre du film</label>
+      <input type="text" id="dealInputTitle" placeholder="Ex: Blade Runner 2049">
+      <button type="button" id="dealSearchPosterBtn" style="margin-top:6px;font-size:11px;padding:5px 12px;">🔍 Chercher l'affiche</button>
+    </div>
+    <div id="dealSearchResults" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;max-height:180px;overflow-y:auto;"></div>
+    <div id="dealPosterPreview" style="margin:8px 0;"></div>
+    <div class="row2">
+      <div class="field"><label>Format</label>
+        <select id="dealInputFormat">
+          <option value="DVD">DVD</option>
+          <option value="BLURAY">Blu-ray</option>
+          <option value="BLURAY4K">Blu-ray 4K</option>
+          <option value="VHS">VHS</option>
+        </select>
+      </div>
+      <div class="field"><label>Prix habituel (€)</label>
+        <input type="number" id="dealInputNormal" placeholder="Ex: 24.99" step="0.01" min="0">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label style="color:var(--cyan);">Prix du deal (€) *</label>
+        <input type="number" id="dealInputPrice" placeholder="Ex: 9.99" step="0.01" min="0">
+      </div>
+      <div class="field"><label>Site marchand</label>
+        <select id="dealInputMerchant">
+          <option value="Amazon">Amazon</option>
+          <option value="Fnac">Fnac</option>
+          <option value="Cdiscount">Cdiscount</option>
+          <option value="Cultura">Cultura</option>
+          <option value="Rakuten">Rakuten</option>
+          <option value="eBay">eBay</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Lien vers le deal</label>
+      <input type="url" id="dealInputUrl" placeholder="https://...">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button id="saveDealBtn" class="primary">Publier le bon plan</button>
+      <button id="cancelDealBtn">Annuler</button>
+    </div>
+  </div>
+</div>
+
 <div class="section" id="sectionWantlist">
   <div class="toolbar">
     <button id="addWantBtn" class="primary">+ Ajouter à la wantlist</button>
@@ -1240,6 +1302,7 @@ function showSection(section, pushHistory=true){
   if(section==='sectionForum') loadForum();
   if(section==='sectionActivity') loadActivity();
   if(section==='sectionMessages') loadMessages();
+  if(section==='sectionDeals') loadDeals();
   if(pushHistory) history.pushState({section}, '', '#'+section);
 }
 window.addEventListener('popstate', e=>{
@@ -3858,6 +3921,168 @@ async function loadHeaderCarousel(){
 
 loadHeaderCarousel();
 initAuth();
+
+// ═══════════════════════════════════════════════
+// BONS PLANS
+// ═══════════════════════════════════════════════
+let pendingDealPoster=null, pendingDealTmdbId=null, currentUserId=null;
+
+// Garde currentUserId à jour
+const _origInitAuth = initAuth;
+// On récupère l'user courant via sb.auth.getUser au chargement
+(async()=>{ const {data}=await sb.auth.getUser(); if(data&&data.user) currentUserId=data.user.id; })();
+sb.auth.onAuthStateChange((_,session)=>{ currentUserId=session?.user?.id||null; });
+
+const fmtDeal={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K'};
+
+async function loadDeals(){
+  const list=document.getElementById('dealsList');
+  list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:8px;">Chargement...</p>';
+  const {data:deals,error}=await sb.from('deals').select('*').order('votes_hot',{ascending:false}).order('created_at',{ascending:false});
+  if(error||!deals||deals.length===0){
+    list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:8px;">Aucun bon plan pour l\'instant — sois le premier à en signaler un !</p>';
+    return;
+  }
+  // Récupérer les votes de l'utilisateur courant
+  let myVotes={};
+  if(currentUserId){
+    const {data:vdata}=await sb.from('deal_votes').select('deal_id,vote').eq('user_id',currentUserId);
+    if(vdata) vdata.forEach(v=>myVotes[v.deal_id]=v.vote);
+  }
+  const now=Date.now();
+  list.innerHTML=deals.map(d=>{
+    const dead=d.votes_dead>d.votes_hot&&d.votes_dead>=3;
+    const age=Math.floor((now-new Date(d.created_at).getTime())/86400000);
+    const ageStr=age===0?"aujourd'hui":age===1?"hier":age+" jours";
+    const pct=d.price_normal&&d.price_deal?Math.round((1-d.price_deal/d.price_normal)*100):null;
+    const myV=myVotes[d.id]||null;
+    return `<div style="background:var(--card);border:1px solid ${dead?'#333':'var(--card-border)'};border-radius:8px;overflow:hidden;display:flex;flex-direction:column;opacity:${dead?'0.5':'1'};">
+      <div style="display:flex;gap:12px;padding:12px;">
+        ${d.poster_url?`<img src="${d.poster_url}" style="width:54px;height:78px;object-fit:cover;border-radius:4px;flex-shrink:0;">`:`<div style="width:54px;height:78px;background:#1c1c26;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">🎬</div>`}
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);line-height:1.1;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.title}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
+            ${d.format?`<span style="font-family:Space Mono,monospace;font-size:9px;background:#1c1c26;border:1px solid var(--card-border);padding:2px 6px;border-radius:2px;">${fmtDeal[d.format]||d.format}</span>`:''}
+            <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">${d.merchant||''}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--cyan);">${d.price_deal.toFixed(2)} €</span>
+            ${d.price_normal?`<span style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);text-decoration:line-through;">${d.price_normal.toFixed(2)} €</span>`:''}
+            ${pct?`<span style="font-family:Space Mono,monospace;font-size:10px;font-weight:700;background:#2fae5e22;color:#2fae5e;padding:2px 6px;border-radius:2px;">-${pct}%</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--card-border);background:rgba(0,0,0,0.15);">
+        <button onclick="voteDeal('${d.id}','hot')" style="font-size:12px;padding:4px 10px;background:${myV==='hot'?'#ff6b2b':'transparent'};border:1px solid ${myV==='hot'?'#ff6b2b':'var(--card-border)'};border-radius:4px;cursor:pointer;color:var(--text);transition:all .15s;">🔥 ${d.votes_hot}</button>
+        <button onclick="voteDeal('${d.id}','dead')" style="font-size:12px;padding:4px 10px;background:${myV==='dead'?'#444':'transparent'};border:1px solid ${myV==='dead'?'#666':'var(--card-border)'};border-radius:4px;cursor:pointer;color:var(--text);transition:all .15s;">💀 ${d.votes_dead}</button>
+        ${d.url?`<a href="${d.url}" target="_blank" rel="noopener" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;background:var(--cyan);color:#0d0d14;border-radius:4px;text-decoration:none;font-weight:700;">Voir le deal →</a>`:''}
+        ${d.user_id===currentUserId?`<button onclick="deleteDeal('${d.id}')" style="font-size:10px;padding:4px 8px;color:#ff8080;background:transparent;border:1px solid #ff8080;border-radius:4px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
+      </div>
+      <div style="padding:4px 12px 8px;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">Signalé par ${d.username||'anonyme'} · ${ageStr}${dead?' · 💀 Deal expiré':''}</div>
+    </div>`;
+  }).join('');
+}
+
+async function voteDeal(dealId, vote){
+  if(!currentUserId){ alert('Connecte-toi pour voter.'); return; }
+  const {data:existing}=await sb.from('deal_votes').select('vote').eq('deal_id',dealId).eq('user_id',currentUserId).single();
+  if(existing){
+    if(existing.vote===vote){
+      // Retirer le vote
+      await sb.from('deal_votes').delete().eq('deal_id',dealId).eq('user_id',currentUserId);
+      const col=vote==='hot'?'votes_hot':'votes_dead';
+      const {data:d}=await sb.from('deals').select(col).eq('id',dealId).single();
+      await sb.from('deals').update({[col]:Math.max(0,(d[col]||1)-1)}).eq('id',dealId);
+    } else {
+      // Changer de vote
+      await sb.from('deal_votes').update({vote}).eq('deal_id',dealId).eq('user_id',currentUserId);
+      const addCol=vote==='hot'?'votes_hot':'votes_dead';
+      const remCol=vote==='hot'?'votes_dead':'votes_hot';
+      const {data:d}=await sb.from('deals').select('votes_hot,votes_dead').eq('id',dealId).single();
+      await sb.from('deals').update({[addCol]:(d[addCol]||0)+1,[remCol]:Math.max(0,(d[remCol]||1)-1)}).eq('id',dealId);
+    }
+  } else {
+    await sb.from('deal_votes').insert({deal_id:dealId,user_id:currentUserId,vote});
+    const col=vote==='hot'?'votes_hot':'votes_dead';
+    const {data:d}=await sb.from('deals').select(col).eq('id',dealId).single();
+    await sb.from('deals').update({[col]:(d[col]||0)+1}).eq('id',dealId);
+  }
+  loadDeals();
+}
+
+async function deleteDeal(id){
+  if(!confirm('Supprimer ce bon plan ?')) return;
+  await sb.from('deals').delete().eq('id',id);
+  loadDeals();
+}
+
+// ── Modal ajout deal ──
+document.getElementById('addDealBtn').addEventListener('click',()=>{
+  if(!currentUserId){ alert('Connecte-toi pour signaler un bon plan.'); return; }
+  pendingDealPoster=null; pendingDealTmdbId=null;
+  document.getElementById('dealInputTitle').value='';
+  document.getElementById('dealInputPrice').value='';
+  document.getElementById('dealInputNormal').value='';
+  document.getElementById('dealInputUrl').value='';
+  document.getElementById('dealSearchResults').innerHTML='';
+  document.getElementById('dealPosterPreview').innerHTML='';
+  document.getElementById('dealOverlay').style.display='flex';
+  document.body.classList.add('modal-open');
+});
+document.getElementById('cancelDealBtn').addEventListener('click',()=>{
+  document.getElementById('dealOverlay').style.display='none';
+  document.body.classList.remove('modal-open');
+});
+
+document.getElementById('dealSearchPosterBtn').addEventListener('click', searchDealPoster);
+document.getElementById('dealInputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); searchDealPoster(); }});
+
+async function searchDealPoster(){
+  const title=document.getElementById('dealInputTitle').value.trim();
+  if(!title) return;
+  const res=document.getElementById('dealSearchResults');
+  res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Recherche...</span>';
+  try{
+    const r=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
+    const d=await r.json();
+    const results=(d.results||[]).filter(x=>x.poster_path).slice(0,10);
+    if(!results.length){ res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Aucun résultat.</span>'; return; }
+    res.innerHTML=results.map(m=>`<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" data-url="https://image.tmdb.org/t/p/w500${m.poster_path}" data-id="${m.id}" data-title="${m.title.replace(/"/g,'&quot;')}" data-year="${(m.release_date||'').slice(0,4)}" title="${m.title}" style="height:80px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;">`).join('');
+    res.querySelectorAll('img').forEach(img=>img.addEventListener('click',()=>{
+      res.querySelectorAll('img').forEach(i=>i.style.borderColor='transparent');
+      img.style.borderColor='var(--cyan)';
+      pendingDealPoster=img.dataset.url;
+      pendingDealTmdbId=img.dataset.id;
+      document.getElementById('dealPosterPreview').innerHTML=`<img src="${img.dataset.url}" style="height:100px;border-radius:4px;">`;
+      if(img.dataset.title) document.getElementById('dealInputTitle').value=img.dataset.title;
+    }));
+  }catch(e){ res.innerHTML='<span style="color:#ff8080;font-size:10px;">Erreur.</span>'; }
+}
+
+document.getElementById('saveDealBtn').addEventListener('click', async()=>{
+  const title=document.getElementById('dealInputTitle').value.trim();
+  const price=parseFloat(document.getElementById('dealInputPrice').value);
+  if(!title){ alert('Donne un titre.'); return; }
+  if(!price||price<=0){ alert('Indique le prix du deal.'); return; }
+  const {data:ud}=await sb.auth.getUser();
+  const {data:prof}=await sb.from('profiles').select('username').eq('id',ud.user.id).single();
+  const {error}=await sb.from('deals').insert({
+    user_id:currentUserId,
+    username:prof?.username||'anonyme',
+    title,
+    format:document.getElementById('dealInputFormat').value,
+    poster_url:pendingDealPoster||null,
+    tmdb_id:pendingDealTmdbId?parseInt(pendingDealTmdbId):null,
+    price_normal:parseFloat(document.getElementById('dealInputNormal').value)||null,
+    price_deal:price,
+    merchant:document.getElementById('dealInputMerchant').value,
+    url:document.getElementById('dealInputUrl').value.trim()||null
+  });
+  if(error){ alert('Erreur : '+error.message); return; }
+  document.getElementById('dealOverlay').style.display='none';
+  document.body.classList.remove('modal-open');
+  loadDeals();
+});
 
 </script>
 </body>
