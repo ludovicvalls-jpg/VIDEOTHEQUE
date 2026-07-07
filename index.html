@@ -3564,9 +3564,9 @@ async function loadTmdbInfo(tmdbId){
     // Construire la chaîne castCrew pour la recherche
     const castCrewStr = [...directors, ...actors, ...(d.genres||[]).map(g=>g.name)].join(' ');
     // Sauvegarder dans l'item en cours d'édition
-    if(editingKey){
-      const group = collection.find(g=>g.key===editingKey);
-      if(group) group.items.forEach(it=>{ it.castCrew = castCrewStr; });
+    if(editingId){
+      const item = collection.find(it=>it.id===editingId);
+      if(item) item.castCrew = castCrewStr;
     }
     content.innerHTML=
       '<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' · ')+'</div>'
