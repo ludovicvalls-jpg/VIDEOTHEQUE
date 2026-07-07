@@ -42,11 +42,38 @@
   /* APP */
   #app{display:none;}
   header{padding:28px 24px 18px;border-bottom:2px solid var(--card-border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;position:sticky;top:0;overflow:visible;min-height:90px;z-index:9999;background:var(--bg);}
-  .header-carousel{position:absolute;inset:0;display:flex;gap:0;z-index:0;pointer-events:none;}
-  .header-carousel img{height:100%;width:auto;object-fit:cover;flex-shrink:0;opacity:0.28;filter:sepia(60%) contrast(90%) brightness(0.7);animation:headerScroll 40s linear infinite;}
-  .header-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,20,0.85) 0%,rgba(13,13,20,0.4) 40%,rgba(13,13,20,0.4) 60%,rgba(13,13,20,0.85) 100%),repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);z-index:1;pointer-events:none;}
   header > div, header > .header-right, header > .hamburger-wrap{position:relative;z-index:2;}
-  @keyframes headerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  @keyframes neonFlicker{
+    0%,19%,21%,23%,25%,54%,56%,100%{
+      text-shadow:0 0 4px #fff,0 0 10px #fff,0 0 20px #ff2e88,0 0 40px #ff2e88,0 0 80px #ff2e88,0 0 90px #ff2e88;
+      opacity:1;
+    }
+    20%,24%,55%{
+      text-shadow:none;
+      opacity:0.85;
+    }
+  }
+  @keyframes neonFlickerSub{
+    0%,18%,22%,60%,100%{ opacity:1; text-shadow:0 0 6px #2ee6ff,0 0 14px #2ee6ff; }
+    19%,21%,61%,63%{ opacity:0.6; text-shadow:none; }
+    62%{ opacity:0.7; }
+  }
+  .neon-title{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:clamp(28px,5vw,52px);
+    letter-spacing:4px;
+    color:#fff;
+    animation:neonFlicker 6s infinite;
+    line-height:1;
+  }
+  .neon-sub{
+    font-family:'Space Mono',monospace;
+    font-size:clamp(8px,1.2vw,11px);
+    letter-spacing:3px;
+    color:#2ee6ff;
+    animation:neonFlickerSub 8s infinite 1s;
+    margin-top:4px;
+  }
   .logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;line-height:1;color:var(--text);}
   .logo span{color:var(--pink);}
   .sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px;}
@@ -369,11 +396,9 @@
 <div id="app">
 
 <header>
-  <div id="headerCarousel" class="header-carousel"></div>
-  <div class="header-overlay"></div>
   <div>
-    <div class="logo">MA <span>VIDÉO</span>THÈQUE</div>
-    <div class="sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
+    <div class="neon-title">MA VIDÉOTHÈQUE</div>
+    <div class="neon-sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
   </div>
   <div class="header-right">
     <div class="hamburger-wrap">
@@ -569,36 +594,62 @@
     </div>
     <button id="addDealBtn" class="primary" style="font-size:12px;padding:8px 16px;">+ Signaler un bon plan</button>
   </div>
-  <div id="dealsList" style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
+  <div id="dealsList" style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;"></div>
 </div>
 
 <!-- MODAL BON PLAN -->
 <div class="overlay" id="dealOverlay" style="z-index:100000;">
-  <div class="modal" style="max-width:480px;">
-    <h2 id="dealModalTitle" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 16px;">Signaler un bon plan</h2>
+  <div class="modal" style="max-width:520px;">
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 16px;">🔥 Signaler un bon plan</h2>
+
     <div class="field"><label>Titre du film</label>
-      <input type="text" id="dealInputTitle" placeholder="Ex: Blade Runner 2049">
-      <button type="button" id="dealSearchPosterBtn" style="margin-top:6px;font-size:11px;padding:5px 12px;">🔍 Chercher l'affiche</button>
+      <div style="display:flex;gap:6px;">
+        <input type="text" id="dealInputTitle" placeholder="Ex: Blade Runner 2049" style="flex:1;">
+        <button type="button" id="dealSearchPosterBtn" style="font-size:11px;padding:5px 12px;white-space:nowrap;">🔍 Chercher</button>
+      </div>
     </div>
-    <div id="dealSearchResults" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;max-height:180px;overflow-y:auto;"></div>
-    <div id="dealPosterPreview" style="margin:8px 0;"></div>
+
+    <div id="dealSearchResults" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;max-height:160px;overflow-y:auto;"></div>
+
+    <!-- Préview affiche + boutons alternatifs -->
+    <div id="dealPosterPreview" style="margin:4px 0 10px;display:flex;gap:10px;align-items:flex-start;"></div>
+
+    <!-- Upload photo du deal -->
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;width:fit-content;">
+        <input type="file" id="dealPhotoInput" accept="image/*" style="display:none;">
+        <button type="button" id="dealUploadPhotoBtn" style="font-size:11px;padding:5px 12px;">📷 Photo du deal à la place</button>
+      </label>
+      <div class="hint">Tu peux uploader une capture du deal plutôt que l'affiche TMDB.</div>
+    </div>
+
     <div class="row2">
       <div class="field"><label>Format</label>
         <select id="dealInputFormat">
-          <option value="DVD">DVD</option>
-          <option value="BLURAY">Blu-ray</option>
           <option value="BLURAY4K">Blu-ray 4K</option>
+          <option value="BLURAY">Blu-ray</option>
+          <option value="DVD">DVD</option>
           <option value="VHS">VHS</option>
         </select>
+      </div>
+      <div class="field" style="display:flex;align-items:flex-end;padding-bottom:4px;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin:0;">
+          <input type="checkbox" id="dealInputSteelbook" style="width:14px;height:14px;">
+          <span style="text-transform:none;font-size:12px;letter-spacing:normal;background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">✦ SteelBook®</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field"><label style="color:var(--cyan);">Prix du deal (€) *</label>
+        <input type="number" id="dealInputPrice" placeholder="Ex: 9.99" step="0.01" min="0">
       </div>
       <div class="field"><label>Prix habituel (€)</label>
         <input type="number" id="dealInputNormal" placeholder="Ex: 24.99" step="0.01" min="0">
       </div>
     </div>
+
     <div class="row2">
-      <div class="field"><label style="color:var(--cyan);">Prix du deal (€) *</label>
-        <input type="number" id="dealInputPrice" placeholder="Ex: 9.99" step="0.01" min="0">
-      </div>
       <div class="field"><label>Site marchand</label>
         <select id="dealInputMerchant">
           <option value="Amazon">Amazon</option>
@@ -610,10 +661,11 @@
           <option value="Autre">Autre</option>
         </select>
       </div>
+      <div class="field"><label>Lien vers le deal</label>
+        <input type="url" id="dealInputUrl" placeholder="https://...">
+      </div>
     </div>
-    <div class="field"><label>Lien vers le deal</label>
-      <input type="url" id="dealInputUrl" placeholder="https://...">
-    </div>
+
     <div style="display:flex;gap:10px;margin-top:16px;">
       <button id="saveDealBtn" class="primary">Publier le bon plan</button>
       <button id="cancelDealBtn">Annuler</button>
@@ -3906,20 +3958,7 @@ async function loadLoginCarousel(){
   }catch(e){}
 }
 
-async function loadHeaderCarousel(){
-  try{
-    const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=fr-FR&page=${Math.ceil(Math.random()*5)}`);
-    const d = await res.json();
-    const films = (d.results||[]).filter(f=>f.poster_path).slice(0,10);
-    if(!films.length) return;
-    const track = document.getElementById('headerCarousel');
-    // Doubler pour la boucle infinie
-    const html = films.map(f=>`<img src="https://image.tmdb.org/t/p/w185${f.poster_path}" alt="${f.title}">`).join('');
-    track.innerHTML = html + html;
-  }catch(e){}
-}
 
-loadHeaderCarousel();
 initAuth();
 
 // ═══════════════════════════════════════════════
@@ -3956,29 +3995,37 @@ async function loadDeals(){
     const ageStr=age===0?"aujourd'hui":age===1?"hier":age+" jours";
     const pct=d.price_normal&&d.price_deal?Math.round((1-d.price_deal/d.price_normal)*100):null;
     const myV=myVotes[d.id]||null;
-    return `<div style="background:var(--card);border:1px solid ${dead?'#333':'var(--card-border)'};border-radius:8px;overflow:hidden;display:flex;flex-direction:column;opacity:${dead?'0.5':'1'};">
-      <div style="display:flex;gap:12px;padding:12px;">
-        ${d.poster_url?`<img src="${d.poster_url}" style="width:54px;height:78px;object-fit:cover;border-radius:4px;flex-shrink:0;">`:`<div style="width:54px;height:78px;background:#1c1c26;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;">🎬</div>`}
-        <div style="flex:1;min-width:0;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);line-height:1.1;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.title}</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px;">
-            ${d.format?`<span style="font-family:Space Mono,monospace;font-size:9px;background:#1c1c26;border:1px solid var(--card-border);padding:2px 6px;border-radius:2px;">${fmtDeal[d.format]||d.format}</span>`:''}
-            <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">${d.merchant||''}</span>
+    const steelStr=d.is_steelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'';
+    return `<div style="background:var(--card);border:1px solid ${dead?'#2a2a2a':'var(--card-border)'};border-radius:10px;overflow:hidden;display:flex;flex-direction:column;opacity:${dead?'0.45':'1'};transition:opacity .2s;">
+      <div style="display:flex;gap:14px;padding:14px;">
+        <div style="flex-shrink:0;position:relative;">
+          ${d.poster_url
+            ?`<img src="${d.poster_url}" style="width:80px;height:116px;object-fit:cover;border-radius:6px;display:block;">`
+            :`<div style="width:80px;height:116px;background:#1c1c26;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:28px;">🎬</div>`}
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--text);line-height:1.1;margin-bottom:6px;">${d.title}</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
+              ${d.format?`<span style="font-family:Space Mono,monospace;font-size:9px;background:#1c1c26;border:1px solid var(--card-border);padding:2px 7px;border-radius:2px;">${fmtDeal[d.format]||d.format}</span>`:''}
+              ${steelStr}
+              <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">${d.merchant||''}</span>
+            </div>
           </div>
           <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--cyan);">${d.price_deal.toFixed(2)} €</span>
-            ${d.price_normal?`<span style="font-family:Space Mono,monospace;font-size:11px;color:var(--muted);text-decoration:line-through;">${d.price_normal.toFixed(2)} €</span>`:''}
-            ${pct?`<span style="font-family:Space Mono,monospace;font-size:10px;font-weight:700;background:#2fae5e22;color:#2fae5e;padding:2px 6px;border-radius:2px;">-${pct}%</span>`:''}
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--cyan);line-height:1;">${d.price_deal.toFixed(2)} €</span>
+            ${d.price_normal?`<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--muted);text-decoration:line-through;">${d.price_normal.toFixed(2)} €</span>`:''}
+            ${pct?`<span style="font-family:Space Mono,monospace;font-size:11px;font-weight:700;background:#2fae5e22;color:#2fae5e;padding:3px 8px;border-radius:4px;">−${pct}%</span>`:''}
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--card-border);background:rgba(0,0,0,0.15);">
-        <button onclick="voteDeal('${d.id}','hot')" style="font-size:12px;padding:4px 10px;background:${myV==='hot'?'#ff6b2b':'transparent'};border:1px solid ${myV==='hot'?'#ff6b2b':'var(--card-border)'};border-radius:4px;cursor:pointer;color:var(--text);transition:all .15s;">🔥 ${d.votes_hot}</button>
-        <button onclick="voteDeal('${d.id}','dead')" style="font-size:12px;padding:4px 10px;background:${myV==='dead'?'#444':'transparent'};border:1px solid ${myV==='dead'?'#666':'var(--card-border)'};border-radius:4px;cursor:pointer;color:var(--text);transition:all .15s;">💀 ${d.votes_dead}</button>
-        ${d.url?`<a href="${d.url}" target="_blank" rel="noopener" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:4px 12px;background:var(--cyan);color:#0d0d14;border-radius:4px;text-decoration:none;font-weight:700;">Voir le deal →</a>`:''}
-        ${d.user_id===currentUserId?`<button onclick="deleteDeal('${d.id}')" style="font-size:10px;padding:4px 8px;color:#ff8080;background:transparent;border:1px solid #ff8080;border-radius:4px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--card-border);background:rgba(0,0,0,0.18);">
+        <button onclick="voteDeal('${d.id}','hot')" style="font-size:13px;padding:5px 12px;background:${myV==='hot'?'rgba(255,107,43,0.25)':'transparent'};border:1px solid ${myV==='hot'?'#ff6b2b':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">🔥 ${d.votes_hot}</button>
+        <button onclick="voteDeal('${d.id}','dead')" style="font-size:13px;padding:5px 12px;background:${myV==='dead'?'#333':'transparent'};border:1px solid ${myV==='dead'?'#666':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">💀 ${d.votes_dead}</button>
+        ${d.url?`<a href="${d.url}" target="_blank" rel="noopener" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:6px 14px;background:var(--cyan);color:#0d0d14;border-radius:5px;text-decoration:none;font-weight:700;white-space:nowrap;">Voir le deal →</a>`:''}
+        ${d.user_id===currentUserId?`<button onclick="deleteDeal('${d.id}')" style="font-size:10px;padding:5px 9px;color:#ff8080;background:transparent;border:1px solid #3a1414;border-radius:5px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
       </div>
-      <div style="padding:4px 12px 8px;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">Signalé par ${d.username||'anonyme'} · ${ageStr}${dead?' · 💀 Deal expiré':''}</div>
+      <div style="padding:5px 14px 9px;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">Signalé par <strong style="color:var(--text);">${d.username||'anonyme'}</strong> · ${ageStr}${dead?' · 💀 <span style="color:#ff8080;">Deal expiré / introuvable</span>':''}</div>
     </div>`;
   }).join('');
 }
@@ -4020,10 +4067,8 @@ async function deleteDeal(id){
 document.getElementById('addDealBtn').addEventListener('click',()=>{
   if(!currentUserId){ alert('Connecte-toi pour signaler un bon plan.'); return; }
   pendingDealPoster=null; pendingDealTmdbId=null;
-  document.getElementById('dealInputTitle').value='';
-  document.getElementById('dealInputPrice').value='';
-  document.getElementById('dealInputNormal').value='';
-  document.getElementById('dealInputUrl').value='';
+  ['dealInputTitle','dealInputPrice','dealInputNormal','dealInputUrl'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('dealInputSteelbook').checked=false;
   document.getElementById('dealSearchResults').innerHTML='';
   document.getElementById('dealPosterPreview').innerHTML='';
   document.getElementById('dealOverlay').style.display='flex';
@@ -4033,9 +4078,18 @@ document.getElementById('cancelDealBtn').addEventListener('click',()=>{
   document.getElementById('dealOverlay').style.display='none';
   document.body.classList.remove('modal-open');
 });
-
 document.getElementById('dealSearchPosterBtn').addEventListener('click', searchDealPoster);
 document.getElementById('dealInputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); searchDealPoster(); }});
+document.getElementById('dealUploadPhotoBtn').addEventListener('click',()=>document.getElementById('dealPhotoInput').click());
+document.getElementById('dealPhotoInput').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  try{
+    const dataUrl=await resizeImageFile(file);
+    pendingDealPoster=dataUrl; pendingDealTmdbId=null;
+    document.getElementById('dealPosterPreview').innerHTML=`<img src="${dataUrl}" style="height:110px;border-radius:6px;">`;
+    document.getElementById('dealSearchResults').innerHTML='';
+  }catch(err){ alert('Erreur photo.'); }
+});
 
 async function searchDealPoster(){
   const title=document.getElementById('dealInputTitle').value.trim();
@@ -4045,16 +4099,42 @@ async function searchDealPoster(){
   try{
     const r=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
     const d=await r.json();
-    const results=(d.results||[]).filter(x=>x.poster_path).slice(0,10);
+    const results=(d.results||[]).filter(x=>x.poster_path).slice(0,12);
     if(!results.length){ res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Aucun résultat.</span>'; return; }
-    res.innerHTML=results.map(m=>`<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" data-url="https://image.tmdb.org/t/p/w500${m.poster_path}" data-id="${m.id}" data-title="${m.title.replace(/"/g,'&quot;')}" data-year="${(m.release_date||'').slice(0,4)}" title="${m.title}" style="height:80px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;">`).join('');
+    res.innerHTML=results.map(m=>`<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" data-url="https://image.tmdb.org/t/p/w500${m.poster_path}" data-id="${m.id}" data-title="${m.title.replace(/"/g,'&quot;')}" title="${m.title} (${(m.release_date||'').slice(0,4)})" style="height:90px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:border-color .1s;">`).join('');
     res.querySelectorAll('img').forEach(img=>img.addEventListener('click',()=>{
       res.querySelectorAll('img').forEach(i=>i.style.borderColor='transparent');
       img.style.borderColor='var(--cyan)';
       pendingDealPoster=img.dataset.url;
       pendingDealTmdbId=img.dataset.id;
-      document.getElementById('dealPosterPreview').innerHTML=`<img src="${img.dataset.url}" style="height:100px;border-radius:4px;">`;
       if(img.dataset.title) document.getElementById('dealInputTitle').value=img.dataset.title;
+      setDealPosterPreview(img.dataset.url, img.dataset.id);
+    }));
+  }catch(e){ res.innerHTML='<span style="color:#ff8080;font-size:10px;">Erreur.</span>'; }
+}
+
+function setDealPosterPreview(url, tmdbId){
+  const prev=document.getElementById('dealPosterPreview');
+  prev.innerHTML=`<img src="${url}" style="height:110px;border-radius:6px;flex-shrink:0;">
+    <div style="display:flex;flex-direction:column;gap:6px;justify-content:flex-end;">
+      <button type="button" onclick="loadDealAltPosters('${tmdbId}')" style="font-size:10px;padding:4px 10px;">🎨 Affiches alternatives</button>
+    </div>`;
+}
+
+async function loadDealAltPosters(tmdbId){
+  const res=document.getElementById('dealSearchResults');
+  res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Chargement...</span>';
+  try{
+    const r=await fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'/images?api_key='+TMDB_KEY+'&include_image_language=fr,en,null');
+    const d=await r.json();
+    const posters=(d.posters||[]).slice(0,20);
+    if(!posters.length){ res.innerHTML='<span style="font-size:10px;color:var(--muted);">Aucune affiche alternative.</span>'; return; }
+    res.innerHTML=posters.map(p=>`<img src="https://image.tmdb.org/t/p/w92${p.file_path}" data-url="https://image.tmdb.org/t/p/w500${p.file_path}" data-id="${tmdbId}" style="height:90px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:border-color .1s;">`).join('');
+    res.querySelectorAll('img').forEach(img=>img.addEventListener('click',()=>{
+      res.querySelectorAll('img').forEach(i=>i.style.borderColor='transparent');
+      img.style.borderColor='var(--cyan)';
+      pendingDealPoster=img.dataset.url;
+      setDealPosterPreview(img.dataset.url, tmdbId);
     }));
   }catch(e){ res.innerHTML='<span style="color:#ff8080;font-size:10px;">Erreur.</span>'; }
 }
@@ -4076,7 +4156,8 @@ document.getElementById('saveDealBtn').addEventListener('click', async()=>{
     price_normal:parseFloat(document.getElementById('dealInputNormal').value)||null,
     price_deal:price,
     merchant:document.getElementById('dealInputMerchant').value,
-    url:document.getElementById('dealInputUrl').value.trim()||null
+    url:document.getElementById('dealInputUrl').value.trim()||null,
+    is_steelbook:document.getElementById('dealInputSteelbook').checked
   });
   if(error){ alert('Erreur : '+error.message); return; }
   document.getElementById('dealOverlay').style.display='none';
