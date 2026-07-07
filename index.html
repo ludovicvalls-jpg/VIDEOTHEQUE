@@ -600,7 +600,7 @@
 <!-- MODAL BON PLAN -->
 <div class="overlay" id="dealOverlay" style="z-index:100000;">
   <div class="modal" style="max-width:520px;">
-    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 16px;">🔥 Signaler un bon plan</h2>
+    <h2 id="dealModalTitle" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 16px;">🔥 Signaler un bon plan</h2>
 
     <div class="field"><label>Titre du film</label>
       <div style="display:flex;gap:6px;">
@@ -3964,20 +3964,20 @@ initAuth();
 // ═══════════════════════════════════════════════
 // BONS PLANS
 // ═══════════════════════════════════════════════
-let pendingDealPoster=null, pendingDealTmdbId=null, currentUserId=null;
+let pendingDealPoster=null, pendingDealTmdbId=null, currentUserId=null, editingDealId=null;
 
-// Garde currentUserId à jour
-const _origInitAuth = initAuth;
-// On récupère l'user courant via sb.auth.getUser au chargement
-(async()=>{ const {data}=await sb.auth.getUser(); if(data&&data.user) currentUserId=data.user.id; })();
+// currentUserId et isAdmin sont synchronisés avec currentUser/currentProfile
 sb.auth.onAuthStateChange((_,session)=>{ currentUserId=session?.user?.id||null; });
+(async()=>{ const {data}=await sb.auth.getUser(); if(data&&data.user) currentUserId=data.user.id; })();
 
 const fmtDeal={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K'};
 
+let _dealsCache=[];
 async function loadDeals(){
   const list=document.getElementById('dealsList');
   list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:8px;">Chargement...</p>';
   const {data:deals,error}=await sb.from('deals').select('*').order('votes_hot',{ascending:false}).order('created_at',{ascending:false});
+  if(deals) _dealsCache=deals;
   if(error||!deals||deals.length===0){
     list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:8px;">Aucun bon plan pour l\'instant — sois le premier à en signaler un !</p>';
     return;
@@ -4023,7 +4023,9 @@ async function loadDeals(){
         <button onclick="voteDeal('${d.id}','hot')" style="font-size:13px;padding:5px 12px;background:${myV==='hot'?'rgba(255,107,43,0.25)':'transparent'};border:1px solid ${myV==='hot'?'#ff6b2b':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">🔥 ${d.votes_hot}</button>
         <button onclick="voteDeal('${d.id}','dead')" style="font-size:13px;padding:5px 12px;background:${myV==='dead'?'#333':'transparent'};border:1px solid ${myV==='dead'?'#666':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">💀 ${d.votes_dead}</button>
         ${d.url?`<a href="${d.url}" target="_blank" rel="noopener" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:6px 14px;background:var(--cyan);color:#0d0d14;border-radius:5px;text-decoration:none;font-weight:700;white-space:nowrap;">Voir le deal →</a>`:''}
-        ${d.user_id===currentUserId?`<button onclick="deleteDeal('${d.id}')" style="font-size:10px;padding:5px 9px;color:#ff8080;background:transparent;border:1px solid #3a1414;border-radius:5px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
+        ${(d.user_id===currentUserId||currentProfile?.is_admin)?`<button onclick="deleteDeal('${d.id}')" title="Supprimer" style="font-size:10px;padding:5px 9px;color:#ff8080;background:transparent;border:1px solid #3a1414;border-radius:5px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
+        ${d.user_id===currentUserId?`<button onclick="openEditDeal('${d.id}')" title="Modifier" style="font-size:10px;padding:5px 9px;color:var(--cyan);background:transparent;border:1px solid var(--card-border);border-radius:5px;cursor:pointer;">✏️</button>`:''}
+        ${currentProfile?.is_admin&&d.user_id!==currentUserId?`<span title="Admin" style="font-size:9px;font-family:Space Mono,monospace;color:#ff8c42;padding:2px 6px;border:1px solid #ff8c42;border-radius:3px;opacity:0.7;">ADMIN</span>`:''}
       </div>
       <div style="padding:5px 14px 9px;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">Signalé par <strong style="color:var(--text);">${d.username||'anonyme'}</strong> · ${ageStr}${dead?' · 💀 <span style="color:#ff8080;">Deal expiré / introuvable</span>':''}</div>
     </div>`;
@@ -4058,23 +4060,51 @@ async function voteDeal(dealId, vote){
 }
 
 async function deleteDeal(id){
-  if(!confirm('Supprimer ce bon plan ?')) return;
+  const isAdmin=currentProfile?.is_admin||false;
+  const msg=isAdmin?'Supprimer ce bon plan (action admin) ?':'Supprimer ce bon plan ?';
+  if(!confirm(msg)) return;
+  await sb.from('deal_votes').delete().eq('deal_id',id);
   await sb.from('deals').delete().eq('id',id);
   loadDeals();
+}
+
+function openEditDeal(id){
+  const d=_dealsCache.find(x=>x.id===id);
+  if(!d) return;
+  editingDealId=id;
+  pendingDealPoster=d.poster_url||null;
+  pendingDealTmdbId=d.tmdb_id?String(d.tmdb_id):null;
+  document.getElementById('dealInputTitle').value=d.title||'';
+  document.getElementById('dealInputPrice').value=d.price_deal||'';
+  document.getElementById('dealInputNormal').value=d.price_normal||'';
+  document.getElementById('dealInputUrl').value=d.url||'';
+  document.getElementById('dealInputFormat').value=d.format||'BLURAY4K';
+  document.getElementById('dealInputMerchant').value=d.merchant||'Amazon';
+  document.getElementById('dealInputSteelbook').checked=!!d.is_steelbook;
+  document.getElementById('dealSearchResults').innerHTML='';
+  document.getElementById('dealPosterPreview').innerHTML=d.poster_url
+    ?`<img src="${d.poster_url}" style="height:110px;border-radius:6px;flex-shrink:0;">${d.tmdb_id?`<div style="display:flex;flex-direction:column;gap:6px;justify-content:flex-end;"><button type="button" onclick="loadDealAltPosters('${d.tmdb_id}')" style="font-size:10px;padding:4px 10px;">🎨 Affiches alternatives</button></div>`:''}`:'' ;
+  document.getElementById('dealModalTitle').textContent='✏️ Modifier le bon plan';
+  document.getElementById('saveDealBtn').textContent='Enregistrer';
+  document.getElementById('dealOverlay').style.display='flex';
+  document.body.classList.add('modal-open');
 }
 
 // ── Modal ajout deal ──
 document.getElementById('addDealBtn').addEventListener('click',()=>{
   if(!currentUserId){ alert('Connecte-toi pour signaler un bon plan.'); return; }
-  pendingDealPoster=null; pendingDealTmdbId=null;
+  editingDealId=null; pendingDealPoster=null; pendingDealTmdbId=null;
   ['dealInputTitle','dealInputPrice','dealInputNormal','dealInputUrl'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('dealInputSteelbook').checked=false;
   document.getElementById('dealSearchResults').innerHTML='';
   document.getElementById('dealPosterPreview').innerHTML='';
+  document.getElementById('dealModalTitle').textContent='🔥 Signaler un bon plan';
+  document.getElementById('saveDealBtn').textContent='Publier le bon plan';
   document.getElementById('dealOverlay').style.display='flex';
   document.body.classList.add('modal-open');
 });
 document.getElementById('cancelDealBtn').addEventListener('click',()=>{
+  editingDealId=null;
   document.getElementById('dealOverlay').style.display='none';
   document.body.classList.remove('modal-open');
 });
@@ -4144,11 +4174,7 @@ document.getElementById('saveDealBtn').addEventListener('click', async()=>{
   const price=parseFloat(document.getElementById('dealInputPrice').value);
   if(!title){ alert('Donne un titre.'); return; }
   if(!price||price<=0){ alert('Indique le prix du deal.'); return; }
-  const {data:ud}=await sb.auth.getUser();
-  const {data:prof}=await sb.from('profiles').select('username').eq('id',ud.user.id).single();
-  const {error}=await sb.from('deals').insert({
-    user_id:currentUserId,
-    username:prof?.username||'anonyme',
+  const payload={
     title,
     format:document.getElementById('dealInputFormat').value,
     poster_url:pendingDealPoster||null,
@@ -4158,10 +4184,20 @@ document.getElementById('saveDealBtn').addEventListener('click', async()=>{
     merchant:document.getElementById('dealInputMerchant').value,
     url:document.getElementById('dealInputUrl').value.trim()||null,
     is_steelbook:document.getElementById('dealInputSteelbook').checked
-  });
+  };
+  let error;
+  if(editingDealId){
+    ({error}=await sb.from('deals').update(payload).eq('id',editingDealId));
+  } else {
+    const {data:prof}=await sb.from('profiles').select('username').eq('id',currentUserId).single();
+    ({error}=await sb.from('deals').insert({...payload,user_id:currentUserId,username:prof?.username||'anonyme'}));
+  }
   if(error){ alert('Erreur : '+error.message); return; }
+  editingDealId=null;
   document.getElementById('dealOverlay').style.display='none';
   document.body.classList.remove('modal-open');
+  document.getElementById('dealModalTitle').textContent='🔥 Signaler un bon plan';
+  document.getElementById('saveDealBtn').textContent='Publier le bon plan';
   loadDeals();
 });
 
