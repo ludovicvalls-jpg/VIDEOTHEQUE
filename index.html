@@ -132,12 +132,12 @@
   .empty .logo{font-size:28px;margin-bottom:10px;opacity:.6;}
 
   /* BARRE DE SÉLECTION */
-  .selection-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:10px 16px;display:none;gap:10px;align-items:center;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+  .selection-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:10px 16px;display:none;gap:10px;align-items:center;z-index:100001;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
   .selection-bar.open{display:flex;}
   .selection-bar span{font-family:'Space Mono',monospace;font-size:12px;color:var(--text);}
 
   /* MODAL */
-  .overlay{position:fixed;inset:0;background:rgba(5,5,10,0.88);display:none;align-items:flex-end;justify-content:center;z-index:50;overflow-y:auto;padding:0;}
+  .overlay{position:fixed;inset:0;background:rgba(5,5,10,0.88);display:none;align-items:flex-end;justify-content:center;z-index:100000;overflow-y:auto;padding:0;}
   @media(min-width:600px){.overlay{align-items:flex-start;padding:16px;}}
   .overlay.open{display:flex;}
   .modal{background:var(--card);border:1px solid var(--card-border);border-radius:14px 14px 0 0;width:100%;max-width:480px;padding:20px 16px;max-height:92vh;overflow-y:auto;}
@@ -536,8 +536,7 @@
         <option value="BLURAY">Blu-ray</option>
         <option value="BLURAY4K">Blu-ray 4K</option>
         <option value="LASERDISC">Laser Disc</option>
-        <option value="STEELBOOK">SteelBook®</option>
-        <option value="steelbook_flag">✦ SteelBook (tous)</option>
+        <option value="steelbook_flag">✦ SteelBook®</option>
       </select>
       <select id="filterWatched">
         <option value="">Vu et à voir</option>
@@ -818,7 +817,6 @@
           <option value="VHS">VHS</option><option value="DVD">DVD</option>
           <option value="BLURAY">Blu-ray</option><option value="BLURAY4K">Blu-ray 4K</option>
           <option value="LASERDISC">Laser Disc</option>
-          <option value="STEELBOOK">SteelBook®</option>
         </select>
       </div>
       <div class="field"><label>Année</label><input type="text" id="inputYear" placeholder="Ex: 1995"></div>
@@ -993,7 +991,7 @@ let selectionMode=false, selectedKeys=new Set(), lastGroups=new Map(), lastRende
 
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function groupKeyOf(t){ return t.trim().toLowerCase(); }
-function fmtLabel(f){ return {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc',STEELBOOK:'SteelBook®'}[f]||f; }
+function fmtLabel(f){ return {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'}[f]||f; }
 
 async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
@@ -1183,7 +1181,7 @@ function toRow(it){
 function fromRow(r){
   return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
-    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:(r.is_steelbook||r.format==='STEELBOOK')||false,
+    estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
     castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null};
 }
 async function loadCollection(){
@@ -1305,7 +1303,7 @@ function renderStats(){
   if(c.length === 0){ document.getElementById('statsContent').innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;">Ton rayon est vide pour l\'instant !</p>'; return; }
 
   const formats = ['VHS','DVD','BLURAY','BLURAY4K','LASERDISC'];
-  const formatNames = {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc',STEELBOOK:'SteelBook®'};
+  const formatNames = {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'};
   const formatColors = {VHS:'var(--cyan)',DVD:'#ffd23f',BLURAY:'var(--pink)',BLURAY4K:'#9b5cff',LASERDISC:'#f97316'};
 
   const totalValue = c.reduce((s,i)=>s+(i.estimatedValue||0),0);
@@ -3332,7 +3330,7 @@ async function loadTmdbInfo(tmdbId){
 function searchPriceOnline(){
   const title=document.getElementById('inputTitle').value.trim();
   if(!title){ alert('Remplis le titre.'); return; }
-  const flt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K UHD',LASERDISC:'Laser Disc',STEELBOOK:'SteelBook®'}[document.getElementById('inputFormat').value]||'';
+  const flt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K UHD',LASERDISC:'Laser Disc'}[document.getElementById('inputFormat').value]||'';
   const q=encodeURIComponent(title+' '+flt);
   ['https://fr.shopping.rakuten.com/search/'+q,'https://www.vinted.fr/catalog?search_text='+q,'https://www.leboncoin.fr/recherche?text='+q+'&category=32','https://www.gibert.com/recherche?q='+q]
     .forEach((url,i)=>setTimeout(()=>window.open(url,'_blank'),i*150));
@@ -3421,6 +3419,7 @@ async function searchPoster(){
         hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
         document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
         if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
+        if(img.title) document.getElementById('inputTitle').value=img.title;
         loadTmdbInfo(pendingTmdbId);
       });
     });
