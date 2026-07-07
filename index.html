@@ -201,7 +201,7 @@
   .hamburger-btn:hover{border-color:var(--cyan);color:var(--text);}
   .hamburger-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--cyan);flex-shrink:0;position:relative;}
   .hamburger-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;object-position:50% 25%;}
-  .hamburger-menu{display:none;position:fixed;top:70px;right:8px;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;max-width:calc(100vw - 16px);z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
+  .hamburger-menu{display:none;position:fixed;top:70px;right:8px;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;max-width:calc(100vw - 16px);z-index:99999;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
   .hamburger-menu.open{display:block;}
   .hamburger-header{padding:14px 16px;border-bottom:1px solid var(--card-border);font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
   .hamburger-header strong{display:block;font-size:14px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:2px;}
@@ -1232,21 +1232,36 @@ document.getElementById('hamburgerBtn').addEventListener('click', e=>{
 });
 document.addEventListener('click', ()=> document.getElementById('hamburgerMenu').classList.remove('open'));
 
+// Gestion du bouton retour mobile
+function showSection(section, pushHistory=true){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const tab = document.querySelector(`.nav-tab[data-section="${section}"]`);
+  if(tab) tab.classList.add('active');
+  document.getElementById(section).classList.add('active');
+  if(section==='sectionMembers') loadMembers();
+  if(section==='sectionForum') loadForum();
+  if(section==='sectionActivity') loadActivity();
+  if(section==='sectionMessages') loadMessages();
+  if(pushHistory) history.pushState({section}, '', '#'+section);
+}
+window.addEventListener('popstate', e=>{
+  if(e.state&&e.state.section){
+    showSection(e.state.section, false);
+  } else {
+    showSection('sectionRayon', false);
+    history.pushState({section:'sectionRayon'}, '', '#sectionRayon');
+  }
+});
+history.replaceState({section:'sectionRayon'}, '', '#sectionRayon');
+
 // Navigation depuis le menu hamburger (mobile)
 document.querySelectorAll('.nav-mobile-item').forEach(item=>{
   item.addEventListener('click', e=>{
     e.stopPropagation();
     const section = item.dataset.section;
     document.getElementById('hamburgerMenu').classList.remove('open');
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    const tab = document.querySelector(`.nav-tab[data-section="${section}"]`);
-    if(tab) tab.classList.add('active');
-    document.getElementById(section).classList.add('active');
-    if(section==='sectionMembers') loadMembers();
-    if(section==='sectionForum') loadForum();
-    if(section==='sectionActivity') loadActivity();
-    if(section==='sectionMessages') loadMessages();
+    showSection(section);
   });
 });
 
@@ -2573,16 +2588,7 @@ async function searchGiphy(){
 document.getElementById('forumPostBtn').addEventListener('click', publishPost);
 
 document.querySelectorAll('.nav-tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(tab.dataset.section).classList.add('active');
-    if(tab.dataset.section==='sectionMembers') loadMembers();
-    if(tab.dataset.section==='sectionForum') loadForum();
-    if(tab.dataset.section==='sectionActivity') loadActivity();
-    if(tab.dataset.section==='sectionMessages') loadMessages();
-  });
+  tab.addEventListener('click',()=>{ showSection(tab.dataset.section); });
 });
 
 function render(){
@@ -3652,6 +3658,7 @@ document.getElementById('saveBtn').addEventListener('click',saveItemModal);
 document.getElementById('deleteBtn').addEventListener('click',deleteItemModal);
 document.getElementById('searchPriceBtn').addEventListener('click',searchPriceOnline);
 document.getElementById('searchPosterBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); });
+document.getElementById('inputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); } });
 document.getElementById('searchDirectorBtn').addEventListener('click',()=>{ const w=document.getElementById('directorSearchWrap'); w.style.display=w.style.display==='none'?'block':'none'; if(w.style.display==='block') document.getElementById('inputDirector').focus(); });
 document.getElementById('searchDirectorGoBtn').addEventListener('click',searchByDirector);
 document.getElementById('inputDirector').addEventListener('keydown',e=>{ if(e.key==='Enter') searchByDirector(); });
