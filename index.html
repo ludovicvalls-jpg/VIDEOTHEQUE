@@ -3238,6 +3238,7 @@ document.getElementById('inputForSale').addEventListener('change',()=>{
   document.getElementById('saleBlock').style.display=document.getElementById('inputForSale').checked?'block':'none';
 });
 function openAdd(){ resetModal(); document.getElementById('overlay').classList.add('open'); document.body.classList.add('modal-open'); document.getElementById('inputTitle').focus(); }
+document.getElementById('addBtn').addEventListener('click', openAdd);
 function fillFormFromItem(it){
   editingId=it.id;
   document.getElementById('modalTitle').textContent='Fiche de details';
