@@ -459,8 +459,20 @@
   <div id="extrasBonbon" style="display:none;padding:20px 24px;max-width:680px;margin:0 auto;">
     <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
     <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">🍬 Bonbon ciné du jour</h2>
-    <p id="bonbonDate" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;"></p>
-    <div id="bonbonImg" style="width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--card-border);"></div>
+    <p id="bonbonDate" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 10px;"></p>
+    <div style="margin-bottom:10px;">
+      <button id="bonbonZoomBtn" onclick="document.getElementById('bonbonLightbox').style.display='flex'" style="font-size:12px;">🔍 Agrandir pour lire</button>
+    </div>
+    <div id="bonbonImg" style="width:100%;border-radius:8px;overflow:hidden;border:1px solid var(--card-border);cursor:zoom-in;" onclick="document.getElementById('bonbonLightbox').style.display='flex'"></div>
+    <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:8px;">Clique sur l'image pour l'agrandir</div>
+  </div>
+
+  <!-- Visionneuse plein écran -->
+  <div id="bonbonLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px;" onclick="this.style.display='none'">
+    <div style="position:relative;max-width:900px;width:100%;">
+      <button onclick="document.getElementById('bonbonLightbox').style.display='none'" style="position:fixed;top:16px;right:16px;font-size:24px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10000;">✕</button>
+      <img id="bonbonLightboxImg" src="" style="width:100%;display:block;border-radius:4px;">
+    </div>
   </div>
 
   <!-- SOUS-SECTION COUPS DE CŒUR -->
@@ -2198,6 +2210,7 @@ function showBonbonExtras(){
   const dateStr = getBonbonDateStr();
   document.getElementById('bonbonDate').textContent = dateStr;
   document.getElementById('bonbonImg').innerHTML = `<img src="${BONBON_BASE}${img}" style="width:100%;display:block;">`;
+  document.getElementById('bonbonLightboxImg').src = `${BONBON_BASE}${img}`;
 }
 
 function showBonbonPopup(){
