@@ -71,25 +71,6 @@
   .cgu-modal .update-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:20px;}
   .cgu-modal .warning-box{background:#1c1c26;border:1px solid var(--pink);border-radius:6px;padding:12px 16px;margin:16px 0;}
   .cgu-modal .warning-box p{color:var(--text);margin:0;}
-  /* ── SKIN VHS ── */
-  .tape.vhs-skin{background:#111;border-color:#2a2a2a;overflow:visible;}
-  .tape.vhs-skin:hover{transform:translateY(-3px);border-color:#555;}
-  .vhs-box{width:100%;position:relative;overflow:hidden;border-radius:3px 0 0 3px;}
-  .vhs-box img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(0.88) contrast(1.04);}
-  .vhs-box-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.12) 0%,transparent 25%,transparent 75%,rgba(0,0,0,0.35) 100%);pointer-events:none;}
-  .vhs-sticker{position:absolute;top:7px;left:5px;right:20px;background:rgba(255,248,225,0.93);border:1px solid #bba;border-radius:1px;padding:3px 5px;font-family:'Space Mono',monospace;font-size:7.5px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.4px;line-height:1.4;box-shadow:1px 1px 3px rgba(0,0,0,0.25),inset 0 0 0 0.5px rgba(255,255,255,0.6);transform:rotate(-0.5deg);}
-  .vhs-sticker .vhs-sticker-year{font-weight:400;color:#666;font-size:6.5px;display:block;margin-top:1px;text-transform:none;letter-spacing:0;}
-  .vhs-sticker .vhs-sticker-note{font-size:6px;color:#888;font-weight:400;text-transform:none;letter-spacing:0;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .vhs-spine{position:absolute;top:0;right:0;bottom:0;width:16px;background:#0d0d0d;border-left:1px solid #333;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:5px 0 4px;}
-  .vhs-spine-reel{width:10px;height:10px;border-radius:50%;background:#0a0a0a;border:1px solid #3a3a3a;display:flex;align-items:center;justify-content:center;}
-  .vhs-spine-reel::after{content:'';width:4px;height:4px;border-radius:50%;background:#1a1a1a;border:1px solid #444;}
-  .vhs-spine-label{font-family:'Space Mono',monospace;font-size:6px;font-weight:700;color:#3a3a3a;letter-spacing:1.5px;writing-mode:vertical-rl;transform:rotate(180deg);}
-  .vhs-spine-notch{width:8px;height:3px;background:#151515;border:1px solid #3a3a3a;border-radius:1px;}
-  .vhs-bottom-bar{padding:5px 8px 6px;background:#0d0d0d;border-top:1px solid #222;display:flex;align-items:center;justify-content:space-between;}
-  .vhs-bottom-bar .tape-watch-row{flex:1;}
-  .tape.vhs-skin .tape-info{display:none;}
-  .tape.vhs-skin .tape-bottom{display:none;}
-  .tape.vhs-skin .poster-wrap{aspect-ratio:unset;height:auto;}
   .neon-title{
     font-family:'Bebas Neue',sans-serif;
     font-size:clamp(28px,5vw,52px);
@@ -2878,36 +2859,6 @@ function render(){
     if(loanedItem){
       const d=loanedItem.loanedAt?Math.max(0,Math.floor((Date.now()-new Date(loanedItem.loanedAt).getTime())/86400000)):null;
       loanTitle='Prêté à '+loanedItem.loanedTo+(d!==null?' depuis '+(d===0?"aujourd'hui":d+' jour'+(d>1?'s':'')):'');
-    }
-    const badges=(isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 5px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">SB®</span>':'')
-      +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
-      +(loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'');
-    if(it.format==='VHS'){
-      return '<div class="tape vhs-skin '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+' '+(isSteelbook?'steelbook':'')+'" data-key="'+g.key+'">'
-        +'<div class="poster-wrap" style="position:relative;">'
-        +(selectionMode?'<div class="select-mark">&#x2713;</div>':'')
-        +(g.items.length>1?'<div class="dup-badge">'+g.items.length+'</div>':'')
-        +'<div class="vhs-box" style="aspect-ratio:2/3;position:relative;">'
-        +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
-          :'<div class="poster-placeholder" style="height:100%;display:flex;align-items:center;justify-content:center;">'+it.title+'</div>')
-        +'<div class="vhs-box-overlay"></div>'
-        +'<div class="vhs-sticker">'+it.title
-        +'<span class="vhs-sticker-year">'+(it.year||'')+(it.shelf?' · '+it.shelf:'')+'</span>'
-        +(loanedItem?'<span class="vhs-sticker-note">[VHS] '+loanedItem.loanedTo+'</span>':'')
-        +'</div>'
-        +(badges?'<div style="position:absolute;bottom:4px;left:4px;display:flex;gap:3px;flex-wrap:wrap;">'+badges+'</div>':'')
-        +'<div class="vhs-spine">'
-        +'<div class="vhs-spine-reel"></div>'
-        +'<div class="vhs-spine-label">VHS</div>'
-        +'<div class="vhs-spine-notch"></div>'
-        +'</div>'
-        +'</div>'
-        +'</div>'
-        +'<div class="vhs-bottom-bar">'
-        +'<span class="tape-watch-label" style="color:#555;font-size:9px;">'+(allWatched?'Vu ✓':'À voir')+'</span>'
-        +'<div class="watched-switch '+(allWatched?'on':'')+'" data-watch-key="'+g.key+'"><div class="knob"></div></div>'
-        +'</div>'
-        +'</div>';
     }
     return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+' '+(isSteelbook?'steelbook':'')+'" data-key="'+g.key+'">'
       +'<div class="poster-wrap">'
