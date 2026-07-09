@@ -1201,6 +1201,61 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 
+// ═══════════════════════════════════════════════════════
+// SÉCURITÉ — fonctions utilitaires
+// ═══════════════════════════════════════════════════════
+
+// Échapper le HTML pour éviter les injections XSS
+function escHtml(str){
+  if(!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;')
+    .replace(/`/g,'&#x60;');
+}
+
+// Nettoyer une URL (n'autoriser que http/https)
+function safeUrl(url){
+  if(!url) return '#';
+  try{
+    const u=new URL(url);
+    if(u.protocol!=='https:'&&u.protocol!=='http:') return '#';
+    return u.href;
+  }catch(e){ return '#'; }
+}
+
+// Rate limiting login (max 5 tentatives / 2 minutes)
+const _loginAttempts={count:0,resetAt:0};
+function checkLoginRateLimit(){
+  const now=Date.now();
+  if(now>_loginAttempts.resetAt){ _loginAttempts.count=0; _loginAttempts.resetAt=now+120000; }
+  _loginAttempts.count++;
+  if(_loginAttempts.count>5){
+    const wait=Math.ceil((_loginAttempts.resetAt-now)/1000);
+    alert('Trop de tentatives. Réessaie dans '+wait+' secondes.');
+    return false;
+  }
+  return true;
+}
+
+// Valider un champ texte (longueur max, pas de scripts)
+function validateText(str, maxLen=500){
+  if(!str) return '';
+  const s=String(str).trim().slice(0,maxLen);
+  return s;
+}
+
+// Valider un prix
+function validatePrice(val){
+  const n=parseFloat(val);
+  if(isNaN(n)||n<0||n>99999) return null;
+  return Math.round(n*100)/100;
+}
+
+
 const SUPABASE_URL = "https://enykcstuektwkflccyae.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueWtjc3R1ZWt0d2tmbGNjeWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMTUyNDMsImV4cCI6MjA5ODU5MTI0M30.dVNdkZpj96cobRQgQCbNW4PjGbTWSbUtGHtogaJeGMo";
 const TMDB_KEY = "3f13274151b3f137a6559b399bbf80aa";
@@ -1506,7 +1561,7 @@ function updateHamburger(profile){
   const username = document.getElementById('hamburgerUsername');
   const header = document.getElementById('hamburgerHeader');
   username.textContent = profile.username || '';
-  header.innerHTML = `<strong>${profile.username||'Membre'}</strong>${currentUser.email}`;
+  header.innerHTML = `<strong>${escHtml(profile.username||'Membre')}</strong>${escHtml(currentUser.email)}`;
   if(profile.avatar_url){
     const pos = profile.avatar_position || '50% 25%';
     avatar.innerHTML = `<img src="${profile.avatar_url}" style="object-position:${pos};">`;
@@ -1811,7 +1866,7 @@ async function loadCommunityInfo(tmdbId, currentItemId){
   const makeChip = (list, label, emoji, color) => {
     if(!list.length) return '';
     const names = list.map(r=>{
-      const uname = r.profiles?.username||'Membre';
+      const uname = escHtml(r.profiles?.username||'Membre');
       const uid   = r.user_id;
       return `<span onclick="event.stopPropagation();document.getElementById('overlay').classList.remove('open');document.body.classList.remove('modal-open');openMemberCollection('${uid}','${uname.replace(/'/g,"\\'")}');" style="font-family:'Space Mono',monospace;font-size:10px;color:${color};cursor:pointer;text-decoration:underline;white-space:nowrap;" title="Voir la collection de ${uname}">${uname}</span>`;
     }).join('<span style="color:var(--muted);"> · </span>');
@@ -2617,7 +2672,7 @@ function renderPosts(posts){
   container.innerHTML = posts.map(p => {
     const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const isOwn = p.user_id === currentUser.id;
-    const contentHtml = p.content.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+    const contentHtml = escHtml(p.content).replace(/@(\w+)/g, '<span class="mention">@$1</span>');
     const username = p.profiles ? p.profiles.username : 'Membre';
     const avatarUrl = p.profiles ? p.profiles.avatar_url : null;
     const avatarPos = p.profiles ? (p.profiles.avatar_position || '50% 25%') : '50% 25%';
@@ -2628,7 +2683,7 @@ function renderPosts(posts){
       <div class="post-avatar">${avatarHtml}</div>
       <div style="flex:1;">
         <div class="post-header">
-          <span class="post-author">${username}</span>
+          <span class="post-author">${escHtml(username)}</span>
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="post-date">${date}</span>
             ${isOwn ? `<button class="post-delete" data-pid="${p.id}">✕</button>` : ''}
@@ -2646,7 +2701,7 @@ function renderPosts(posts){
 }
 
 async function publishPost(){
-  const content = document.getElementById('forumInput').value.trim();
+  const content = validateText(document.getElementById('forumInput').value.trim(), 2000);
   const imageUrl = pendingImageUrl || null;
   if(!content && !imageUrl){ alert("Écris quelque chose ou ajoute une image avant de publier."); return; }
 
@@ -4167,7 +4222,7 @@ async function loadDeals(){
       <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--card-border);background:rgba(0,0,0,0.18);">
         <button onclick="voteDeal('${d.id}','hot')" style="font-size:13px;padding:5px 12px;background:${myV==='hot'?'rgba(255,107,43,0.25)':'transparent'};border:1px solid ${myV==='hot'?'#ff6b2b':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">🔥 ${d.votes_hot}</button>
         <button onclick="voteDeal('${d.id}','dead')" style="font-size:13px;padding:5px 12px;background:${myV==='dead'?'#333':'transparent'};border:1px solid ${myV==='dead'?'#666':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">💀 ${d.votes_dead}</button>
-        ${d.url?`<a href="${d.url}" target="_blank" rel="noopener" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:6px 14px;background:var(--cyan);color:#0d0d14;border-radius:5px;text-decoration:none;font-weight:700;white-space:nowrap;">Voir le deal →</a>`:''}
+        ${d.url?`<a href="${safeUrl(d.url)}" target="_blank" rel="noopener noreferrer" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:6px 14px;background:var(--cyan);color:#0d0d14;border-radius:5px;text-decoration:none;font-weight:700;white-space:nowrap;">Voir le deal →</a>`:''}
         ${(d.user_id===currentUserId||currentProfile?.is_admin)?`<button onclick="deleteDeal('${d.id}')" title="Supprimer" style="font-size:10px;padding:5px 9px;color:#ff8080;background:transparent;border:1px solid #3a1414;border-radius:5px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
         ${d.user_id===currentUserId?`<button onclick="openEditDeal('${d.id}')" title="Modifier" style="font-size:10px;padding:5px 9px;color:var(--cyan);background:transparent;border:1px solid var(--card-border);border-radius:5px;cursor:pointer;">✏️</button>`:''}
         ${currentProfile?.is_admin&&d.user_id!==currentUserId?`<span title="Admin" style="font-size:9px;font-family:Space Mono,monospace;color:#ff8c42;padding:2px 6px;border:1px solid #ff8c42;border-radius:3px;opacity:0.7;">ADMIN</span>`:''}
