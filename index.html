@@ -3117,7 +3117,8 @@ async function searchWantPoster(){
 }
 
 async function loadMembers(){
-  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position,bio,city,letterboxd');
+  const {data:profiles,error:pErr}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position,bio');
+  if(pErr){ console.error('loadMembers error:',pErr); grid.innerHTML='<div class="empty">Erreur chargement membres.</div>'; return; }
   const grid=document.getElementById('membersGrid');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
   const {data:counts}=await sb.from('collection').select('user_id');
@@ -3239,7 +3240,7 @@ function updateBannerPreview(url){
 }
 
 // ── BANNIÈRE dans la modal membre ──
-async function openMemberCollection(userId,username){
+async function openMemberCollection(userId, username, onClose){
   document.getElementById('memberModalTitle').textContent = username;
   document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
   document.getElementById('overlayMember')._onClose=onClose||null;
