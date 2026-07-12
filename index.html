@@ -214,7 +214,7 @@
 
   /* SECTION MEMBRES */
   .members-grid{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;}
-  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:20px;cursor:pointer;transition:border-color .15s;}
+  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column;}
   .member-card:hover{border-color:var(--cyan);}
   .member-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);margin-bottom:6px;}
   .member-stats{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;}
@@ -593,6 +593,7 @@
         <option value="trade">À l'échange</option>
         <option value="sale">À la vente</option>
         <option value="loaned">Prêtés</option>
+        <option value="no_poster">Sans jaquette</option>
       </select>
     </div>
   </div>
@@ -691,8 +692,10 @@
   <div class="toolbar">
     <button id="addWantBtn" class="primary">+ Ajouter à la wantlist</button>
     <button id="allWantlistsBtn">Voir toutes les wantlists</button>
+    <button id="allTitlesBtn">📚 Tous les titres du site</button>
   </div>
   <div id="allWantlistsPanel" style="display:none;padding:0 0 16px;"></div>
+  <div id="allTitlesPanel" style="display:none;"></div>
   <div class="want-grid" id="wantGrid"></div>
 </div>
 
@@ -2842,7 +2845,7 @@ async function searchGiphy(){
   const data = await res.json();
   const results = document.getElementById('giphyResults');
   results.innerHTML = (data.data||[]).map(gif=>
-    `<img src="${gif.images.fixed_height_small.url}" data-url="${gif.images.downsized.url}" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
+    `<img src="${gif.images.fixed_height_small.url}" data-url="${gif.images.original.url}" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
   ).join('');
   results.querySelectorAll('img').forEach(img=>{
     img.addEventListener('click', ()=>{
@@ -2875,14 +2878,15 @@ function render(){
     const matchTrade=filterSort!=='trade'||it.forTrade;
     const matchSale=filterSort!=='sale'||it.forSale;
     const matchLoaned=filterSort!=='loaned'||it.loanedTo;
-    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned;
+    const matchNoPoster=filterSort!=='no_poster'||!it.posterUrl;
+    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned&&matchNoPoster;
   });
 
   lastGroups=new Map();
   items.forEach(it=>{ const k=groupKeyOf(it.title); if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
   let groups=Array.from(lastGroups.entries()).map(([key,gi])=>({key,items:gi,primary:gi.find(i=>i.posterUrl)||gi[0]}));
 
-  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'){
+  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'){
     groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
   } else if(filterSort==='date_added'){
     groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
@@ -3077,7 +3081,7 @@ async function searchWantPoster(){
 }
 
 async function loadMembers(){
-  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
+  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position,bio,city,letterboxd');
   const grid=document.getElementById('membersGrid');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
   const {data:counts}=await sb.from('collection').select('user_id');
@@ -3105,6 +3109,7 @@ async function loadMembers(){
       +'<div><div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
       +(badge?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--pink);">'+badge.name+'</div>':'')
       +'</div></div>'
+      +(p.bio?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;font-style:italic;">“'+escHtml(p.bio)+'”</div>':'')
       +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
       +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
       +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')+'</div>'
@@ -3693,8 +3698,8 @@ async function loadDirectorFilms(personId,personName){
       img.addEventListener('click',()=>{
         resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
         pendingPoster={url:img.dataset.url,isPhoto:false}; pendingTmdbId=img.dataset.id;
-        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
-        hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
+        document.getElementById('posterPreview').innerHTML='<div style="position:relative;display:inline-block;"><img src="'+img.dataset.url+'" style="display:block;"><button type="button" onclick="clearPoster()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1;">✕</button></div>';
+        hint.innerHTML='Film selectionné. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
         document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
         if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
         loadTmdbInfo(pendingTmdbId);
@@ -3708,18 +3713,28 @@ async function searchPoster(){
   const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('searchResults');
   hint.textContent='Recherche...'; resultsDiv.innerHTML='';
   try{
-    const res=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
-    const data=await res.json();
-    const results=(data.results||[]).filter(r=>r.poster_path).slice(0,16);
-    if(results.length===0){ hint.textContent='Aucune affiche.'; return; }
+    // Chercher sur 2 pages + en anglais si peu de résultats
+    const [r1,r2]=await Promise.all([
+      fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR&page=1&include_adult=false'),
+      fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=en-US&page=1&include_adult=false')
+    ]);
+    const [d1,d2]=await Promise.all([r1.json(),r2.json()]);
+    const seen=new Set();
+    const merged=[...(d1.results||[]),...(d2.results||[])].filter(r=>{
+      if(seen.has(r.id)) return false; seen.add(r.id); return true;
+    });
+    // Afficher avec ET sans affiche (sans affiche = placeholder)
+    const withPoster=merged.filter(r=>r.poster_path);
+    const results=withPoster.slice(0,20);
+    if(results.length===0){ hint.textContent='Aucun résultat. Essaie en anglais.'; return; }
     hint.textContent='Clique sur le bon film.';
     resultsDiv.innerHTML=results.map(r=>'<img src="https://image.tmdb.org/t/p/w200'+r.poster_path+'" data-url="https://image.tmdb.org/t/p/w500'+r.poster_path+'" data-year="'+(r.release_date||'').slice(0,4)+'" data-id="'+r.id+'" title="'+r.title+'">').join('');
     resultsDiv.querySelectorAll('img').forEach(img=>{
       img.addEventListener('click',()=>{
         resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
         pendingPoster={url:img.dataset.url,isPhoto:false}; pendingTmdbId=img.dataset.id;
-        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
-        hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
+        document.getElementById('posterPreview').innerHTML='<div style="position:relative;display:inline-block;"><img src="'+img.dataset.url+'" style="display:block;"><button type="button" onclick="clearPoster()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1;">✕</button></div>';
+        hint.innerHTML='Film selectionné. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
         document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
         if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
         if(img.title) document.getElementById('inputTitle').value=img.title;
@@ -3727,6 +3742,13 @@ async function searchPoster(){
       });
     });
   }catch(e){ hint.textContent='Erreur.'; }
+}
+function clearPoster(){
+  pendingPoster=null; pendingTmdbId=null;
+  document.getElementById('posterPreview').innerHTML='<span>Pas d’affiche</span>';
+  document.getElementById('modalHint').textContent='Affiche supprimée.';
+  document.getElementById('tmdbInfoBlock').style.display='none';
+  document.getElementById('tmdbInfoContent').innerHTML='';
 }
 function resizeImageFile(file){
   return new Promise((resolve,reject)=>{
@@ -3968,6 +3990,43 @@ document.getElementById('photoInput').addEventListener('change',e=>{ if(e.target
 document.getElementById('filterFormat').addEventListener('change',render);
 document.getElementById('filterWatched').addEventListener('change',render);
 document.getElementById('filterSort').addEventListener('change',render);
+
+// Croix effacement recherche Mon Rayon
+const _sbClear=document.getElementById('clearSearchBox');
+document.getElementById('searchBox').addEventListener('input',function(){
+  _sbClear.style.display=this.value?'block':'none'; render();
+});
+_sbClear.addEventListener('click',()=>{
+  document.getElementById('searchBox').value='';
+  _sbClear.style.display='none'; render();
+});
+
+// Bouton Tous les titres du site
+document.getElementById('allTitlesBtn').addEventListener('click', async function(){
+  const panel=document.getElementById('allTitlesPanel');
+  const wPanel=document.getElementById('allWantlistsPanel');
+  if(panel.style.display!=='none'){ panel.style.display='none'; this.textContent='📚 Tous les titres du site'; return; }
+  wPanel.style.display='none';
+  document.getElementById('allWantlistsBtn').textContent='Voir toutes les wantlists';
+  panel.innerHTML='<p style="padding:16px;font-family:Space Mono,monospace;font-size:11px;color:var(--muted);">Chargement...</p>';
+  panel.style.display='block';
+  this.textContent='✕ Fermer';
+  const {data}=await sb.from('collection').select('title,format,poster_url,tmdb_id,year,is_steelbook').order('title');
+  if(!data||!data.length){ panel.innerHTML='<p style="padding:16px;font-family:Space Mono,monospace;font-size:11px;color:var(--muted);">Aucun titre.</p>'; return; }
+  // Dédoublonner par tmdb_id ou par titre
+  const seen=new Set(); const uniq=[];
+  data.forEach(r=>{ const k=r.tmdb_id||r.title; if(!seen.has(k)){ seen.add(k); uniq.push(r); }});
+  panel.innerHTML='<div style="padding:8px 16px;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">'+uniq.length+' titres uniques répertoriés sur le site — ordre alphabétique</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;padding:0 16px 16px;">'
+    +uniq.map(r=>{
+      const fmt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'4K',LASERDISC:'LD'}[r.format]||r.format||'';
+      return '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;cursor:default;">'
+        +(r.poster_url?'<img src="'+r.poster_url+'" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block;">':'<div style="aspect-ratio:2/3;background:#1c1c26;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center;padding:4px;">'+escHtml(r.title)+'</div>')
+        +'<div style="padding:4px 5px;"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(r.title)+'</div>'
+        +'<span style="font-family:Space Mono,monospace;font-size:7px;color:var(--muted);">'+fmt+(r.year?' · '+r.year:'')+'</span>'
+        +'</div></div>';
+    }).join('')+'</div>';
+});
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeModal(); });
 document.getElementById('exportBtn').addEventListener('click',exportCollection);
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importInput').click());
