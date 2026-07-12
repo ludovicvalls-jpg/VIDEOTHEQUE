@@ -215,7 +215,7 @@
 
   /* SECTION MEMBRES */
   .members-grid{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;}
-  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column;}
+  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;cursor:pointer;transition:border-color .15s;}
   .member-card:hover{border-color:var(--cyan);}
   .member-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);margin-bottom:6px;}
   .member-stats{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;}
@@ -4109,17 +4109,15 @@ document.getElementById('allTitlesBtn').addEventListener('click', async function
 function _restoreAllTitles(){
   const panel=document.getElementById('allTitlesPanel');
   const btn=document.getElementById('allTitlesBtn');
-  // Forcer la section wantlist active
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('sectionWantlist').classList.add('active');
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  const wTab=document.querySelector('.nav-tab[data-section="sectionWantlist"]');
-  if(wTab) wTab.classList.add('active');
-  // Remettre le panel visible
-  if(panel._wasOpen){
-    panel.style.display='block';
-    btn.textContent='✕ Fermer';
-  }
+  // Forcer wantlist active
+  showSection('sectionWantlist', false);
+  // Remettre le panel visible après le changement de section
+  requestAnimationFrame(()=>{
+    if(panel._wasOpen){
+      panel.style.display='block';
+      btn.textContent='✕ Fermer';
+    }
+  });
 }
 function openAllTitlesMember(uid, uname){
   const panel=document.getElementById('allTitlesPanel');
