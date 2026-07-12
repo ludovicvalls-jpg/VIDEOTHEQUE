@@ -4109,6 +4109,13 @@ document.getElementById('allTitlesBtn').addEventListener('click', async function
 function _restoreAllTitles(){
   const panel=document.getElementById('allTitlesPanel');
   const btn=document.getElementById('allTitlesBtn');
+  // Forcer la section wantlist active
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sectionWantlist').classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  const wTab=document.querySelector('.nav-tab[data-section="sectionWantlist"]');
+  if(wTab) wTab.classList.add('active');
+  // Remettre le panel visible
   if(panel._wasOpen){
     panel.style.display='block';
     btn.textContent='✕ Fermer';
@@ -4118,6 +4125,7 @@ function openAllTitlesMember(uid, uname){
   const panel=document.getElementById('allTitlesPanel');
   panel._wasOpen=panel.style.display!=='none';
   panel.style.display='none';
+  document.getElementById('allTitlesBtn').textContent='📚 Tous les titres du site';
   openMemberCollection(uid, uname, _restoreAllTitles);
 }
 async function openAllTitlesFilm(tmdbId, title, posterUrl, year, format, ownerUid, ownerUname){
