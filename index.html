@@ -3993,13 +3993,15 @@ document.getElementById('filterSort').addEventListener('change',render);
 
 // Croix effacement recherche Mon Rayon
 const _sbClear=document.getElementById('clearSearchBox');
-document.getElementById('searchBox').addEventListener('input',function(){
-  _sbClear.style.display=this.value?'block':'none'; render();
-});
-_sbClear.addEventListener('click',()=>{
-  document.getElementById('searchBox').value='';
-  _sbClear.style.display='none'; render();
-});
+const _sbInput=document.getElementById('searchBox');
+if(_sbClear&&_sbInput){
+  _sbInput.addEventListener('input',function(){
+    _sbClear.style.display=this.value?'block':'none'; render();
+  });
+  _sbClear.addEventListener('click',()=>{
+    _sbInput.value=''; _sbClear.style.display='none'; render();
+  });
+}
 
 // Bouton Tous les titres du site
 document.getElementById('allTitlesBtn').addEventListener('click', async function(){
