@@ -2693,7 +2693,7 @@ function renderPosts(posts){
           </div>
         </div>
         <div class="post-content">${contentHtml}</div>
-        ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;">` : ''}
+        ${p.image_url ? `<img src="${p.image_url}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;"><span style="display:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);font-style:italic;">Image non disponible</span>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -2845,7 +2845,7 @@ async function searchGiphy(){
   const data = await res.json();
   const results = document.getElementById('giphyResults');
   results.innerHTML = (data.data||[]).map(gif=>
-    `<img src="${gif.images.fixed_height_small.url}" data-url="${gif.images.original.url}" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
+    `<img src="${gif.images.fixed_height_small.url}" data-url="https://media.giphy.com/media/${gif.id}/giphy.gif" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
   ).join('');
   results.querySelectorAll('img').forEach(img=>{
     img.addEventListener('click', ()=>{
@@ -3109,7 +3109,7 @@ async function loadMembers(){
       +'<div><div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
       +(badge?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--pink);">'+badge.name+'</div>':'')
       +'</div></div>'
-      +(p.bio?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;font-style:italic;">“'+escHtml(p.bio)+'”</div>':'')
+      +(p.bio?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;font-style:italic;">&ldquo;'+escHtml(p.bio)+'&rdquo;</div>':'')
       +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
       +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
       +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')+'</div>'
@@ -4018,14 +4018,29 @@ document.getElementById('allTitlesBtn').addEventListener('click', async function
   // Dédoublonner par tmdb_id ou par titre
   const seen=new Set(); const uniq=[];
   data.forEach(r=>{ const k=r.tmdb_id||r.title; if(!seen.has(k)){ seen.add(k); uniq.push(r); }});
+  // Récupérer les owners par tmdb_id
+  const tmdbIds=[...new Set(uniq.filter(r=>r.tmdb_id).map(r=>r.tmdb_id))];
+  const {data:ownersData}=await sb.from('collection').select('tmdb_id,title,profiles(id,username)');
+  const ownerMap={};
+  (ownersData||[]).forEach(r=>{
+    const k=r.tmdb_id||r.title;
+    if(!ownerMap[k]) ownerMap[k]=[];
+    const u=r.profiles?.username;
+    const uid=r.profiles?.id;
+    if(u&&uid&&!ownerMap[k].find(x=>x.uid===uid)) ownerMap[k].push({u,uid});
+  });
   panel.innerHTML='<div style="padding:8px 16px;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">'+uniq.length+' titres uniques répertoriés sur le site — ordre alphabétique</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;padding:0 16px 16px;">'
     +uniq.map(r=>{
       const fmt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'4K',LASERDISC:'LD'}[r.format]||r.format||'';
-      return '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;cursor:default;">'
+      const k=r.tmdb_id||r.title;
+      const owners=ownerMap[k]||[];
+      const ownerChips=owners.map(o=>'<span onclick="event.stopPropagation();document.getElementById(\'allTitlesPanel\').style.display=\'none\';document.getElementById(\'allTitlesBtn\').textContent=\'📚 Tous les titres du site\';openMemberCollection(\''+o.uid+'\',\''+o.u.replace(/'/g,'')+'\')" style="font-family:Space Mono,monospace;font-size:7px;color:var(--cyan);cursor:pointer;text-decoration:underline;white-space:nowrap;">'+escHtml(o.u)+'</span>').join('<span style="color:var(--muted);"> · </span>');
+      return '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="void(0)">'
         +(r.poster_url?'<img src="'+r.poster_url+'" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block;">':'<div style="aspect-ratio:2/3;background:#1c1c26;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center;padding:4px;">'+escHtml(r.title)+'</div>')
         +'<div style="padding:4px 5px;"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(r.title)+'</div>'
         +'<span style="font-family:Space Mono,monospace;font-size:7px;color:var(--muted);">'+fmt+(r.year?' · '+r.year:'')+'</span>'
+        +(ownerChips?'<div style="margin-top:2px;display:flex;flex-wrap:wrap;gap:2px;">'+ownerChips+'</div>':'')
         +'</div></div>';
     }).join('')+'</div>';
 });
