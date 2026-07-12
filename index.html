@@ -3117,9 +3117,9 @@ async function searchWantPoster(){
 }
 
 async function loadMembers(){
-  const {data:profiles,error:pErr}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position,bio');
-  if(pErr){ console.error('loadMembers error:',pErr); grid.innerHTML='<div class="empty">Erreur chargement membres.</div>'; return; }
   const grid=document.getElementById('membersGrid');
+  grid.innerHTML='<div style="padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;">Chargement...</div>';
+  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
   const {data:counts}=await sb.from('collection').select('user_id');
   const countMap={}; (counts||[]).forEach(c=>{ countMap[c.user_id]=(countMap[c.user_id]||0)+1; });
@@ -3147,9 +3147,6 @@ async function loadMembers(){
       +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
       +'<div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">'+av+'</div>'
       +'<div><div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
-      +(badge?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--pink);">'+badge.name+'</div>':'')
-      +'</div></div>'
-      +(p.bio?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5;font-style:italic;">&ldquo;'+escHtml(p.bio)+'&rdquo;</div>':'')
       +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
       +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
       +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')+'</div>'
@@ -4281,8 +4278,13 @@ async function loadWantOwners(tmdbId){
   ).join('');
 }
 document.getElementById('overlayWant').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayWant')){ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); }});
-document.getElementById('memberCloseBtn').addEventListener('click',()=>{ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow=''; });
-document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); }});
+document.getElementById('memberCloseBtn').addEventListener('click',()=>{
+  const el=document.getElementById('overlayMember');
+  const cb=el._onClose; el._onClose=null;
+  el.classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow='';
+  if(cb) setTimeout(cb, 50);
+});
+document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ const el=document.getElementById('overlayMember'); const cb=el._onClose; el._onClose=null; el.classList.remove('open'); document.body.classList.remove('modal-open'); if(cb) setTimeout(cb,50); }});
 const memberSearch=document.getElementById('memberSearch'),memberSearchWrap=memberSearch.closest('.search-wrap');
 memberSearch.addEventListener('input',()=>{ memberSearchWrap.classList.toggle('has-value',memberSearch.value.length>0); loadMembers(); });
 document.getElementById('clearMemberSearch').addEventListener('click',()=>{ memberSearch.value=''; memberSearchWrap.classList.remove('has-value'); loadMembers(); });
