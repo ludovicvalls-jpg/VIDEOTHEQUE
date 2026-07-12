@@ -3144,17 +3144,27 @@ async function loadMembers(){
       ? '<img src="'+p.avatar_url+'" style="width:100%;height:100%;object-fit:cover;object-position:'+avatarPos+';position:absolute;top:0;left:0;">'
       : '<span style="font-family:Bebas Neue,sans-serif;font-size:18px;color:var(--cyan);">'+((p.username||'?').slice(0,1).toUpperCase())+'</span>';
     return '<div class="member-card" data-uid="'+p.id+'" data-public="'+p.collection_public+'" data-name="'+p.username+'">'
-      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
-      +'<div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">'+av+'</div>'
-      +'<div><div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
-      +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
-      +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
-      +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')+'</div>'
-      +'<div class="member-badges">'
-      +(p.collection_public===false?'<span class="badge private">Privé</span>':'')
-      +(trades>0?'<span class="badge trade">Échange</span>':'')
-      +(sales>0?'<span class="badge sale">Vente</span>':'')
+      // Ligne du haut : avatar + nom + badge
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
+        +'<div style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">'+av+'</div>'
+        +'<div style="min-width:0;">'
+          +'<div class="member-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.username+(isMe?' <span style="font-size:11px;color:var(--muted);">(moi)</span>':'')+'</div>'
+          +(badge&&badge.name?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--pink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+badge.name+'</div>':'')
+        +'</div>'
       +'</div>'
+      // Stats
+      +'<div class="member-stats">'
+        +'Collection : <span>'+(p.collection_public!==false?total+' titre'+(total>1?'s':''):'Privée')+'</span><br>'
+        +(trades>0?'À l\'échange : <span>'+trades+'</span><br>':'')
+        +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')
+      +'</div>'
+      // Badges
+      +'<div class="member-badges">'
+        +(p.collection_public===false?'<span class="badge private">Privé</span>':'')
+        +(trades>0?'<span class="badge trade">Échange</span>':'')
+        +(sales>0?'<span class="badge sale">Vente</span>':'')
+      +'</div>'
+      // Bouton message
       +(p.id!==currentUser.id?'<button class="msg-btn" data-uid="'+p.id+'" data-uname="'+p.username+'" style="margin-top:10px;width:100%;font-size:11px;padding:6px;">✉️ Envoyer un message</button>':'')
       +'</div>';
   }).join('');
