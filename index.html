@@ -3121,12 +3121,18 @@ async function loadMembers(){
   grid.innerHTML='<div style="padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;">Chargement...</div>';
   const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
-  const {data:counts}=await sb.from('collection').select('user_id');
-  const countMap={}; (counts||[]).forEach(c=>{ countMap[c.user_id]=(countMap[c.user_id]||0)+1; });
-  const {data:tradeCounts}=await sb.from('collection').select('user_id').eq('for_trade',true);
-  const tradeMap={}; (tradeCounts||[]).forEach(c=>{ tradeMap[c.user_id]=(tradeMap[c.user_id]||0)+1; });
-  const {data:saleCounts}=await sb.from('collection').select('user_id').eq('for_sale',true);
-  const saleMap={}; (saleCounts||[]).forEach(c=>{ saleMap[c.user_id]=(saleMap[c.user_id]||0)+1; });
+  // Compter les films par membre — requêtes séparées pour contourner la RLS
+  const countMap={}, tradeMap={}, saleMap={};
+  await Promise.all(profiles.map(async p=>{
+    const [rc, rt, rs] = await Promise.all([
+      sb.from('collection').select('id').eq('user_id',p.id),
+      sb.from('collection').select('id').eq('user_id',p.id).eq('for_trade',true),
+      sb.from('collection').select('id').eq('user_id',p.id).eq('for_sale',true),
+    ]);
+    countMap[p.id] = (rc.data||[]).length;
+    tradeMap[p.id] = (rt.data||[]).length;
+    saleMap[p.id]  = (rs.data||[]).length;
+  }));
   const searchVal=document.getElementById('memberSearch').value.toLowerCase();
   const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
   // Trier par taille de collection décroissante
