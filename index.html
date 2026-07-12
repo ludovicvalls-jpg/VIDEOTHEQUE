@@ -3131,7 +3131,10 @@ async function loadMembers(){
   const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
   // Trier par taille de collection décroissante
   filtered.sort((a,b)=>(countMap[b.id]||0)-(countMap[a.id]||0));
-  const badgeData = await Promise.all(filtered.map(p=> getBadge(countMap[p.id]||0)));
+  // Pré-charger les badges uniques seulement (évite N appels TMDB)
+  const uniqueCounts=[...new Set(filtered.map(p=>countMap[p.id]||0))];
+  await Promise.all(uniqueCounts.map(n=>getBadge(n).catch(()=>null)));
+  const badgeData = filtered.map(p=>{ try{ const level=BADGES.find(b=>(countMap[p.id]||0)>=b.min&&(countMap[p.id]||0)<=b.max)||BADGES[0]; return {name:level.name,poster:badgePosterCache[level.tmdb]||null}; }catch(e){ return {name:'',poster:null}; } });
   grid.innerHTML=filtered.map((p, idx)=>{
     const total=countMap[p.id]||0, trades=tradeMap[p.id]||0, sales=saleMap[p.id]||0;
     const isMe=p.id===currentUser.id;
