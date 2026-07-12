@@ -168,6 +168,7 @@
   .trade-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ffd23f;color:#1a0410;}
   .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
   .loan-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ff8c42;color:#1a0410;}
+  .series-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#9b5cff;color:#fff;}
   .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);}
   .empty .logo{font-size:28px;margin-bottom:10px;opacity:.6;}
 
@@ -594,6 +595,8 @@
         <option value="sale">À la vente</option>
         <option value="loaned">Prêtés</option>
         <option value="no_poster">Sans jaquette</option>
+        <option value="series_only">Séries uniquement</option>
+        <option value="films_only">Films uniquement</option>
       </select>
     </div>
   </div>
@@ -934,7 +937,21 @@
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modalTitle">Ajouter un titre</h2>
-    <div class="field"><label>Titre du film</label><input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly"></div>
+    <div class="field" style="margin-bottom:10px;">
+      <div style="display:flex;gap:0;border:1px solid var(--card-border);border-radius:4px;overflow:hidden;width:fit-content;">
+        <button type="button" id="toggleFilm" onclick="setMediaType('film')" style="padding:5px 18px;font-family:'Space Mono',monospace;font-size:11px;background:var(--cyan);color:#0d0d14;border:none;cursor:pointer;font-weight:700;">🎬 Film</button>
+        <button type="button" id="toggleSerie" onclick="setMediaType('serie')" style="padding:5px 18px;font-family:'Space Mono',monospace;font-size:11px;background:transparent;color:var(--muted);border:none;cursor:pointer;">📺 Série</button>
+      </div>
+    </div>
+    <div class="field"><label id="titleLabel">Titre du film</label><input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly"></div>
+    <div class="field" id="seasonsBlock" style="display:none;">
+      <label>Saisons / Épisodes</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="inputSeasons" placeholder="Ex: Saison 1  ou  Intégrale" style="flex:1;">
+        <input type="text" id="inputEpisodes" placeholder="Nb épisodes" style="width:110px;">
+      </div>
+      <div class="hint">Précise ce que contient le coffret.</div>
+    </div>
     <div class="field" id="copySelectorBlock" style="display:none;">
       <label>Exemplaire</label><select id="copySelector"></select>
     </div>
@@ -1456,13 +1473,15 @@ function toRow(it){
     watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
     estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
-    cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null};
+    cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null,
+    is_series:!!it.isSeries,seasons:it.seasons||null,episodes:it.episodes||null};
 }
 function fromRow(r){
   return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
     estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
-    castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null};
+    castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
+    isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||''};
 }
 async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
@@ -1965,7 +1984,7 @@ async function loadLetterboxd(lbUsername, container){
 let currentMemberFilmUserId = null;
 let currentMemberFilmUsername = null;
 
-function openMemberFilm(it, memberUserId, memberUsername){
+function openMemberFilm(it, memberUserId, memberUsername, onClose){
   currentMemberFilmUserId = memberUserId;
   currentMemberFilmUsername = memberUsername;
 
@@ -2013,11 +2032,25 @@ function openMemberFilm(it, memberUserId, memberUsername){
     };
   } else { msgBtn.style.display='none'; }
 
+  // Afficher les notes si présentes
+  if(it.notes){
+    notesEl.style.display='block';
+    notesEl.textContent=it.notes;
+  }
+
   document.getElementById('overlayMemberFilm').classList.add('open');
+  document.getElementById('overlayMemberFilm')._onClose=onClose||null;
 }
 
-document.getElementById('mfCloseBtn').addEventListener('click',()=>document.getElementById('overlayMemberFilm').classList.remove('open'));
-document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) document.getElementById('overlayMemberFilm').classList.remove('open'); });
+function closeMemberFilm(){
+  const el=document.getElementById('overlayMemberFilm');
+  const cb=el._onClose;
+  el.classList.remove('open');
+  el._onClose=null;
+  if(cb) cb();
+}
+document.getElementById('mfCloseBtn').addEventListener('click', closeMemberFilm);
+document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) closeMemberFilm(); });
 
 
 document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
@@ -2878,14 +2911,16 @@ function render(){
     const matchSale=filterSort!=='sale'||it.forSale;
     const matchLoaned=filterSort!=='loaned'||it.loanedTo;
     const matchNoPoster=filterSort!=='no_poster'||!it.posterUrl;
-    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned&&matchNoPoster;
+    const matchSeriesOnly=filterSort!=='series_only'||it.isSeries;
+    const matchFilmsOnly=filterSort!=='films_only'||!it.isSeries;
+    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned&&matchNoPoster&&matchSeriesOnly&&matchFilmsOnly;
   });
 
   lastGroups=new Map();
   items.forEach(it=>{ const k=it.id; if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
   let groups=Array.from(lastGroups.entries()).map(([key,gi])=>({key,items:gi,primary:gi.find(i=>i.posterUrl)||gi[0]}));
 
-  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'){
+  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'||filterSort==='series_only'||filterSort==='films_only'){
     groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
   } else if(filterSort==='date_added'){
     groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
@@ -2936,7 +2971,9 @@ function render(){
       +(isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
       +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
       +(loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'')
+      +(it.isSeries?'<span class="series-badge">SÉRIE</span>':'')
       +'</div>'
+      +(it.isSeries&&it.seasons?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);padding:0 8px 4px;">'+it.seasons+(it.episodes?' · '+it.episodes+' ép.':'')+'</div>':'')
       +'<div class="tape-watch-row">'
       +'<span class="tape-watch-label">'+(allWatched?'Vu ✓':'À voir')+'</span>'
       +'<div class="watched-switch '+(allWatched?'on':'')+'" data-watch-key="'+g.key+'"><div class="knob"></div></div>'
@@ -3205,6 +3242,7 @@ function updateBannerPreview(url){
 async function openMemberCollection(userId,username){
   document.getElementById('memberModalTitle').textContent = username;
   document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
+  document.getElementById('overlayMember')._onClose=onClose||null;
   document.getElementById('overlayMember').classList.add('open');
   document.body.classList.add('modal-open');
 
@@ -3527,7 +3565,8 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
 function resetModal(){
   editingId=null; pendingPoster=null; pendingTmdbId=null;
   document.getElementById('modalTitle').textContent='Ajouter un titre';
-  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt'].forEach(id=>document.getElementById(id).value='');
+  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes'].forEach(id=>document.getElementById(id).value='');
+  setMediaType('film');
   document.getElementById('loanHint').textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
   document.getElementById('inputFormat').value='VHS';
   ['inputWatched','inputForTrade','inputForSale','inputSteelbook'].forEach(id=>document.getElementById(id).checked=false);
@@ -3548,6 +3587,21 @@ document.getElementById('inputForSale').addEventListener('change',()=>{
   document.getElementById('saleBlock').style.display=document.getElementById('inputForSale').checked?'block':'none';
 });
 function openAdd(){ resetModal(); document.getElementById('overlay').classList.add('open'); document.body.classList.add('modal-open'); document.getElementById('inputTitle').focus(); }
+function setMediaType(type){
+  const btnFilm=document.getElementById('toggleFilm');
+  const btnSerie=document.getElementById('toggleSerie');
+  const isS=type==='serie';
+  btnFilm.style.background=isS?'transparent':'var(--cyan)';
+  btnFilm.style.color=isS?'var(--muted)':'#0d0d14';
+  btnFilm.style.fontWeight=isS?'400':'700';
+  btnSerie.style.background=isS?'#9b5cff':'transparent';
+  btnSerie.style.color=isS?'#fff':'var(--muted)';
+  btnSerie.style.fontWeight=isS?'700':'400';
+  btnSerie.dataset.active=isS?'1':'0';
+  document.getElementById('seasonsBlock').style.display=isS?'block':'none';
+  document.getElementById('titleLabel').textContent=isS?'Titre de la série':'Titre du film';
+  document.getElementById('inputTitle').placeholder=isS?'Ex: Breaking Bad':'Ex: Hard Revenge Milly';
+}
 document.getElementById('addBtn').addEventListener('click', openAdd);
 function fillFormFromItem(it){
   editingId=it.id;
@@ -3569,6 +3623,9 @@ function fillFormFromItem(it){
   document.getElementById('saleBlock').style.display=it.forSale?'block':'none';
   document.getElementById('inputLoanedTo').value=it.loanedTo||'';
   document.getElementById('inputLoanedAt').value=it.loanedAt||'';
+  setMediaType(it.isSeries?'serie':'film');
+  document.getElementById('inputSeasons').value=it.seasons||'';
+  document.getElementById('inputEpisodes').value=it.episodes||'';
   const loanHint=document.getElementById('loanHint');
   if(it.loanedTo&&it.loanedAt){
     const days=Math.max(0,Math.floor((Date.now()-new Date(it.loanedAt).getTime())/86400000));
@@ -3602,9 +3659,11 @@ async function loadTmdbInfo(tmdbId){
   block.style.display='block'; content.innerHTML='<span>Chargement...</span>';
   try{
     // Récupérer infos du film + crédits en parallèle
+    const isSerie=document.getElementById('toggleSerie')?.dataset?.active==='1'||(editingId&&collection.find(i=>i.id===editingId)?.isSeries)||false;
+    const ep=isSerie?'tv':'movie';
     const [resMovie, resCredits] = await Promise.all([
-      fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR'),
-      fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'/credits?api_key='+TMDB_KEY+'&language=fr-FR')
+      fetch('https://api.themoviedb.org/3/'+ep+'/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR'),
+      fetch('https://api.themoviedb.org/3/'+ep+'/'+tmdbId+'/credits?api_key='+TMDB_KEY+'&language=fr-FR')
     ]);
     const d = await resMovie.json();
     const credits = await resCredits.json();
@@ -3707,16 +3766,17 @@ async function searchPoster(){
   hint.textContent='Recherche...'; resultsDiv.innerHTML='';
   try{
     // Chercher sur 2 pages + en anglais si peu de résultats
+    const isSerie=document.getElementById('toggleSerie').dataset.active==='1';
+    const endpoint=isSerie?'tv':'movie';
     const [r1,r2]=await Promise.all([
-      fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR&page=1&include_adult=false'),
-      fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=en-US&page=1&include_adult=false')
+      fetch('https://api.themoviedb.org/3/search/'+endpoint+'?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR&page=1&include_adult=false'),
+      fetch('https://api.themoviedb.org/3/search/'+endpoint+'?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=en-US&page=1&include_adult=false')
     ]);
     const [d1,d2]=await Promise.all([r1.json(),r2.json()]);
     const seen=new Set();
     const merged=[...(d1.results||[]),...(d2.results||[])].filter(r=>{
       if(seen.has(r.id)) return false; seen.add(r.id); return true;
     });
-    // Afficher avec ET sans affiche (sans affiche = placeholder)
     const withPoster=merged.filter(r=>r.poster_path);
     const results=withPoster.slice(0,20);
     if(results.length===0){ hint.textContent='Aucun résultat. Essaie en anglais.'; return; }
@@ -3786,6 +3846,9 @@ async function saveItemModal(){
     forSale:document.getElementById('inputForSale').checked,salePrice:parseFloat(document.getElementById('inputSalePrice').value)||null,
     isSteelbook:document.getElementById('inputSteelbook').checked,
     loanedTo:loanedTo||null,loanedAt:loanedAt,
+    isSeries:document.getElementById('toggleSerie').dataset.active==='1',
+    seasons:document.getElementById('inputSeasons').value.trim()||null,
+    episodes:document.getElementById('inputEpisodes').value.trim()||null,
     shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
     notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
     customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null,
@@ -4028,7 +4091,10 @@ document.getElementById('allTitlesBtn').addEventListener('click', async function
       const fmt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'4K',LASERDISC:'LD'}[r.format]||r.format||'';
       const k=r.tmdb_id||r.title;
       const owners=ownerMap[k]||[];
-      const ownerChips=owners.map(o=>'<span onclick="event.stopPropagation();document.getElementById(\'allTitlesPanel\').style.display=\'none\';document.getElementById(\'allTitlesBtn\').textContent=\'📚 Tous les titres du site\';openMemberCollection(\''+o.uid+'\',\''+o.u.replace(/'/g,'')+'\')" style="font-family:Space Mono,monospace;font-size:7px;color:var(--cyan);cursor:pointer;text-decoration:underline;white-space:nowrap;">'+escHtml(o.u)+'</span>').join('<span style="color:var(--muted);"> · </span>');
+      const ownerChips=owners.map(o=>{
+        const safeName=o.u.replace(/['"]/g,'');
+        return '<span onclick="openAllTitlesMember(\''+o.uid+'\',\''+safeName+'\')" style="font-family:Space Mono,monospace;font-size:7px;color:var(--cyan);cursor:pointer;text-decoration:underline;white-space:nowrap;">'+escHtml(o.u)+'</span>';
+      }).join('<span style="color:var(--muted);"> · </span>');
       return '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="void(0)">'
         +(r.poster_url?'<img src="'+r.poster_url+'" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block;">':'<div style="aspect-ratio:2/3;background:#1c1c26;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center;padding:4px;">'+escHtml(r.title)+'</div>')
         +'<div style="padding:4px 5px;"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(r.title)+'</div>'
@@ -4037,6 +4103,34 @@ document.getElementById('allTitlesBtn').addEventListener('click', async function
         +'</div></div>';
     }).join('')+'</div>';
 });
+
+// ── Helpers pour "Tous les titres du site" ──────────────────────────
+function _restoreAllTitles(){
+  const panel=document.getElementById('allTitlesPanel');
+  const btn=document.getElementById('allTitlesBtn');
+  if(panel._wasOpen){
+    panel.style.display='block';
+    btn.textContent='✕ Fermer';
+  }
+}
+function openAllTitlesMember(uid, uname){
+  const panel=document.getElementById('allTitlesPanel');
+  panel._wasOpen=panel.style.display!=='none';
+  panel.style.display='none';
+  openMemberCollection(uid, uname, _restoreAllTitles);
+}
+async function openAllTitlesFilm(tmdbId, title, posterUrl, year, format, ownerUid, ownerUname){
+  // Chercher la vraie fiche avec les notes dans la collection du owner
+  let it={title, posterUrl:posterUrl||null, year, format, isSteelbook:false, forSale:false, forTrade:false, watched:false, notes:'', estimatedValue:null, salePrice:null};
+  if(ownerUid && tmdbId){
+    const {data}=await sb.from('collection').select('*').eq('user_id',ownerUid).eq('tmdb_id',tmdbId).limit(1);
+    if(data&&data.length) it=fromRow(data[0]);
+  }
+  const panel=document.getElementById('allTitlesPanel');
+  panel._wasOpen=panel.style.display!=='none';
+  openMemberFilm(it, ownerUid, ownerUname, null);
+}
+
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeModal(); });
 document.getElementById('exportBtn').addEventListener('click',exportCollection);
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importInput').click());
