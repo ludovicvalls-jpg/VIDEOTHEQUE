@@ -2814,8 +2814,8 @@ document.getElementById('imageUrlCancelBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('imageUrlConfirmBtn').addEventListener('click', ()=>{
-  const url = document.getElementById('imageUrlInput').value.trim();
-  if(!url || !url.startsWith('http')){ alert("Colle un lien valide qui commence par https://"); return; }
+  const url = safeUrl(document.getElementById('imageUrlInput').value.trim());
+  if(!url||url==='#'){ alert('Colle un lien valide qui commence par https://'); return; }
   pendingImageUrl = url;
   document.getElementById('imagePreview').src = url;
   document.getElementById('imagePreviewWrap').style.display = 'block';
