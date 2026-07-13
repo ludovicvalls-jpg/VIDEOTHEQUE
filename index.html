@@ -3897,17 +3897,18 @@ async function saveItemModal(){
       alert('❌ '+e.message+'\n\nTa modification n\'a pas été sauvegardée. Vérifie ta connexion et réessaie.');
       return;
     }
+    closeModal(); render();
   } else {
     const newIt={id:uid(),...it};
     try{
       await saveItem(newIt);
-      collection.push(newIt);
     }catch(e){
       alert('❌ '+e.message+'\n\nLe titre n\'a pas été sauvegardé. Vérifie ta connexion et réessaie.');
       return;
     }
+    closeModal();
+    await loadCollection(); // recharger depuis Supabase pour avoir le vrai created_at
   }
-  closeModal(); render();
 }
 async function deleteItemModal(){
   if(!editingId) return;
