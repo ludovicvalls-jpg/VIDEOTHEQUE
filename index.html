@@ -1629,7 +1629,7 @@ function renderStats(){
   const withValue = c.filter(i=>i.estimatedValue).length;
   const avgValue = withValue ? (totalValue/withValue).toFixed(2) : 0;
   const mostExpensive = c.filter(i=>i.estimatedValue).sort((a,b)=>b.estimatedValue-a.estimatedValue)[0];
-  const newest = [...c].sort((a,b)=>b.id.localeCompare(a.id))[0];
+  const newest = [...c].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
 
   // Répartition par décennie
   const decades = {};
@@ -2940,7 +2940,7 @@ function render(){
   } else if(filterSort==='date_modified'){
     groups.sort((a,b)=>(b.primary.updatedAt||b.primary.createdAt||'').localeCompare(a.primary.updatedAt||a.primary.createdAt||''));
   } else if(filterSort==='date_added'){
-    groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
+    groups.sort((a,b)=>(b.primary.createdAt||'').localeCompare(a.primary.createdAt||''));
   } else if(filterSort==='year'){
     groups.sort((a,b)=>(b.primary.year||'0').localeCompare(a.primary.year||'0'));
   } else if(filterSort==='price_asc'){
@@ -3403,8 +3403,8 @@ async function openMemberCollection(userId, username, onClose){
       if(sort==='alpha_desc') return b.title.localeCompare(a.title);
       if(sort==='year_desc') return (parseInt(b.year)||0)-(parseInt(a.year)||0);
       if(sort==='year_asc') return (parseInt(a.year)||0)-(parseInt(b.year)||0);
-      if(sort==='added_desc') return (b.id||'').localeCompare(a.id||'');
-      if(sort==='added_asc') return (a.id||'').localeCompare(b.id||'');
+      if(sort==='added_desc') return (b.createdAt||'').localeCompare(a.createdAt||'');
+      if(sort==='added_asc') return (a.createdAt||'').localeCompare(b.createdAt||'');
       if(sort==='format') return (a.format||'').localeCompare(b.format||'')||a.title.localeCompare(b.title);
       return 0;
     });
