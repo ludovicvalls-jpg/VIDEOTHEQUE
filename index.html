@@ -511,10 +511,20 @@
   </div>
 
   <!-- Visionneuse plein écran -->
-  <div id="bonbonLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px;" onclick="this.style.display='none'">
-    <div style="position:relative;max-width:900px;width:100%;">
-      <button onclick="document.getElementById('bonbonLightbox').style.display='none'" style="position:fixed;top:16px;right:16px;font-size:24px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10000;">✕</button>
-      <img id="bonbonLightboxImg" src="" style="width:100%;display:block;border-radius:4px;">
+  <div id="bonbonLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:200000;align-items:center;justify-content:center;overflow:hidden;touch-action:none;">
+    <!-- Bouton fermer -->
+    <button onclick="closeBonbonLightbox()" style="position:fixed;top:16px;right:16px;font-size:22px;background:rgba(0,0,0,0.7);border:1px solid #444;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:200001;line-height:1;">✕</button>
+    <!-- Boutons zoom -->
+    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:200001;">
+      <button onclick="bonbonZoom(0.3)" style="font-size:20px;background:rgba(0,0,0,0.7);border:1px solid #555;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;">+</button>
+      <button onclick="bonbonZoom(-0.3)" style="font-size:20px;background:rgba(0,0,0,0.7);border:1px solid #555;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;">−</button>
+      <button onclick="bonbonResetZoom()" style="font-size:11px;font-family:Space Mono,monospace;background:rgba(0,0,0,0.7);border:1px solid #555;color:#fff;padding:0 12px;height:44px;border-radius:22px;cursor:pointer;">Reset</button>
+    </div>
+    <!-- Hint -->
+    <div id="bonbonZoomHint" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.5);white-space:nowrap;">Scroll ou pinch pour zoomer · Glisse pour te déplacer</div>
+    <!-- Image -->
+    <div id="bonbonLightboxInner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;">
+      <img id="bonbonLightboxImg" src="" style="max-width:90vw;max-height:90vh;display:block;border-radius:4px;transform-origin:center center;user-select:none;-webkit-user-drag:none;">
     </div>
   </div>
 
@@ -4339,6 +4349,95 @@ async function loadLoginCarousel(){
 
 
 loadLoginCarousel();
+
+// ── LIGHTBOX BONBON CINÉ — zoom + drag ────────────────────────────────
+(function(){
+  let scale=1, tx=0, ty=0, dragging=false, lastX=0, lastY=0;
+  let pinchDist=null;
+
+  function applyTransform(){
+    const img=document.getElementById('bonbonLightboxImg');
+    if(img) img.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;
+  }
+
+  window.bonbonZoom=function(delta){
+    scale=Math.min(5,Math.max(1,scale+delta));
+    if(scale===1){tx=0;ty=0;}
+    applyTransform();
+  };
+  window.bonbonResetZoom=function(){
+    scale=1;tx=0;ty=0;applyTransform();
+    document.getElementById('bonbonLightboxInner').style.cursor='grab';
+  };
+  window.closeBonbonLightbox=function(){
+    document.getElementById('bonbonLightbox').style.display='none';
+    bonbonResetZoom();
+  };
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    const lb=document.getElementById('bonbonLightbox');
+    const inner=document.getElementById('bonbonLightboxInner');
+    if(!lb||!inner) return;
+
+    // Fermer en cliquant sur le fond (pas sur l'image)
+    lb.addEventListener('click',e=>{ if(e.target===lb||e.target===inner) closeBonbonLightbox(); });
+
+    // Scroll pour zoomer (desktop)
+    inner.addEventListener('wheel',e=>{
+      e.preventDefault();
+      const delta=e.deltaY<0?0.15:-0.15;
+      scale=Math.min(5,Math.max(1,scale+delta));
+      if(scale===1){tx=0;ty=0;}
+      applyTransform();
+    },{passive:false});
+
+    // Drag (desktop)
+    inner.addEventListener('mousedown',e=>{
+      if(e.button!==0) return;
+      dragging=true; lastX=e.clientX; lastY=e.clientY;
+      inner.style.cursor='grabbing'; e.preventDefault();
+    });
+    window.addEventListener('mousemove',e=>{
+      if(!dragging) return;
+      tx+=e.clientX-lastX; ty+=e.clientY-lastY;
+      lastX=e.clientX; lastY=e.clientY;
+      applyTransform();
+    });
+    window.addEventListener('mouseup',()=>{ dragging=false; inner.style.cursor='grab'; });
+
+    // Touch — drag + pinch (mobile)
+    inner.addEventListener('touchstart',e=>{
+      if(e.touches.length===1){
+        dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+      } else if(e.touches.length===2){
+        dragging=false;
+        pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      }
+      e.preventDefault();
+    },{passive:false});
+    inner.addEventListener('touchmove',e=>{
+      if(e.touches.length===1&&dragging){
+        tx+=e.touches[0].clientX-lastX; ty+=e.touches[0].clientY-lastY;
+        lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+        applyTransform();
+      } else if(e.touches.length===2&&pinchDist!==null){
+        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+        scale=Math.min(5,Math.max(1,scale*(d/pinchDist)));
+        pinchDist=d;
+        if(scale===1){tx=0;ty=0;}
+        applyTransform();
+      }
+      e.preventDefault();
+    },{passive:false});
+    inner.addEventListener('touchend',e=>{
+      if(e.touches.length<2) pinchDist=null;
+      if(e.touches.length===0) dragging=false;
+    });
+
+    // Touches clavier
+    lb.addEventListener('keydown',e=>{ if(e.key==='Escape') closeBonbonLightbox(); });
+  });
+})();
 
 function openCGU(){
   document.getElementById('cguOverlay').style.display='flex';
