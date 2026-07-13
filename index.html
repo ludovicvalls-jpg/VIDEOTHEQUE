@@ -127,6 +127,7 @@
   .dd-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--card);border:1px solid var(--card-border);border-radius:4px;min-width:200px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
   .dd-menu button{display:block;width:100%;text-align:left;border:none;border-radius:0;border-bottom:1px solid var(--card-border);padding:10px 14px;text-transform:none;letter-spacing:0;font-size:13px;}
   .dd-menu button:last-child{border-bottom:none;}
+  .search-wrap{position:relative;}
   .search-wrap input{width:100%;padding-right:34px;}
   .clear-btn{position:absolute;right:4px;background:transparent;border:none;color:var(--muted);font-size:14px;padding:4px 8px;cursor:pointer;display:none;}
   .clear-btn:hover{color:var(--pink);}
@@ -578,7 +579,7 @@
 
     <div class="search-wrap">
       <input type="text" id="searchBox" placeholder="Rechercher...">
-      <button id="clearSearch" class="clear-btn">✕</button>
+      <button id="clearSearchBox" class="clear-btn">✕</button>
     </div>
     <div class="filters">
       <select id="filterFormat">
@@ -596,8 +597,9 @@
         <option value="unwatched">À voir</option>
       </select>
       <select id="filterSort">
-        <option value="alpha">Ordre alphabétique</option>
         <option value="date_added">Date d'ajout</option>
+        <option value="alpha">Ordre alphabétique</option>
+        <option value="date_modified">Derniers modifiés</option>
         <option value="year">Date de sortie</option>
         <option value="price_asc">Prix croissant</option>
         <option value="price_desc">Prix décroissant</option>
@@ -1491,7 +1493,7 @@ function fromRow(r){
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
     estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
     castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
-    isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||''};
+    isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||'',createdAt:r.created_at||null,updatedAt:r.updated_at||null};
 }
 async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
@@ -2932,6 +2934,8 @@ function render(){
 
   if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'||filterSort==='series_only'||filterSort==='films_only'){
     groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
+  } else if(filterSort==='date_modified'){
+    groups.sort((a,b)=>(b.primary.updatedAt||b.primary.createdAt||'').localeCompare(a.primary.updatedAt||a.primary.createdAt||''));
   } else if(filterSort==='date_added'){
     groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
   } else if(filterSort==='year'){
@@ -3711,7 +3715,8 @@ async function loadTmdbInfo(tmdbId){
       '<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' · ')+'</div>'
       +(directors.length?'<div style="margin-top:4px;font-size:11px;color:var(--muted);">Réal. : <span style="color:var(--text);">'+directors.join(', ')+'</span></div>':'')
       +(actors.length?'<div style="font-size:11px;color:var(--muted);">Avec : <span style="color:var(--text);">'+actors.join(', ')+'</span></div>':'')
-      +'<div style="margin-top:6px;">'+(d.overview||'Pas de synopsis.')+'</div>';
+      +'<div style="margin-top:6px;">'+(d.overview||'Pas de synopsis.')+'</div>'
+      +(editingId&&collection.find(i=>i.id===editingId)?.createdAt?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">📅 Ajouté le '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' à '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div>':'');
   }catch(e){ content.innerHTML='<span>Erreur TMDB.</span>'; }
 }
 function searchPriceOnline(){
