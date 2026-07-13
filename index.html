@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com https://unpkg.com; img-src * data: blob:; connect-src 'self' https://*.supabase.co https://api.themoviedb.org https://api.giphy.com https://nominatim.openstreetmap.org https://api.allorigins.win; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="description" content="Ma Vidéothèque — Gérez et partagez votre collection de VHS, DVD, Blu-ray et Laser Disc avec la communauté.">
 <meta name="theme-color" content="#0d0d14">
 <title>Ma Vidéothèque</title>
@@ -1295,7 +1294,6 @@ const TMDB_KEY = "3f13274151b3f137a6559b399bbf80aa";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let collection=[], wantlist=[], currentUser=null, currentProfile=null;
-let _lbCache=null; // cache RSS Letterboxd : Map titre_normalisé → {stars, critique, link, year}
 let editingId=null, editingWantId=null;
 let pendingPoster=null, pendingTmdbId=null, pendingWantPoster=null, pendingWantTmdbId=null;
 let selectionMode=false, selectedKeys=new Set(), lastGroups=new Map(), lastRenderedGroups=[], lastSelectedKey=null;
@@ -1355,7 +1353,6 @@ async function onLogin(user){
   await loadCollection();
   await loadWantlist();
   await loadNotifications();
-  if(profile.letterboxd_username) loadLetterboxdCache(profile.letterboxd_username);
   loadActivity();
   // Popup Bonbon ciné du jour (une fois par jour)
   setTimeout(showBonbonPopup, 1500);
@@ -1364,7 +1361,7 @@ async function onLogin(user){
   updateMsgBadge((unread||[]).length);
 }
 function onLogout(){
-  currentUser=null; currentProfile=null; collection=[]; wantlist=[]; _lbCache=null;
+  currentUser=null; currentProfile=null; collection=[]; wantlist=[];
   document.getElementById('app').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
 }
@@ -2007,66 +2004,6 @@ async function loadLetterboxd(lbUsername, container){
   }catch(e){
     container.innerHTML = `<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Impossible de charger les critiques pour le moment.</div>`;
   }
-}
-
-
-// ── CACHE RSS LETTERBOXD ───────────────────────────────────────────────
-function _normTitle(t){ return t.toLowerCase().replace(/[^a-z0-9]/g,''); }
-
-async function loadLetterboxdCache(username){
-  _lbCache=null;
-  try{
-    const res=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://letterboxd.com/'+username+'/rss/'));
-    const text=await res.text();
-    const xml=new DOMParser().parseFromString(text,'text/xml');
-    const items=[...xml.querySelectorAll('item')];
-    const map=new Map();
-    items.forEach(item=>{
-      // Titre depuis letterboxd:filmTitle ou titre RSS
-      const titleEl=item.getElementsByTagNameNS('*','filmTitle')[0];
-      let filmTitle=titleEl?titleEl.textContent:(item.querySelector('title')?.textContent||'');
-      // Nettoyer le titre (retirer la note si présente)
-      const sep=filmTitle.lastIndexOf(' - ');
-      if(sep!==-1){ const pot=filmTitle.substring(sep+3); if(pot.startsWith('★')||pot.startsWith('½')) filmTitle=filmTitle.substring(0,sep).trim(); }
-      if(!filmTitle) return;
-      // Année
-      const yearEl=item.getElementsByTagNameNS('*','filmYear')[0];
-      const year=yearEl?yearEl.textContent:'';
-      // Note
-      const ratingEl=item.getElementsByTagNameNS('*','memberRating')[0];
-      let stars='', starsNum=0;
-      if(ratingEl){ starsNum=parseFloat(ratingEl.textContent)||0; }
-      else{
-        const t=item.querySelector('title')?.textContent||'';
-        const s=t.lastIndexOf(' - ');
-        if(s!==-1){ const pot=t.substring(s+3); const n=(pot.match(/★/g)||[]).length+((pot.match(/½/g)||[]).length*0.5); if(n>0) starsNum=n; }
-      }
-      if(starsNum>0) stars='★'.repeat(Math.floor(starsNum))+(starsNum%1?'½':'');
-      // Critique
-      const descRaw=item.querySelector('description')?.textContent||'';
-      const tmp=document.createElement('div'); tmp.innerHTML=descRaw;
-      let critique='';
-      tmp.querySelectorAll('p').forEach(p=>{ if(p.textContent.trim()&&!p.querySelector('img')) critique=critique||p.textContent.trim(); });
-      // Lien
-      const link=item.querySelector('link')?.textContent||'';
-      // Date
-      const pubDate=item.querySelector('pubDate')?.textContent||'';
-      const date=pubDate?new Date(pubDate).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'}):'';
-      map.set(_normTitle(filmTitle),{stars,starsNum,critique,link,date,year,title:filmTitle});
-    });
-    _lbCache=map;
-    console.log('[Letterboxd] Cache chargé :',map.size,'entrées');
-  }catch(e){ console.warn('[Letterboxd] Impossible de charger le cache RSS :',e); }
-}
-
-function getLetterboxdReview(filmTitle, filmYear){
-  if(!_lbCache||!filmTitle) return null;
-  const key=_normTitle(filmTitle);
-  if(_lbCache.has(key)) return _lbCache.get(key);
-  // Cherche aussi sans l'article (The, Le, La, Les, L')
-  const stripped=filmTitle.replace(/^(the |le |la |les |l')/i,'').trim();
-  if(_normTitle(stripped)!==key && _lbCache.has(_normTitle(stripped))) return _lbCache.get(_normTitle(stripped));
-  return null;
 }
 
 // ── FICHE FILM MEMBRE ──
@@ -3794,23 +3731,6 @@ async function loadTmdbInfo(tmdbId){
       +(actors.length?'<div style="font-size:11px;color:var(--muted);">Avec : <span style="color:var(--text);">'+actors.join(', ')+'</span></div>':'')
       +'<div style="margin-top:6px;">'+(d.overview||'Pas de synopsis.')+'</div>'
       +(editingId&&collection.find(i=>i.id===editingId)?.createdAt?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">📅 Ajouté le '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' à '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div>':'');
-
-    // Afficher la critique Letterboxd si disponible
-    if(currentProfile?.letterboxd_username){
-      const lbReview=getLetterboxdReview(document.getElementById('inputTitle').value, document.getElementById('inputYear').value);
-      if(lbReview){
-        const lbHtml='<div style="margin-top:10px;padding:10px 12px;border-top:1px solid var(--card-border);background:rgba(0,190,70,0.06);border-radius:0 0 4px 4px;">'
-          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-                   +'<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Letterboxd · '+lbReview.date+'</span>'
-          +(lbReview.stars?'<span style="color:#ffd23f;font-size:13px;margin-left:4px;">'+lbReview.stars+'</span>':'')
-          +'</div>'
-          +(lbReview.critique?'<div style="font-size:12px;color:var(--text);line-height:1.6;font-style:italic;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">'+lbReview.critique+'</div>':'<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Film vu, sans critique rédigée.</div>')
-          +(lbReview.link?'<a href="'+lbReview.link+'" target="_blank" rel="noopener" style="font-family:Space Mono,monospace;font-size:10px;color:#40bcf4;text-decoration:none;">Voir sur Letterboxd →</a>':'')
-          +'</div>';
-        const infoContent=document.getElementById('tmdbInfoContent');
-        if(infoContent) infoContent.insertAdjacentHTML('beforeend', lbHtml);
-      }
-    }
   }catch(e){ content.innerHTML='<span>Erreur TMDB.</span>'; }
 }
 function searchPriceOnline(){
