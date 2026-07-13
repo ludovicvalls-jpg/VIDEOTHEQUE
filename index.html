@@ -3897,7 +3897,8 @@ async function saveItemModal(){
       alert('❌ '+e.message+'\n\nTa modification n\'a pas été sauvegardée. Vérifie ta connexion et réessaie.');
       return;
     }
-    closeModal(); render();
+    closeModal();
+    await loadCollection();
   } else {
     const newIt={id:uid(),...it};
     try{
