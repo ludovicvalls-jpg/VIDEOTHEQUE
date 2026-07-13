@@ -1298,7 +1298,7 @@ let editingId=null, editingWantId=null;
 let pendingPoster=null, pendingTmdbId=null, pendingWantPoster=null, pendingWantTmdbId=null;
 let selectionMode=false, selectedKeys=new Set(), lastGroups=new Map(), lastRenderedGroups=[], lastSelectedKey=null;
 
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function uid(){ return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);}); }
 function groupKeyOf(t){ return t; } // titre gardé pour compat, mais on groupe par id maintenant
 function fmtLabel(f){ return {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'}[f]||f; }
 
@@ -1499,7 +1499,10 @@ async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
   collection=(data||[]).map(fromRow); render();
 }
-async function saveItem(it){ await sb.from('collection').upsert(toRow(it)); }
+async function saveItem(it){
+  const {error}=await sb.from('collection').upsert(toRow(it));
+  if(error) throw new Error('Erreur sauvegarde : '+error.message);
+}
 async function deleteItemFromDb(id){ await sb.from('collection').delete().eq('id',id); }
 async function deleteItemsFromDb(ids){ if(ids.length) await sb.from('collection').delete().in('id',ids); }
 
@@ -3887,9 +3890,22 @@ async function saveItemModal(){
     castCrew:existingCastCrew};
   if(editingId){
     const existing=collection.find(i=>i.id===editingId);
-    Object.assign(existing,it); await saveItem(existing);
+    Object.assign(existing,it);
+    try{
+      await saveItem(existing);
+    }catch(e){
+      alert('❌ '+e.message+'\n\nTa modification n\'a pas été sauvegardée. Vérifie ta connexion et réessaie.');
+      return;
+    }
   } else {
-    const newIt={id:uid(),...it}; collection.push(newIt); await saveItem(newIt);
+    const newIt={id:uid(),...it};
+    try{
+      await saveItem(newIt);
+      collection.push(newIt);
+    }catch(e){
+      alert('❌ '+e.message+'\n\nLe titre n\'a pas été sauvegardé. Vérifie ta connexion et réessaie.');
+      return;
+    }
   }
   closeModal(); render();
 }
