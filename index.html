@@ -4183,7 +4183,7 @@ document.getElementById('deleteSelectionBtn').addEventListener('click',deleteSel
 document.getElementById('cancelSelectionBtn').addEventListener('click',toggleSelectMode);
 const searchBox=document.getElementById('searchBox'),searchWrap=searchBox.closest('.search-wrap');
 searchBox.addEventListener('input',()=>{ searchWrap.classList.toggle('has-value',searchBox.value.length>0); render(); });
-document.getElementById('clearSearch').addEventListener('click',()=>{ searchBox.value=''; searchWrap.classList.remove('has-value'); render(); searchBox.focus(); });
+document.getElementById('clearSearchBox').addEventListener('click',()=>{ searchBox.value=''; searchWrap.classList.remove('has-value'); render(); searchBox.focus(); });
 document.getElementById('allWantlistsBtn').addEventListener('click', async ()=>{
   const panel = document.getElementById('allWantlistsPanel');
   const btn = document.getElementById('allWantlistsBtn');
