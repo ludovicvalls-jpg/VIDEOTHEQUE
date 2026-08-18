@@ -41,52 +41,12 @@
 
   /* APP */
   #app{display:none;}
-  header{padding:28px 24px 18px;border-bottom:2px solid var(--card-border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;position:sticky;top:0;overflow:visible;min-height:90px;z-index:9999;background:var(--bg);}
+  header{padding:28px 24px 18px;border-bottom:2px solid var(--card-border);display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;position:relative;overflow:hidden;min-height:90px;}
+  .header-carousel{position:absolute;inset:0;display:flex;gap:0;z-index:0;pointer-events:none;}
+  .header-carousel img{height:100%;width:auto;object-fit:cover;flex-shrink:0;opacity:0.28;filter:sepia(60%) contrast(90%) brightness(0.7);animation:headerScroll 40s linear infinite;}
+  .header-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(13,13,20,0.85) 0%,rgba(13,13,20,0.4) 40%,rgba(13,13,20,0.4) 60%,rgba(13,13,20,0.85) 100%),repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);z-index:1;pointer-events:none;}
   header > div, header > .header-right, header > .hamburger-wrap{position:relative;z-index:2;}
-  @keyframes neonFlicker{
-    0%,19%,21%,23%,25%,54%,56%,100%{
-      text-shadow:0 0 4px #fff,0 0 10px #fff,0 0 20px #ff2e88,0 0 40px #ff2e88,0 0 80px #ff2e88,0 0 90px #ff2e88;
-      opacity:1;
-    }
-    20%,24%,55%{
-      text-shadow:none;
-      opacity:0.85;
-    }
-  }
-  @keyframes neonFlickerSub{
-    0%,18%,22%,60%,100%{ opacity:1; text-shadow:0 0 6px #2ee6ff,0 0 14px #2ee6ff; }
-    19%,21%,61%,63%{ opacity:0.6; text-shadow:none; }
-    62%{ opacity:0.7; }
-  }
-  .site-footer{padding:14px 20px;border-top:1px solid var(--card-border);text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);background:var(--bg);}
-  .site-footer a{color:var(--muted);text-decoration:underline;cursor:pointer;}
-  .site-footer a:hover{color:var(--cyan);}
-  .cgu-modal{max-width:700px;max-height:80vh;overflow-y:auto;padding:28px 32px;}
-  .cgu-modal h1{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin:0 0 4px;color:var(--cyan);}
-  .cgu-modal h2{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin:24px 0 8px;color:var(--text);border-bottom:1px solid var(--card-border);padding-bottom:4px;}
-  .cgu-modal h3{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin:14px 0 6px;color:var(--cyan);}
-  .cgu-modal p,.cgu-modal li{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.7;margin:0 0 8px;}
-  .cgu-modal ul{padding-left:20px;margin:6px 0 10px;}
-  .cgu-modal strong{color:var(--text);}
-  .cgu-modal .update-date{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:20px;}
-  .cgu-modal .warning-box{background:#1c1c26;border:1px solid var(--pink);border-radius:6px;padding:12px 16px;margin:16px 0;}
-  .cgu-modal .warning-box p{color:var(--text);margin:0;}
-  .neon-title{
-    font-family:'Bebas Neue',sans-serif;
-    font-size:clamp(28px,5vw,52px);
-    letter-spacing:4px;
-    color:#fff;
-    animation:neonFlicker 6s infinite;
-    line-height:1;
-  }
-  .neon-sub{
-    font-family:'Space Mono',monospace;
-    font-size:clamp(8px,1.2vw,11px);
-    letter-spacing:3px;
-    color:#2ee6ff;
-    animation:neonFlickerSub 8s infinite 1s;
-    margin-top:4px;
-  }
+  @keyframes headerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
   .logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;line-height:1;color:var(--text);}
   .logo span{color:var(--pink);}
   .sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px;margin-top:4px;}
@@ -99,7 +59,7 @@
 
   /* NAV ONGLETS */
   .nav-tabs{display:none;}
-  @media(min-width:600px){.nav-tabs{display:flex;gap:4px;border-bottom:2px solid var(--card-border);padding:8px 16px 0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:sticky;top:0;z-index:100;background:var(--bg);}}
+  @media(min-width:600px){.nav-tabs{display:flex;gap:4px;border-bottom:2px solid var(--card-border);padding:8px 16px 0;overflow-x:auto;overflow-y:hidden;white-space:nowrap;position:sticky;top:0;z-index:41;background:var(--bg);}}
   .nav-tab{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;padding:8px 16px;cursor:pointer;border:1px solid var(--card-border);border-bottom:none;background:transparent;color:var(--muted);border-radius:6px 6px 0 0;margin-bottom:-2px;flex-shrink:0;transition:all .15s;}
   .nav-tab:hover{color:var(--text);border-color:var(--card-border);background:rgba(255,255,255,0.04);}
   .nav-tab.active{color:#0d0d14;background:var(--cyan);border-color:var(--cyan);font-weight:700;}
@@ -108,7 +68,7 @@
   .section{display:none;}.section.active{display:block;}
 
   /* TOOLBAR */
-  .toolbar{padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--card-border);position:sticky;top:0;z-index:100;background:var(--bg);}
+  .toolbar{padding:10px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--card-border);position:sticky;top:0;z-index:40;background:var(--bg);}
   .toolbar-desktop{display:none;}
   @media(min-width:600px){.toolbar-desktop{display:inline-block;}.toolbar{padding:14px 20px;}}
   button,.btn{font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;background:transparent;border:1px solid var(--card-border);color:var(--text);padding:10px 16px;border-radius:3px;cursor:pointer;transition:all .15s;}
@@ -127,7 +87,6 @@
   .dd-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--card);border:1px solid var(--card-border);border-radius:4px;min-width:200px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
   .dd-menu button{display:block;width:100%;text-align:left;border:none;border-radius:0;border-bottom:1px solid var(--card-border);padding:10px 14px;text-transform:none;letter-spacing:0;font-size:13px;}
   .dd-menu button:last-child{border-bottom:none;}
-  .search-wrap{position:relative;}
   .search-wrap input{width:100%;padding-right:34px;}
   .clear-btn{position:absolute;right:4px;background:transparent;border:none;color:var(--muted);font-size:14px;padding:4px 8px;cursor:pointer;display:none;}
   .clear-btn:hover{color:var(--pink);}
@@ -168,18 +127,16 @@
   .tape-watch-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
   .trade-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ffd23f;color:#1a0410;}
   .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
-  .loan-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ff8c42;color:#1a0410;}
-  .series-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#9b5cff;color:#fff;}
   .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);}
   .empty .logo{font-size:28px;margin-bottom:10px;opacity:.6;}
 
   /* BARRE DE SÉLECTION */
-  .selection-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:10px 16px;display:none;gap:10px;align-items:center;z-index:100001;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
+  .selection-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:10px 16px;display:none;gap:10px;align-items:center;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
   .selection-bar.open{display:flex;}
   .selection-bar span{font-family:'Space Mono',monospace;font-size:12px;color:var(--text);}
 
   /* MODAL */
-  .overlay{position:fixed;inset:0;background:rgba(5,5,10,0.88);display:none;align-items:flex-end;justify-content:center;z-index:100000;overflow-y:auto;padding:0;}
+  .overlay{position:fixed;inset:0;background:rgba(5,5,10,0.88);display:none;align-items:flex-end;justify-content:center;z-index:50;overflow-y:auto;padding:0;}
   @media(min-width:600px){.overlay{align-items:flex-start;padding:16px;}}
   .overlay.open{display:flex;}
   .modal{background:var(--card);border:1px solid var(--card-border);border-radius:14px 14px 0 0;width:100%;max-width:480px;padding:20px 16px;max-height:92vh;overflow-y:auto;}
@@ -216,7 +173,7 @@
 
   /* SECTION MEMBRES */
   .members-grid{padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;}
-  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:16px;cursor:pointer;transition:border-color .15s;}
+  .member-card{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:20px;cursor:pointer;transition:border-color .15s;}
   .member-card:hover{border-color:var(--cyan);}
   .member-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--cyan);margin-bottom:6px;}
   .member-stats{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);line-height:1.8;}
@@ -243,7 +200,7 @@
   .hamburger-btn:hover{border-color:var(--cyan);color:var(--text);}
   .hamburger-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--cyan);flex-shrink:0;position:relative;}
   .hamburger-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;object-position:50% 25%;}
-  .hamburger-menu{display:none;position:fixed;top:70px;right:8px;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;max-width:calc(100vw - 16px);z-index:999999;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
+  .hamburger-menu{display:none;position:fixed;top:70px;right:8px;background:var(--card);border:1px solid var(--card-border);border-radius:8px;min-width:200px;max-width:calc(100vw - 16px);z-index:200;box-shadow:0 8px 30px rgba(0,0,0,0.4);overflow:hidden;}
   .hamburger-menu.open{display:block;}
   .hamburger-header{padding:14px 16px;border-bottom:1px solid var(--card-border);font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
   .hamburger-header strong{display:block;font-size:14px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;letter-spacing:1px;margin-bottom:2px;}
@@ -382,11 +339,13 @@
       <button class="login-tab active" id="tabLogin">Connexion</button>
       <button class="login-tab" id="tabSignup">Créer un compte</button>
     </div>
-    <div style="text-align:center;padding:6px 0 2px;"><a onclick="openCGU()" style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);text-decoration:underline;cursor:pointer;">Conditions Générales d'Utilisation</a></div>
     <div id="loginForm">
       <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com" autocomplete="email"></div>
       <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="login-btn" id="loginBtn">Se connecter</button>
+      <div style="text-align:right;margin-top:10px;">
+        <a href="#" id="linkForgotPassword" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);text-decoration:none;">Mot de passe oublié ?</a>
+      </div>
     </div>
     <div id="signupForm" style="display:none;">
       <div class="login-field">
@@ -403,6 +362,23 @@
       <button class="login-btn" id="signupBtn">Créer mon compte</button>
       <div class="login-info">Gratuit · Sans pub · Sans revente de données<br>Un email de confirmation te sera envoyé.</div>
     </div>
+    <div id="forgotForm" style="display:none;">
+      <div class="login-info" style="margin-bottom:14px;">Entre ton email, on t'envoie un lien pour choisir un nouveau mot de passe.</div>
+      <div class="login-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="ton@email.com" autocomplete="email"></div>
+      <button class="login-btn" id="forgotBtn">Envoyer le lien</button>
+      <div style="text-align:center;margin-top:14px;">
+        <a href="#" id="linkBackToLogin1" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;">← Retour à la connexion</a>
+      </div>
+    </div>
+    <div id="resetForm" style="display:none;">
+      <div class="login-info" style="margin-bottom:14px;">Choisis ton nouveau mot de passe.</div>
+      <div class="login-field">
+        <label>Nouveau mot de passe <span style="font-size:10px;color:var(--muted);">(8 caractères minimum)</span></label>
+        <input type="password" id="resetPassword1" placeholder="8 caractères minimum" autocomplete="new-password">
+      </div>
+      <div class="login-field"><label>Confirmer le mot de passe</label><input type="password" id="resetPassword2" placeholder="Répète le mot de passe" autocomplete="new-password"></div>
+      <button class="login-btn" id="resetPasswordBtn">Réinitialiser mon mot de passe</button>
+    </div>
     <div class="login-error" id="loginError"></div>
     </div><!-- fin login-content -->
   </div>
@@ -412,9 +388,11 @@
 <div id="app">
 
 <header>
+  <div id="headerCarousel" class="header-carousel"></div>
+  <div class="header-overlay"></div>
   <div>
-    <div class="neon-title">MA VIDÉOTHÈQUE</div>
-    <div class="neon-sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
+    <div class="logo">MA <span>VIDÉO</span>THÈQUE</div>
+    <div class="sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
   </div>
   <div class="header-right">
     <div class="hamburger-wrap">
@@ -432,7 +410,6 @@
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">Derniers Ajouts</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionForum">Le Mur</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionExtras">Les Extras</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionDeals">🔥 Bons Plans</div>
         <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
         <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
         <div class="hamburger-item hamburger-danger" id="menuLogout">⏻ Déconnexion</div>
@@ -450,7 +427,6 @@
   <button class="nav-tab" data-section="sectionActivity">Derniers Ajouts</button>
   <button class="nav-tab" data-section="sectionForum">Le Mur <span id="notifBadge" style="display:none;background:#0d0d14;color:var(--pink);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionExtras">Les Extras</button>
-  <button class="nav-tab" data-section="sectionDeals">🔥 Bons Plans</button>
 </div>
 
 <!-- SECTION LES EXTRAS -->
@@ -512,20 +488,10 @@
   </div>
 
   <!-- Visionneuse plein écran -->
-  <div id="bonbonLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:200000;align-items:center;justify-content:center;overflow:hidden;touch-action:none;">
-    <!-- Bouton fermer -->
-    <button onclick="closeBonbonLightbox()" style="position:fixed;top:16px;right:16px;font-size:22px;background:rgba(0,0,0,0.7);border:1px solid #444;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:200001;line-height:1;">✕</button>
-    <!-- Boutons zoom -->
-    <div style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:200001;">
-      <button onclick="bonbonZoom(0.3)" style="font-size:20px;background:rgba(0,0,0,0.7);border:1px solid #555;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;">+</button>
-      <button onclick="bonbonZoom(-0.3)" style="font-size:20px;background:rgba(0,0,0,0.7);border:1px solid #555;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;">−</button>
-      <button onclick="bonbonResetZoom()" style="font-size:11px;font-family:Space Mono,monospace;background:rgba(0,0,0,0.7);border:1px solid #555;color:#fff;padding:0 12px;height:44px;border-radius:22px;cursor:pointer;">Reset</button>
-    </div>
-    <!-- Hint -->
-    <div id="bonbonZoomHint" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);font-family:Space Mono,monospace;font-size:10px;color:rgba(255,255,255,0.5);white-space:nowrap;">Scroll ou pinch pour zoomer · Glisse pour te déplacer</div>
-    <!-- Image -->
-    <div id="bonbonLightboxInner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;">
-      <img id="bonbonLightboxImg" src="" style="max-width:90vw;max-height:90vh;display:block;border-radius:4px;transform-origin:center center;user-select:none;-webkit-user-drag:none;">
+  <div id="bonbonLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:9999;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px;" onclick="this.style.display='none'">
+    <div style="position:relative;max-width:900px;width:100%;">
+      <button onclick="document.getElementById('bonbonLightbox').style.display='none'" style="position:fixed;top:16px;right:16px;font-size:24px;background:rgba(0,0,0,0.6);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;z-index:10000;">✕</button>
+      <img id="bonbonLightboxImg" src="" style="width:100%;display:block;border-radius:4px;">
     </div>
   </div>
 
@@ -579,7 +545,7 @@
 
     <div class="search-wrap">
       <input type="text" id="searchBox" placeholder="Rechercher...">
-      <button id="clearSearchBox" class="clear-btn">✕</button>
+      <button id="clearSearch" class="clear-btn">✕</button>
     </div>
     <div class="filters">
       <select id="filterFormat">
@@ -589,7 +555,6 @@
         <option value="BLURAY">Blu-ray</option>
         <option value="BLURAY4K">Blu-ray 4K</option>
         <option value="LASERDISC">Laser Disc</option>
-        <option value="steelbook_flag">✦ SteelBook®</option>
       </select>
       <select id="filterWatched">
         <option value="">Vu et à voir</option>
@@ -597,18 +562,13 @@
         <option value="unwatched">À voir</option>
       </select>
       <select id="filterSort">
-        <option value="date_added">Date d'ajout</option>
         <option value="alpha">Ordre alphabétique</option>
-        <option value="date_modified">Derniers modifiés</option>
+        <option value="date_added">Date d'ajout</option>
         <option value="year">Date de sortie</option>
         <option value="price_asc">Prix croissant</option>
         <option value="price_desc">Prix décroissant</option>
         <option value="trade">À l'échange</option>
         <option value="sale">À la vente</option>
-        <option value="loaned">Prêtés</option>
-        <option value="no_poster">Sans jaquette</option>
-        <option value="series_only">Séries uniquement</option>
-        <option value="films_only">Films uniquement</option>
       </select>
     </div>
   </div>
@@ -616,101 +576,12 @@
 </div>
 
 <!-- SECTION WANTLIST -->
-<div class="section" id="sectionDeals">
-  <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--card-border);">
-    <div>
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--cyan);">🔥 Bons Plans</span>
-      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:10px;">Films à prix cassés signalés par la communauté</span>
-    </div>
-    <button id="addDealBtn" class="primary" style="font-size:12px;padding:8px 16px;">+ Signaler un bon plan</button>
-  </div>
-  <div id="dealsList" style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px;"></div>
-</div>
-
-<!-- MODAL BON PLAN -->
-<div class="overlay" id="dealOverlay" style="z-index:100000;">
-  <div class="modal" style="max-width:520px;">
-    <h2 id="dealModalTitle" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 16px;">🔥 Signaler un bon plan</h2>
-
-    <div class="field"><label>Titre du film</label>
-      <div style="display:flex;gap:6px;">
-        <input type="text" id="dealInputTitle" placeholder="Ex: Blade Runner 2049" style="flex:1;">
-        <button type="button" id="dealSearchPosterBtn" style="font-size:11px;padding:5px 12px;white-space:nowrap;">🔍 Chercher</button>
-      </div>
-    </div>
-
-    <div id="dealSearchResults" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;max-height:160px;overflow-y:auto;"></div>
-
-    <!-- Préview affiche + boutons alternatifs -->
-    <div id="dealPosterPreview" style="margin:4px 0 10px;display:flex;gap:10px;align-items:flex-start;"></div>
-
-    <!-- Upload photo du deal -->
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;width:fit-content;">
-        <input type="file" id="dealPhotoInput" accept="image/*" style="display:none;">
-        <button type="button" id="dealUploadPhotoBtn" style="font-size:11px;padding:5px 12px;">📷 Photo du deal à la place</button>
-      </label>
-      <div class="hint">Tu peux uploader une capture du deal plutôt que l'affiche TMDB.</div>
-    </div>
-
-    <div class="row2">
-      <div class="field"><label>Format</label>
-        <select id="dealInputFormat">
-          <option value="BLURAY4K">Blu-ray 4K</option>
-          <option value="BLURAY">Blu-ray</option>
-          <option value="DVD">DVD</option>
-          <option value="VHS">VHS</option>
-        </select>
-      </div>
-      <div class="field" style="display:flex;align-items:flex-end;padding-bottom:4px;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="dealInputSteelbook" style="width:14px;height:14px;">
-          <span style="text-transform:none;font-size:12px;letter-spacing:normal;background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">✦ SteelBook®</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="field"><label style="color:var(--cyan);">Prix du deal (€) *</label>
-        <input type="number" id="dealInputPrice" placeholder="Ex: 9.99" step="0.01" min="0">
-      </div>
-      <div class="field"><label>Prix habituel (€)</label>
-        <input type="number" id="dealInputNormal" placeholder="Ex: 24.99" step="0.01" min="0">
-      </div>
-    </div>
-
-    <div class="row2">
-      <div class="field"><label>Site marchand</label>
-        <select id="dealInputMerchant">
-          <option value="Amazon">Amazon</option>
-          <option value="Fnac">Fnac</option>
-          <option value="Cdiscount">Cdiscount</option>
-          <option value="Cultura">Cultura</option>
-          <option value="Rakuten">Rakuten</option>
-          <option value="eBay">eBay</option>
-          <option value="Autre">Autre</option>
-        </select>
-      </div>
-      <div class="field"><label>Lien vers le deal</label>
-        <input type="url" id="dealInputUrl" placeholder="https://...">
-      </div>
-    </div>
-
-    <div style="display:flex;gap:10px;margin-top:16px;">
-      <button id="saveDealBtn" class="primary">Publier le bon plan</button>
-      <button id="cancelDealBtn">Annuler</button>
-    </div>
-  </div>
-</div>
-
 <div class="section" id="sectionWantlist">
   <div class="toolbar">
     <button id="addWantBtn" class="primary">+ Ajouter à la wantlist</button>
     <button id="allWantlistsBtn">Voir toutes les wantlists</button>
-    <button id="allTitlesBtn">📚 Tous les titres du site</button>
   </div>
   <div id="allWantlistsPanel" style="display:none;padding:0 0 16px;"></div>
-  <div id="allTitlesPanel" style="display:none;"></div>
   <div class="want-grid" id="wantGrid"></div>
 </div>
 
@@ -949,21 +820,7 @@
 <div class="overlay" id="overlay">
   <div class="modal">
     <h2 id="modalTitle">Ajouter un titre</h2>
-    <div class="field" style="margin-bottom:10px;">
-      <div style="display:flex;gap:0;border:1px solid var(--card-border);border-radius:4px;overflow:hidden;width:fit-content;">
-        <button type="button" id="toggleFilm" onclick="setMediaType('film')" style="padding:5px 18px;font-family:'Space Mono',monospace;font-size:11px;background:var(--cyan);color:#0d0d14;border:none;cursor:pointer;font-weight:700;">🎬 Film</button>
-        <button type="button" id="toggleSerie" onclick="setMediaType('serie')" style="padding:5px 18px;font-family:'Space Mono',monospace;font-size:11px;background:transparent;color:var(--muted);border:none;cursor:pointer;">📺 Série</button>
-      </div>
-    </div>
-    <div class="field"><label id="titleLabel">Titre du film</label><input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly"></div>
-    <div class="field" id="seasonsBlock" style="display:none;">
-      <label>Saisons / Épisodes</label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="inputSeasons" placeholder="Ex: Saison 1  ou  Intégrale" style="flex:1;">
-        <input type="text" id="inputEpisodes" placeholder="Nb épisodes" style="width:110px;">
-      </div>
-      <div class="hint">Précise ce que contient le coffret.</div>
-    </div>
+    <div class="field"><label>Titre du film</label><input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly"></div>
     <div class="field" id="copySelectorBlock" style="display:none;">
       <label>Exemplaire</label><select id="copySelector"></select>
     </div>
@@ -981,19 +838,23 @@
       </div>
       <div class="field"><label>Année</label><input type="text" id="inputYear" placeholder="Ex: 1995"></div>
     </div>
-    <div class="field" style="margin-bottom:4px;">
-      <div style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="inputWatched" style="width:13px;height:13px;">
-          <span style="text-transform:none;font-size:11px;color:var(--muted);letter-spacing:normal;">J'ai déjà vu ce film</span>
+    <div class="field">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="inputWatched" style="width:16px;height:16px;">
+        <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">J'ai déjà vu ce film</span>
+      </label>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="inputForTrade" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">À l'échange</span>
         </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="inputForTrade" style="width:13px;height:13px;">
-          <span style="text-transform:none;font-size:11px;color:var(--muted);letter-spacing:normal;">À l'échange</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="inputForSale" style="width:13px;height:13px;">
-          <span style="text-transform:none;font-size:11px;color:var(--muted);letter-spacing:normal;">À vendre</span>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="inputForSale" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">À vendre</span>
         </label>
       </div>
     </div>
@@ -1003,14 +864,6 @@
         <span style="text-transform:none;font-size:13px;letter-spacing:normal;background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff,#ffd23f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">✦ SteelBook®</span>
       </label>
       <div class="hint">Boîtier en métal — un effet holographique sera affiché sur l'affiche.</div>
-    </div>
-    <div class="field">
-      <label style="color:#ff8c42;">📼 Prêté à</label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="text" id="inputLoanedTo" placeholder="Nom de la personne" style="flex:1;min-width:140px;">
-        <input type="date" id="inputLoanedAt" style="width:150px;">
-      </div>
-      <div class="hint" id="loanHint">Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.</div>
     </div>
     <div class="field" id="saleBlock" style="display:none;">
       <label>Prix de vente (€)</label>
@@ -1110,39 +963,17 @@
         <div style="margin-left:auto;" id="memberMsgBtn"></div>
       </div>
       <!-- Recherche dans la collection -->
-      <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
         <div class="search-wrap" style="flex:1;">
           <input type="text" id="memberSearchBox" placeholder="Chercher dans sa collection...">
           <button id="clearMemberSearchBox" class="clear-btn">✕</button>
         </div>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center;">
-        <button class="member-filter-btn active" data-filter="all">Tous</button>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        <button class="member-filter-btn active" data-filter="all">Tout voir</button>
         <button class="member-filter-btn" data-filter="trade">Échanges</button>
         <button class="member-filter-btn" data-filter="sale">Ventes</button>
-        <button class="member-filter-btn" data-filter="steelbook">✦ SteelBook</button>
-        <button class="member-filter-btn" data-filter="watched">Vus</button>
         <button class="member-filter-btn" data-filter="critiques" id="memberCritiquesBtn" style="display:none;">🎬 Critiques</button>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
-        <select id="memberFormatFilter" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
-          <option value="">Tous formats</option>
-          <option value="VHS">VHS</option>
-          <option value="DVD">DVD</option>
-          <option value="BLURAY">Blu-ray</option>
-          <option value="BLURAY4K">Blu-ray 4K</option>
-          <option value="LASERDISC">Laser Disc</option>
-        </select>
-        <select id="memberSortOrder" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
-          <option value="alpha">A → Z</option>
-          <option value="alpha_desc">Z → A</option>
-          <option value="year_desc">Année ↓</option>
-          <option value="year_asc">Année ↑</option>
-          <option value="added_desc">Ajout récent</option>
-          <option value="added_asc">Ajout ancien</option>
-          <option value="format">Par format</option>
-        </select>
-        <span id="memberCollCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px;"></span>
       </div>
       <div id="memberModalContent" style="max-height:55vh;overflow-y:auto;">
         <div class="grid" style="padding:0;" id="memberGrid"></div>
@@ -1155,138 +986,11 @@
   </div>
 </div>
 
-
-<!-- FOOTER -->
-<footer class="site-footer">
-  Ma Vidéothèque — Plateforme communautaire privée &nbsp;·&nbsp;
-  <a onclick="openCGU()">Conditions Générales d'Utilisation</a>
-</footer>
-
-<!-- MODAL CGU -->
-<div class="overlay" id="cguOverlay" style="z-index:100001;">
-  <div class="modal cgu-modal">
-    <h1>Conditions Générales d'Utilisation</h1>
-    <p class="update-date">Dernière mise à jour : juillet 2025</p>
-
-    <h2>Article 1 — Présentation du site</h2>
-    <p>Ma Vidéothèque est une plateforme communautaire en ligne permettant à ses membres de recenser, partager et échanger des informations relatives à leur collection personnelle de supports vidéo (VHS, DVD, Blu-ray, 4K UHD, Laser Disc, etc.).</p>
-    <p>Le Site est édité à titre personnel et non commercial par son administrateur (ci-après « l'Éditeur »). Il ne constitue pas une boutique en ligne, une place de marché professionnelle, ni un service de courtage ou d'intermédiation commerciale au sens du Code de la consommation.</p>
-
-    <h2>Article 2 — Acceptation des CGU</h2>
-    <p>L'accès et l'utilisation du Site impliquent l'acceptation pleine et entière des présentes Conditions Générales d'Utilisation. Toute personne qui s'inscrit ou utilise le Site reconnaît les avoir lues, comprises et acceptées sans réserve.</p>
-
-    <h2>Article 3 — Accès au Site</h2>
-    <p>L'inscription est réservée aux personnes majeures ou aux mineurs disposant de l'autorisation de leur représentant légal. L'Éditeur se réserve le droit de suspendre ou supprimer tout compte sans préavis en cas de manquement aux présentes CGU.</p>
-
-    <h2>Article 4 — Transactions entre membres</h2>
-    <h3>4.1 Rôle de l'Éditeur</h3>
-    <p>Le Site propose une fonctionnalité permettant aux membres de signaler qu'un titre de leur collection est disponible à la vente ou à l'échange. <strong>Cette fonctionnalité est purement informative.</strong></p>
-    <p>L'Éditeur agit exclusivement en tant qu'hébergeur de contenu au sens de l'article 6-I-2 de la loi n°2004-575 du 21 juin 2004 pour la Confiance dans l'Économie Numérique (LCEN). Il n'est en aucun cas partie aux transactions conclues entre membres.</p>
-
-    <h3>4.2 Responsabilité exclusive des membres</h3>
-    <div class="warning-box"><p>Toute transaction (vente, échange, prêt, don) réalisée entre membres est conclue <strong>directement et exclusivement entre les membres concernés</strong>, sous leur entière responsabilité. L'Éditeur ne pourra en aucun cas être tenu responsable d'un litige survenant entre membres.</p></div>
-    <p><strong>L'Éditeur décline toute responsabilité en cas de :</strong></p>
-    <ul>
-      <li>Non-livraison d'un article vendu ou échangé</li>
-      <li>Article non conforme à la description publiée</li>
-      <li>Arnaque, escroquerie ou comportement frauduleux d'un membre</li>
-      <li>Litige survenu avant, pendant ou après une transaction</li>
-      <li>Perte, vol ou détérioration d'un colis expédié entre membres</li>
-      <li>Tout préjudice matériel, financier ou moral résultant d'une transaction</li>
-    </ul>
-
-    <h3>4.3 Recommandations</h3>
-    <p>Il est fortement conseillé d'utiliser des moyens de paiement sécurisés offrant une protection acheteur, de conserver toute preuve des échanges, et de ne jamais envoyer d'argent sans garanties suffisantes.</p>
-
-    <h2>Article 5 — Section « Bons Plans »</h2>
-    <h3>5.1 Nature des informations</h3>
-    <p>La section « Bons Plans » permet aux membres de signaler des offres promotionnelles chez des commerçants tiers. Ces informations sont publiées <strong>par les membres</strong>, à titre indicatif et bénévole. L'Éditeur ne vérifie, ne contrôle et ne valide pas ces informations.</p>
-
-    <div class="warning-box"><p><strong>L'Éditeur ne garantit pas</strong> l'exactitude des prix, la disponibilité des offres, ni la conformité des produits proposés par les commerçants tiers. Tout achat est réalisé sous la seule responsabilité du membre, auprès du commerçant tiers concerné.</p></div>
-
-    <p>L'Éditeur n'entretient aucune relation commerciale ou de partenariat rémunéré avec les commerçants mentionnés sur le Site.</p>
-
-    <h2>Article 6 — Contenu publié par les membres</h2>
-    <p>Les membres sont seuls responsables des contenus qu'ils publient. Ils garantissent que ces contenus ne portent pas atteinte aux droits de tiers et ne sont pas illicites. L'Éditeur se réserve le droit de supprimer tout contenu contraire aux présentes CGU.</p>
-
-    <h2>Article 7 — Limitation de responsabilité générale</h2>
-    <p>Le Site est fourni « en l'état », sans garantie d'aucune sorte. L'Éditeur ne peut être tenu responsable d'interruptions, de pannes, de pertes de données ou de tout dommage résultant de l'utilisation du Site.</p>
-
-    <h2>Article 8 — Propriété intellectuelle</h2>
-    <p>Le nom et les éléments graphiques du Site sont la propriété de l'Éditeur. Les contenus publiés par les membres restent leur propriété ; en les publiant, ils accordent à l'Éditeur une licence non exclusive et gratuite pour les afficher sur le Site.</p>
-
-    <h2>Article 9 — Données personnelles</h2>
-    <p>Les données collectées (adresse email, pseudo, ville) sont utilisées exclusivement pour le fonctionnement du Site et ne sont pas cédées à des tiers. Conformément au RGPD, chaque membre dispose d'un droit d'accès, de rectification et de suppression de ses données.</p>
-
-    <h2>Article 10 — Droit applicable</h2>
-    <p>Les présentes CGU sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents.</p>
-
-    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--card-border);">
-      <button onclick="closeCGU()" class="primary">J'ai lu et compris</button>
-    </div>
-  </div>
-</div>
-
 </div><!-- fin #app -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-
-// ═══════════════════════════════════════════════════════
-// SÉCURITÉ — fonctions utilitaires
-// ═══════════════════════════════════════════════════════
-
-// Échapper le HTML pour éviter les injections XSS
-function escHtml(str){
-  if(!str) return '';
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;')
-    .replace(/`/g,'&#x60;');
-}
-
-// Nettoyer une URL (n'autoriser que http/https)
-function safeUrl(url){
-  if(!url) return '#';
-  try{
-    const u=new URL(url);
-    if(u.protocol!=='https:'&&u.protocol!=='http:') return '#';
-    return u.href;
-  }catch(e){ return '#'; }
-}
-
-// Rate limiting login (max 5 tentatives / 2 minutes)
-const _loginAttempts={count:0,resetAt:0};
-function checkLoginRateLimit(){
-  const now=Date.now();
-  if(now>_loginAttempts.resetAt){ _loginAttempts.count=0; _loginAttempts.resetAt=now+120000; }
-  _loginAttempts.count++;
-  if(_loginAttempts.count>5){
-    const wait=Math.ceil((_loginAttempts.resetAt-now)/1000);
-    alert('Trop de tentatives. Réessaie dans '+wait+' secondes.');
-    return false;
-  }
-  return true;
-}
-
-// Valider un champ texte (longueur max, pas de scripts)
-function validateText(str, maxLen=500){
-  if(!str) return '';
-  const s=String(str).trim().slice(0,maxLen);
-  return s;
-}
-
-// Valider un prix
-function validatePrice(val){
-  const n=parseFloat(val);
-  if(isNaN(n)||n<0||n>99999) return null;
-  return Math.round(n*100)/100;
-}
-
 
 const SUPABASE_URL = "https://enykcstuektwkflccyae.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVueWtjc3R1ZWt0d2tmbGNjeWFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMTUyNDMsImV4cCI6MjA5ODU5MTI0M30.dVNdkZpj96cobRQgQCbNW4PjGbTWSbUtGHtogaJeGMo";
@@ -1298,14 +1002,17 @@ let editingId=null, editingWantId=null;
 let pendingPoster=null, pendingTmdbId=null, pendingWantPoster=null, pendingWantTmdbId=null;
 let selectionMode=false, selectedKeys=new Set(), lastGroups=new Map(), lastRenderedGroups=[], lastSelectedKey=null;
 
-function uid(){ return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);}); }
-function groupKeyOf(t){ return t; } // titre gardé pour compat, mais on groupe par id maintenant
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function groupKeyOf(t){ return t.trim().toLowerCase(); }
 function fmtLabel(f){ return {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'}[f]||f; }
 
 async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
   if(session) await onLogin(session.user);
-  sb.auth.onAuthStateChange(async(_,session)=>{ if(session) await onLogin(session.user); else onLogout(); });
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='PASSWORD_RECOVERY'){ showResetForm(); return; }
+    if(session) await onLogin(session.user); else onLogout();
+  });
 }
 async function onLogin(user){
   currentUser=user;
@@ -1369,16 +1076,73 @@ function onLogout(){
 document.getElementById('tabLogin').addEventListener('click',()=>{
   document.getElementById('tabLogin').classList.add('active');
   document.getElementById('tabSignup').classList.remove('active');
+  document.querySelector('.login-tabs').style.display='flex';
   document.getElementById('loginForm').style.display='block';
   document.getElementById('signupForm').style.display='none';
+  document.getElementById('forgotForm').style.display='none';
+  document.getElementById('resetForm').style.display='none';
   document.getElementById('loginError').textContent='';
 });
 document.getElementById('tabSignup').addEventListener('click',()=>{
   document.getElementById('tabSignup').classList.add('active');
   document.getElementById('tabLogin').classList.remove('active');
+  document.querySelector('.login-tabs').style.display='flex';
   document.getElementById('signupForm').style.display='block';
   document.getElementById('loginForm').style.display='none';
+  document.getElementById('forgotForm').style.display='none';
+  document.getElementById('resetForm').style.display='none';
   document.getElementById('loginError').textContent='';
+});
+function showForgotForm(){
+  document.querySelector('.login-tabs').style.display='none';
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('signupForm').style.display='none';
+  document.getElementById('resetForm').style.display='none';
+  document.getElementById('forgotForm').style.display='block';
+  document.getElementById('loginError').textContent='';
+}
+function showResetForm(){
+  document.querySelector('.login-tabs').style.display='none';
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('signupForm').style.display='none';
+  document.getElementById('forgotForm').style.display='none';
+  document.getElementById('resetForm').style.display='block';
+  document.getElementById('loginError').textContent='';
+}
+document.getElementById('linkForgotPassword').addEventListener('click',e=>{
+  e.preventDefault();
+  showForgotForm();
+});
+document.getElementById('linkBackToLogin1').addEventListener('click',e=>{
+  e.preventDefault();
+  document.getElementById('tabLogin').click();
+});
+document.getElementById('forgotBtn').addEventListener('click', async ()=>{
+  const email=document.getElementById('forgotEmail').value.trim();
+  if(!email||!email.includes('@')){ showLoginError("❌ Entre une adresse email valide."); return; }
+  showLoginMsg("Envoi en cours...");
+  const {error}=await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+  if(error){
+    showLoginError("❌ Erreur : "+error.message);
+  } else {
+    showLoginSuccess("✓ Si un compte existe avec cet email, un lien de réinitialisation vient d'être envoyé. Vérifie ta boite mail (et les spams).");
+  }
+});
+document.getElementById('resetPasswordBtn').addEventListener('click', async ()=>{
+  const pwd1=document.getElementById('resetPassword1').value;
+  const pwd2=document.getElementById('resetPassword2').value;
+  if(pwd1.length<8){ showLoginError("❌ Le mot de passe doit faire au moins 8 caractères."); return; }
+  if(pwd1!==pwd2){ showLoginError("❌ Les deux mots de passe ne correspondent pas."); return; }
+  showLoginMsg("Mise à jour...");
+  const {error}=await sb.auth.updateUser({password: pwd1});
+  if(error){ showLoginError("❌ Erreur : "+error.message); return; }
+  showLoginSuccess("✓ Mot de passe mis à jour ! Reconnecte-toi avec ton nouveau mot de passe.");
+  document.getElementById('resetPassword1').value='';
+  document.getElementById('resetPassword2').value='';
+  setTimeout(async ()=>{
+    await sb.auth.signOut();
+    document.getElementById('tabLogin').click();
+  }, 2000);
 });
 document.getElementById('loginBtn').addEventListener('click',async()=>{
   const email=document.getElementById('loginEmail').value.trim();
@@ -1479,41 +1243,27 @@ document.getElementById('signupPassword').addEventListener('input',()=>{
 document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
 document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
+document.getElementById('forgotEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('forgotBtn').click(); });
+document.getElementById('resetPassword2').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('resetPasswordBtn').click(); });
 
 function toRow(it){
   return {id:it.id,user_id:currentUser.id,title:it.title,format:it.format,year:it.year||null,
     watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
     estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
-    cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null,
-    is_series:!!it.isSeries,seasons:it.seasons||null,episodes:it.episodes||null};
+    cast_crew:it.castCrew||null};
 }
 function fromRow(r){
   return {id:r.id,title:r.title,format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
     notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
     estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
-    castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
-    isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||'',createdAt:r.created_at||null,updatedAt:r.updated_at||null};
+    castCrew:r.cast_crew||''};
 }
 async function loadCollection(){
   const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
   collection=(data||[]).map(fromRow); render();
 }
-async function saveItem(it){
-  let lastError;
-  for(let attempt=0; attempt<3; attempt++){
-    if(attempt>0) await new Promise(r=>setTimeout(r, 1000*attempt)); // attendre 1s, 2s
-    try{
-      const {error}=await sb.from('collection').upsert(toRow(it));
-      if(!error) return; // succès
-      lastError=new Error('Erreur sauvegarde : '+error.message);
-      if(!error.message.includes('NetworkError')&&!error.message.includes('fetch')) break; // erreur non-réseau, inutile de réessayer
-    }catch(e){
-      lastError=e;
-    }
-  }
-  throw lastError;
-}
+async function saveItem(it){ await sb.from('collection').upsert(toRow(it)); }
 async function deleteItemFromDb(id){ await sb.from('collection').delete().eq('id',id); }
 async function deleteItemsFromDb(ids){ if(ids.length) await sb.from('collection').delete().in('id',ids); }
 
@@ -1554,37 +1304,21 @@ document.getElementById('hamburgerBtn').addEventListener('click', e=>{
 });
 document.addEventListener('click', ()=> document.getElementById('hamburgerMenu').classList.remove('open'));
 
-// Gestion du bouton retour mobile
-function showSection(section, pushHistory=true){
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  const tab = document.querySelector(`.nav-tab[data-section="${section}"]`);
-  if(tab) tab.classList.add('active');
-  document.getElementById(section).classList.add('active');
-  if(section==='sectionMembers') loadMembers();
-  if(section==='sectionForum') loadForum();
-  if(section==='sectionActivity') loadActivity();
-  if(section==='sectionMessages') loadMessages();
-  if(section==='sectionDeals') loadDeals();
-  if(pushHistory) history.pushState({section}, '', '#'+section);
-}
-window.addEventListener('popstate', e=>{
-  if(e.state&&e.state.section){
-    showSection(e.state.section, false);
-  } else {
-    showSection('sectionRayon', false);
-    history.pushState({section:'sectionRayon'}, '', '#sectionRayon');
-  }
-});
-history.replaceState({section:'sectionRayon'}, '', '#sectionRayon');
-
 // Navigation depuis le menu hamburger (mobile)
 document.querySelectorAll('.nav-mobile-item').forEach(item=>{
   item.addEventListener('click', e=>{
     e.stopPropagation();
     const section = item.dataset.section;
     document.getElementById('hamburgerMenu').classList.remove('open');
-    showSection(section);
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    const tab = document.querySelector(`.nav-tab[data-section="${section}"]`);
+    if(tab) tab.classList.add('active');
+    document.getElementById(section).classList.add('active');
+    if(section==='sectionMembers') loadMembers();
+    if(section==='sectionForum') loadForum();
+    if(section==='sectionActivity') loadActivity();
+    if(section==='sectionMessages') loadMessages();
   });
 });
 
@@ -1609,7 +1343,7 @@ function updateHamburger(profile){
   const username = document.getElementById('hamburgerUsername');
   const header = document.getElementById('hamburgerHeader');
   username.textContent = profile.username || '';
-  header.innerHTML = `<strong>${escHtml(profile.username||'Membre')}</strong>${escHtml(currentUser.email)}`;
+  header.innerHTML = `<strong>${profile.username||'Membre'}</strong>${currentUser.email}`;
   if(profile.avatar_url){
     const pos = profile.avatar_position || '50% 25%';
     avatar.innerHTML = `<img src="${profile.avatar_url}" style="object-position:${pos};">`;
@@ -1640,7 +1374,7 @@ function renderStats(){
   const withValue = c.filter(i=>i.estimatedValue).length;
   const avgValue = withValue ? (totalValue/withValue).toFixed(2) : 0;
   const mostExpensive = c.filter(i=>i.estimatedValue).sort((a,b)=>b.estimatedValue-a.estimatedValue)[0];
-  const newest = [...c].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))[0];
+  const newest = [...c].sort((a,b)=>b.id.localeCompare(a.id))[0];
 
   // Répartition par décennie
   const decades = {};
@@ -1898,40 +1632,45 @@ async function loadCommunityInfo(tmdbId, currentItemId){
   const content = document.getElementById('communityInfoContent');
   if(!tmdbId){ block.style.display='none'; return; }
 
-  const [{data:collData},{data:wantData}] = await Promise.all([
-    sb.from('collection').select('user_id,for_trade,for_sale,profiles(username)').eq('tmdb_id',tmdbId),
-    sb.from('wantlist').select('user_id,profiles(username)').eq('tmdb_id',tmdbId)
-  ]);
+  const {data} = await sb.from('collection')
+    .select('user_id, for_trade, for_sale, profiles(username)')
+    .eq('tmdb_id', tmdbId);
 
-  const owners  = (collData||[]);
-  const seekers = (wantData||[]);
-  const sellers = owners.filter(r=>r.for_sale);
-  const traders = owners.filter(r=>r.for_trade);
+  if(!data || data.length === 0){ block.style.display='none'; return; }
 
-  if(owners.length===0 && seekers.length===0){ block.style.display='none'; return; }
-  block.style.display='block';
+  // Filtrer pour exclure l'item courant de l'utilisateur
+  const others = data.filter(r => r.user_id !== currentUser.id);
+  const own = data.filter(r => r.user_id === currentUser.id);
 
-  const makeChip = (list, label, emoji, color) => {
-    if(!list.length) return '';
-    const names = list.map(r=>{
-      const uname = escHtml(r.profiles?.username||'Membre');
-      const uid   = r.user_id;
-      return `<span onclick="event.stopPropagation();document.getElementById('overlay').classList.remove('open');document.body.classList.remove('modal-open');openMemberCollection('${uid}','${uname.replace(/'/g,"\\'")}');" style="font-family:'Space Mono',monospace;font-size:10px;color:${color};cursor:pointer;text-decoration:underline;white-space:nowrap;" title="Voir la collection de ${uname}">${uname}</span>`;
-    }).join('<span style="color:var(--muted);"> · </span>');
-    return `<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:8px 12px;min-width:90px;">
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
-        <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${color};line-height:1;">${list.length}</span>
-        <span style="font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);">${emoji} ${label}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px 8px;">${names}</div>
+  const owners = data; // tous
+  const sellers = data.filter(r => r.for_sale);
+  const traders = data.filter(r => r.for_trade);
+
+  // Chercher dans la wantlist
+  const {data:wantData} = await sb.from('wantlist')
+    .select('user_id, profiles(username)')
+    .eq('tmdb_id', tmdbId);
+  const seekers = wantData || [];
+
+  block.style.display = 'block';
+
+  const makeChip = (count, label, emoji, list) => {
+    if(count === 0) return '';
+    const names = list.map(r => r.profiles?.username || 'Membre').join(', ');
+    return `<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:8px 12px;cursor:pointer;transition:border-color .15s;"
+      onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='var(--card-border)'"
+      title="${names}"
+      onclick="alert('${label} :\\n${names}')">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--cyan);">${count}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);display:block;">${emoji} ${label}</span>
     </div>`;
   };
 
   content.innerHTML =
-    makeChip(owners,  'possèdent', '📀', 'var(--cyan)') +
-    makeChip(seekers, 'cherchent', '🔍', 'var(--pink)') +
-    makeChip(sellers, 'vendent',   '💰', '#2fae5e') +
-    makeChip(traders, 'échangent', '🔄', '#ff8c42');
+    makeChip(owners.length, 'possèdent cette édition', '📀', owners) +
+    makeChip(seekers.length, 'la recherchent', '🔍', seekers) +
+    makeChip(sellers.length, 'la vendent', '💰', sellers) +
+    makeChip(traders.length, 'l\'échangent', '🔄', traders);
 }
 async function loadLetterboxd(lbUsername, container){
   container.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;padding:10px 0;">Chargement des critiques...</div>';
@@ -2010,7 +1749,7 @@ async function loadLetterboxd(lbUsername, container){
 let currentMemberFilmUserId = null;
 let currentMemberFilmUsername = null;
 
-function openMemberFilm(it, memberUserId, memberUsername, onClose){
+function openMemberFilm(it, memberUserId, memberUsername){
   currentMemberFilmUserId = memberUserId;
   currentMemberFilmUsername = memberUsername;
 
@@ -2058,25 +1797,11 @@ function openMemberFilm(it, memberUserId, memberUsername, onClose){
     };
   } else { msgBtn.style.display='none'; }
 
-  // Afficher les notes si présentes
-  if(it.notes){
-    notesEl.style.display='block';
-    notesEl.textContent=it.notes;
-  }
-
   document.getElementById('overlayMemberFilm').classList.add('open');
-  document.getElementById('overlayMemberFilm')._onClose=onClose||null;
 }
 
-function closeMemberFilm(){
-  const el=document.getElementById('overlayMemberFilm');
-  const cb=el._onClose;
-  el.classList.remove('open');
-  el._onClose=null;
-  if(cb) cb();
-}
-document.getElementById('mfCloseBtn').addEventListener('click', closeMemberFilm);
-document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) closeMemberFilm(); });
+document.getElementById('mfCloseBtn').addEventListener('click',()=>document.getElementById('overlayMemberFilm').classList.remove('open'));
+document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) document.getElementById('overlayMemberFilm').classList.remove('open'); });
 
 
 document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
@@ -2734,7 +2459,7 @@ function renderPosts(posts){
   container.innerHTML = posts.map(p => {
     const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const isOwn = p.user_id === currentUser.id;
-    const contentHtml = escHtml(p.content).replace(/@(\w+)/g, '<span class="mention">@$1</span>');
+    const contentHtml = p.content.replace(/@(\w+)/g, '<span class="mention">@$1</span>');
     const username = p.profiles ? p.profiles.username : 'Membre';
     const avatarUrl = p.profiles ? p.profiles.avatar_url : null;
     const avatarPos = p.profiles ? (p.profiles.avatar_position || '50% 25%') : '50% 25%';
@@ -2745,14 +2470,14 @@ function renderPosts(posts){
       <div class="post-avatar">${avatarHtml}</div>
       <div style="flex:1;">
         <div class="post-header">
-          <span class="post-author">${escHtml(username)}</span>
+          <span class="post-author">${username}</span>
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="post-date">${date}</span>
             ${isOwn ? `<button class="post-delete" data-pid="${p.id}">✕</button>` : ''}
           </div>
         </div>
         <div class="post-content">${contentHtml}</div>
-        ${p.image_url ? `<img src="${p.image_url}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;"><span style="display:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);font-style:italic;">Image non disponible</span>` : ''}
+        ${p.image_url ? `<img src="${p.image_url}" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;">` : ''}
       </div>
     </div>`;
   }).join('');
@@ -2763,7 +2488,7 @@ function renderPosts(posts){
 }
 
 async function publishPost(){
-  const content = validateText(document.getElementById('forumInput').value.trim(), 2000);
+  const content = document.getElementById('forumInput').value.trim();
   const imageUrl = pendingImageUrl || null;
   if(!content && !imageUrl){ alert("Écris quelque chose ou ajoute une image avant de publier."); return; }
 
@@ -2874,7 +2599,7 @@ document.getElementById('imageUrlCancelBtn').addEventListener('click', ()=>{
 
 document.getElementById('imageUrlConfirmBtn').addEventListener('click', ()=>{
   const url = document.getElementById('imageUrlInput').value.trim();
-  if(!url || !url.startsWith('http')){ alert('Colle un lien valide qui commence par https://'); return; }
+  if(!url || !url.startsWith('http')){ alert("Colle un lien valide qui commence par https://"); return; }
   pendingImageUrl = url;
   document.getElementById('imagePreview').src = url;
   document.getElementById('imagePreviewWrap').style.display = 'block';
@@ -2904,7 +2629,7 @@ async function searchGiphy(){
   const data = await res.json();
   const results = document.getElementById('giphyResults');
   results.innerHTML = (data.data||[]).map(gif=>
-    `<img src="${gif.images.fixed_height_small.url}" data-url="https://media.giphy.com/media/${gif.id}/giphy.gif" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
+    `<img src="${gif.images.fixed_height_small.url}" data-url="${gif.images.downsized.url}" style="height:80px;border-radius:4px;cursor:pointer;border:2px solid transparent;" title="${gif.title}">`
   ).join('');
   results.querySelectorAll('img').forEach(img=>{
     img.addEventListener('click', ()=>{
@@ -2912,6 +2637,7 @@ async function searchGiphy(){
       document.getElementById('imagePreview').src = pendingImageUrl;
       document.getElementById('imagePreviewWrap').style.display = 'block';
       document.getElementById('giphyWrap').style.display = 'none';
+      document.getElementById('imageUrlWrap').style.display = 'block';
     });
   });
 }
@@ -2919,7 +2645,16 @@ async function searchGiphy(){
 document.getElementById('forumPostBtn').addEventListener('click', publishPost);
 
 document.querySelectorAll('.nav-tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{ showSection(tab.dataset.section); });
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.section).classList.add('active');
+    if(tab.dataset.section==='sectionMembers') loadMembers();
+    if(tab.dataset.section==='sectionForum') loadForum();
+    if(tab.dataset.section==='sectionActivity') loadActivity();
+    if(tab.dataset.section==='sectionMessages') loadMessages();
+  });
 });
 
 function render(){
@@ -2931,27 +2666,21 @@ function render(){
   let items=collection.filter(it=>{
     const hay=[it.title,it.shelf,it.notes,it.castCrew].filter(Boolean).join(' ').toLowerCase();
     const matchSearch=!search||hay.includes(search);
-    const matchFormat=!filterFormat||(filterFormat==='steelbook_flag'?it.isSteelbook:it.format===filterFormat);
+    const matchFormat=!filterFormat||it.format===filterFormat;
     const matchWatched=!filterWatched||(filterWatched==='watched'&&it.watched)||(filterWatched==='unwatched'&&!it.watched);
     const matchTrade=filterSort!=='trade'||it.forTrade;
     const matchSale=filterSort!=='sale'||it.forSale;
-    const matchLoaned=filterSort!=='loaned'||it.loanedTo;
-    const matchNoPoster=filterSort!=='no_poster'||!it.posterUrl;
-    const matchSeriesOnly=filterSort!=='series_only'||it.isSeries;
-    const matchFilmsOnly=filterSort!=='films_only'||!it.isSeries;
-    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned&&matchNoPoster&&matchSeriesOnly&&matchFilmsOnly;
+    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale;
   });
 
   lastGroups=new Map();
-  items.forEach(it=>{ const k=it.id; if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
+  items.forEach(it=>{ const k=groupKeyOf(it.title); if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
   let groups=Array.from(lastGroups.entries()).map(([key,gi])=>({key,items:gi,primary:gi.find(i=>i.posterUrl)||gi[0]}));
 
-  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'||filterSort==='series_only'||filterSort==='films_only'){
+  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'){
     groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
-  } else if(filterSort==='date_modified'){
-    groups.sort((a,b)=>(b.primary.updatedAt||b.primary.createdAt||'').localeCompare(a.primary.updatedAt||a.primary.createdAt||''));
   } else if(filterSort==='date_added'){
-    groups.sort((a,b)=>(b.primary.createdAt||'').localeCompare(a.primary.createdAt||''));
+    groups.sort((a,b)=>b.primary.id.localeCompare(a.primary.id));
   } else if(filterSort==='year'){
     groups.sort((a,b)=>(b.primary.year||'0').localeCompare(a.primary.year||'0'));
   } else if(filterSort==='price_asc'){
@@ -2967,24 +2696,17 @@ function render(){
     '<div><span class="stat-num">'+collection.length+'</span><span class="stat-label">titres</span></div>'+
     '<div><span class="stat-num">'+collection.filter(i=>i.format==='VHS').length+'</span><span class="stat-label">vhs</span></div>'+
     '<div><span class="stat-num">'+collection.filter(i=>!i.watched).length+'</span><span class="stat-label">a voir</span></div>'+
-    (totalValue>0?'<div title="'+valuedCount+' evalues"><span class="stat-num">'+totalValue.toFixed(0)+'eu</span><span class="stat-label">valeur</span></div>':'')+
-    (collection.some(i=>i.loanedTo)?'<div><span class="stat-num" style="color:#ff8c42;">'+collection.filter(i=>i.loanedTo).length+'</span><span class="stat-label">pretes</span></div>':'');
+    (totalValue>0?'<div title="'+valuedCount+' evalues"><span class="stat-num">'+totalValue.toFixed(0)+'eu</span><span class="stat-label">valeur</span></div>':'');
   const grid=document.getElementById('grid');
   if(groups.length===0){ grid.innerHTML='<div class="empty"><div class="logo">RAYON VIDE</div><div>Ajoute ton premier titre.</div></div>'; return; }
   grid.innerHTML=groups.map(g=>{
     const it=g.primary, allWatched=g.items.every(i=>i.watched), isSelected=selectedKeys.has(g.key);
     const hasTrade=g.items.some(i=>i.forTrade), hasSale=g.items.some(i=>i.forSale);
     const isSteelbook=g.items.some(i=>i.isSteelbook);
-    const loanedItem=g.items.find(i=>i.loanedTo);
-    let loanTitle='';
-    if(loanedItem){
-      const d=loanedItem.loanedAt?Math.max(0,Math.floor((Date.now()-new Date(loanedItem.loanedAt).getTime())/86400000)):null;
-      loanTitle='Prêté à '+loanedItem.loanedTo+(d!==null?' depuis '+(d===0?"aujourd'hui":d+' jour'+(d>1?'s':'')):'');
-    }
     return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+' '+(isSteelbook?'steelbook':'')+'" data-key="'+g.key+'">'
       +'<div class="poster-wrap">'
       +(selectionMode?'<div class="select-mark">&#x2713;</div>':'')
-      // pas de badge doublon (chaque fiche est unique)
+      +(g.items.length>1?'<div class="dup-badge">'+g.items.length+'</div>':'')
       +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
         :'<div class="poster-placeholder">'+it.title+'</div>')
       +(it.customPhoto?'<span class="photo-badge">PHOTO</span>':'')
@@ -2998,10 +2720,7 @@ function render(){
       +'<span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
       +(isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
       +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
-      +(loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'')
-      +(it.isSeries?'<span class="series-badge">SÉRIE</span>':'')
       +'</div>'
-      +(it.isSeries&&it.seasons?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);padding:0 8px 4px;">'+it.seasons+(it.episodes?' · '+it.episodes+' ép.':'')+'</div>':'')
       +'<div class="tape-watch-row">'
       +'<span class="tape-watch-label">'+(allWatched?'Vu ✓':'À voir')+'</span>'
       +'<div class="watched-switch '+(allWatched?'on':'')+'" data-watch-key="'+g.key+'"><div class="knob"></div></div>'
@@ -3145,30 +2864,20 @@ async function searchWantPoster(){
 }
 
 async function loadMembers(){
-  const grid=document.getElementById('membersGrid');
-  grid.innerHTML='<div style="padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;">Chargement...</div>';
   const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
+  const grid=document.getElementById('membersGrid');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
-  // Compter les films par membre — requêtes séparées pour contourner la RLS
-  const countMap={}, tradeMap={}, saleMap={};
-  await Promise.all(profiles.map(async p=>{
-    const [rc, rt, rs] = await Promise.all([
-      sb.from('collection').select('id').eq('user_id',p.id),
-      sb.from('collection').select('id').eq('user_id',p.id).eq('for_trade',true),
-      sb.from('collection').select('id').eq('user_id',p.id).eq('for_sale',true),
-    ]);
-    countMap[p.id] = (rc.data||[]).length;
-    tradeMap[p.id] = (rt.data||[]).length;
-    saleMap[p.id]  = (rs.data||[]).length;
-  }));
+  const {data:counts}=await sb.from('collection').select('user_id');
+  const countMap={}; (counts||[]).forEach(c=>{ countMap[c.user_id]=(countMap[c.user_id]||0)+1; });
+  const {data:tradeCounts}=await sb.from('collection').select('user_id').eq('for_trade',true);
+  const tradeMap={}; (tradeCounts||[]).forEach(c=>{ tradeMap[c.user_id]=(tradeMap[c.user_id]||0)+1; });
+  const {data:saleCounts}=await sb.from('collection').select('user_id').eq('for_sale',true);
+  const saleMap={}; (saleCounts||[]).forEach(c=>{ saleMap[c.user_id]=(saleMap[c.user_id]||0)+1; });
   const searchVal=document.getElementById('memberSearch').value.toLowerCase();
   const filtered=profiles.filter(p=>p.username&&p.username.toLowerCase().includes(searchVal));
   // Trier par taille de collection décroissante
   filtered.sort((a,b)=>(countMap[b.id]||0)-(countMap[a.id]||0));
-  // Pré-charger les badges uniques seulement (évite N appels TMDB)
-  const uniqueCounts=[...new Set(filtered.map(p=>countMap[p.id]||0))];
-  await Promise.all(uniqueCounts.map(n=>getBadge(n).catch(()=>null)));
-  const badgeData = filtered.map(p=>{ try{ const level=BADGES.find(b=>(countMap[p.id]||0)>=b.min&&(countMap[p.id]||0)<=b.max)||BADGES[0]; return {name:level.name,poster:badgePosterCache[level.tmdb]||null}; }catch(e){ return {name:'',poster:null}; } });
+  const badgeData = await Promise.all(filtered.map(p=> getBadge(countMap[p.id]||0)));
   grid.innerHTML=filtered.map((p, idx)=>{
     const total=countMap[p.id]||0, trades=tradeMap[p.id]||0, sales=saleMap[p.id]||0;
     const isMe=p.id===currentUser.id;
@@ -3178,27 +2887,19 @@ async function loadMembers(){
       ? '<img src="'+p.avatar_url+'" style="width:100%;height:100%;object-fit:cover;object-position:'+avatarPos+';position:absolute;top:0;left:0;">'
       : '<span style="font-family:Bebas Neue,sans-serif;font-size:18px;color:var(--cyan);">'+((p.username||'?').slice(0,1).toUpperCase())+'</span>';
     return '<div class="member-card" data-uid="'+p.id+'" data-public="'+p.collection_public+'" data-name="'+p.username+'">'
-      // Ligne du haut : avatar + nom + badge
-      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">'
-        +'<div style="width:52px;height:52px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">'+av+'</div>'
-        +'<div style="min-width:0;">'
-          +'<div class="member-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.username+(isMe?' <span style="font-size:11px;color:var(--muted);">(moi)</span>':'')+'</div>'
-          +(badge&&badge.name?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--pink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+badge.name+'</div>':'')
-        +'</div>'
-      +'</div>'
-      // Stats
-      +'<div class="member-stats">'
-        +'Collection : <span>'+(p.collection_public!==false?total+' titre'+(total>1?'s':''):'Privée')+'</span><br>'
-        +(trades>0?'À l\'échange : <span>'+trades+'</span><br>':'')
-        +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')
-      +'</div>'
-      // Badges
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
+      +'<div style="width:48px;height:48px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">'+av+'</div>'
+      +'<div><div class="member-name">'+p.username+(isMe?' (moi)':'')+'</div>'
+      +(badge?'<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--pink);">'+badge.name+'</div>':'')
+      +'</div></div>'
+      +'<div class="member-stats">Collection : <span>'+(p.collection_public!==false?total+' titres':'Privée')+'</span><br>'
+      +(trades>0?'A l echange : <span>'+trades+'</span><br>':'')
+      +(sales>0?'À vendre : <span>'+sales+'</span><br>':'')+'</div>'
       +'<div class="member-badges">'
-        +(p.collection_public===false?'<span class="badge private">Privé</span>':'')
-        +(trades>0?'<span class="badge trade">Échange</span>':'')
-        +(sales>0?'<span class="badge sale">Vente</span>':'')
+      +(p.collection_public===false?'<span class="badge private">Privé</span>':'')
+      +(trades>0?'<span class="badge trade">Échange</span>':'')
+      +(sales>0?'<span class="badge sale">Vente</span>':'')
       +'</div>'
-      // Bouton message
       +(p.id!==currentUser.id?'<button class="msg-btn" data-uid="'+p.id+'" data-uname="'+p.username+'" style="margin-top:10px;width:100%;font-size:11px;padding:6px;">✉️ Envoyer un message</button>':'')
       +'</div>';
   }).join('');
@@ -3284,10 +2985,9 @@ function updateBannerPreview(url){
 }
 
 // ── BANNIÈRE dans la modal membre ──
-async function openMemberCollection(userId, username, onClose){
+async function openMemberCollection(userId,username){
   document.getElementById('memberModalTitle').textContent = username;
   document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
-  document.getElementById('overlayMember')._onClose=onClose||null;
   document.getElementById('overlayMember').classList.add('open');
   document.body.classList.add('modal-open');
 
@@ -3362,22 +3062,16 @@ async function openMemberCollection(userId, username, onClose){
 
   const memberSB = document.getElementById('memberSearchBox');
   const memberClear = document.getElementById('clearMemberSearchBox');
-  const memberFormatFilter = document.getElementById('memberFormatFilter');
-  const memberSortOrder = document.getElementById('memberSortOrder');
-  const memberCollCount = document.getElementById('memberCollCount');
   memberSB.value = '';
-  memberFormatFilter.value = '';
-  memberSortOrder.value = 'alpha';
-
-  const refreshMemberGrid = ()=>{
+  memberSB.oninput = ()=>{
     memberClear.style.display = memberSB.value ? 'block' : 'none';
     const active = document.querySelector('.member-filter-btn.active');
     renderMemberGrid(active ? active.dataset.filter : 'all');
   };
-  memberSB.oninput = refreshMemberGrid;
-  memberFormatFilter.onchange = refreshMemberGrid;
-  memberSortOrder.onchange = refreshMemberGrid;
-  memberClear.onclick = ()=>{ memberSB.value = ''; refreshMemberGrid(); };
+  memberClear.onclick = ()=>{
+    memberSB.value = ''; memberClear.style.display = 'none';
+    renderMemberGrid('all');
+  };
 
   function renderMemberGrid(filter){
     const memberGrid = document.getElementById('memberGrid');
@@ -3386,7 +3080,6 @@ async function openMemberCollection(userId, username, onClose){
     if(filter === 'critiques'){
       memberGrid.style.display = 'none';
       lbBlock.style.display = 'block';
-      memberCollCount.textContent = '';
       return;
     }
 
@@ -3394,33 +3087,10 @@ async function openMemberCollection(userId, username, onClose){
     lbBlock.style.display = 'none';
 
     const search = memberSB.value.toLowerCase();
-    const fmt = memberFormatFilter.value;
-    const sort = memberSortOrder.value;
-
-    let items = allItems.slice();
-    if(filter==='trade') items=items.filter(i=>i.forTrade);
-    else if(filter==='sale') items=items.filter(i=>i.forSale);
-    else if(filter==='steelbook') items=items.filter(i=>i.isSteelbook);
-    else if(filter==='watched') items=items.filter(i=>i.watched);
-    if(fmt) items=items.filter(i=>i.format===fmt);
-    if(search) items=items.filter(i=>{
-      const hay=[i.title,i.notes,i.castCrew,i.shelf].filter(Boolean).join(' ').toLowerCase();
-      return hay.includes(search);
-    });
-
-    // Tri
-    items.sort((a,b)=>{
-      if(sort==='alpha') return a.title.localeCompare(b.title);
-      if(sort==='alpha_desc') return b.title.localeCompare(a.title);
-      if(sort==='year_desc') return (parseInt(b.year)||0)-(parseInt(a.year)||0);
-      if(sort==='year_asc') return (parseInt(a.year)||0)-(parseInt(b.year)||0);
-      if(sort==='added_desc') return (b.createdAt||'').localeCompare(a.createdAt||'');
-      if(sort==='added_asc') return (a.createdAt||'').localeCompare(b.createdAt||'');
-      if(sort==='format') return (a.format||'').localeCompare(b.format||'')||a.title.localeCompare(b.title);
-      return 0;
-    });
-
-    memberCollCount.textContent = items.length + ' titre' + (items.length>1?'s':'');
+    let items=allItems;
+    if(filter==='trade') items=allItems.filter(i=>i.forTrade);
+    if(filter==='sale') items=allItems.filter(i=>i.forSale);
+    if(search) items=items.filter(i=>i.title.toLowerCase().includes(search));
     if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>{
       const clickable = (it.forSale||it.forTrade) && userId!==currentUser.id;
@@ -3610,9 +3280,7 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
 function resetModal(){
   editingId=null; pendingPoster=null; pendingTmdbId=null;
   document.getElementById('modalTitle').textContent='Ajouter un titre';
-  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes'].forEach(id=>document.getElementById(id).value='');
-  setMediaType('film');
-  document.getElementById('loanHint').textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
+  ['inputTitle','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inputFormat').value='VHS';
   ['inputWatched','inputForTrade','inputForSale','inputSteelbook'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('communityInfoBlock').style.display='none';
@@ -3632,22 +3300,6 @@ document.getElementById('inputForSale').addEventListener('change',()=>{
   document.getElementById('saleBlock').style.display=document.getElementById('inputForSale').checked?'block':'none';
 });
 function openAdd(){ resetModal(); document.getElementById('overlay').classList.add('open'); document.body.classList.add('modal-open'); document.getElementById('inputTitle').focus(); }
-function setMediaType(type){
-  const btnFilm=document.getElementById('toggleFilm');
-  const btnSerie=document.getElementById('toggleSerie');
-  const isS=type==='serie';
-  btnFilm.style.background=isS?'transparent':'var(--cyan)';
-  btnFilm.style.color=isS?'var(--muted)':'#0d0d14';
-  btnFilm.style.fontWeight=isS?'400':'700';
-  btnSerie.style.background=isS?'#9b5cff':'transparent';
-  btnSerie.style.color=isS?'#fff':'var(--muted)';
-  btnSerie.style.fontWeight=isS?'700':'400';
-  btnSerie.dataset.active=isS?'1':'0';
-  document.getElementById('seasonsBlock').style.display=isS?'block':'none';
-  document.getElementById('titleLabel').textContent=isS?'Titre de la série':'Titre du film';
-  document.getElementById('inputTitle').placeholder=isS?'Ex: Breaking Bad':'Ex: Hard Revenge Milly';
-}
-document.getElementById('addBtn').addEventListener('click', openAdd);
 function fillFormFromItem(it){
   editingId=it.id;
   document.getElementById('modalTitle').textContent='Fiche de details';
@@ -3666,20 +3318,6 @@ function fillFormFromItem(it){
   }
   document.getElementById('inputSalePrice').value=it.salePrice||'';
   document.getElementById('saleBlock').style.display=it.forSale?'block':'none';
-  document.getElementById('inputLoanedTo').value=it.loanedTo||'';
-  document.getElementById('inputLoanedAt').value=it.loanedAt||'';
-  setMediaType(it.isSeries?'serie':'film');
-  document.getElementById('inputSeasons').value=it.seasons||'';
-  document.getElementById('inputEpisodes').value=it.episodes||'';
-  const loanHint=document.getElementById('loanHint');
-  if(it.loanedTo&&it.loanedAt){
-    const days=Math.max(0,Math.floor((Date.now()-new Date(it.loanedAt).getTime())/86400000));
-    loanHint.innerHTML='<span style="color:#ff8c42;font-weight:600;">Prêté à '+it.loanedTo+' depuis '+(days===0?"aujourd'hui":days+' jour'+(days>1?'s':''))+'.</span> Efface le nom quand on te le rend.';
-  } else if(it.loanedTo){
-    loanHint.innerHTML='<span style="color:#ff8c42;font-weight:600;">Prêté à '+it.loanedTo+'.</span> Efface le nom quand on te le rend.';
-  } else {
-    loanHint.textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
-  }
   document.getElementById('inputShelf').value=it.shelf||'';
   document.getElementById('inputValue').value=it.estimatedValue||'';
   document.getElementById('inputNotes').value=it.notes||'';
@@ -3693,6 +3331,12 @@ function fillFormFromItem(it){
 function openEdit(key){
   const group=lastGroups.get(key); if(!group||group.length===0) return;
   resetModal();
+  if(group.length>1){
+    document.getElementById('copySelectorBlock').style.display='block';
+    const sel=document.getElementById('copySelector');
+    sel.innerHTML=group.map((it,idx)=>'<option value="'+it.id+'">Exemplaire '+(idx+1)+' - '+fmtLabel(it.format)+(it.shelf?' - '+it.shelf:'')+'</option>').join('');
+    sel.onchange=()=>{ const chosen=group.find(i=>i.id===sel.value); if(chosen) fillFormFromItem(chosen); };
+  }
   fillFormFromItem(group[0]);
   document.getElementById('overlay').classList.add('open');
 }
@@ -3704,11 +3348,9 @@ async function loadTmdbInfo(tmdbId){
   block.style.display='block'; content.innerHTML='<span>Chargement...</span>';
   try{
     // Récupérer infos du film + crédits en parallèle
-    const isSerie=document.getElementById('toggleSerie')?.dataset?.active==='1'||(editingId&&collection.find(i=>i.id===editingId)?.isSeries)||false;
-    const ep=isSerie?'tv':'movie';
     const [resMovie, resCredits] = await Promise.all([
-      fetch('https://api.themoviedb.org/3/'+ep+'/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR'),
-      fetch('https://api.themoviedb.org/3/'+ep+'/'+tmdbId+'/credits?api_key='+TMDB_KEY+'&language=fr-FR')
+      fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'?api_key='+TMDB_KEY+'&language=fr-FR'),
+      fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'/credits?api_key='+TMDB_KEY+'&language=fr-FR')
     ]);
     const d = await resMovie.json();
     const credits = await resCredits.json();
@@ -3721,16 +3363,15 @@ async function loadTmdbInfo(tmdbId){
     // Construire la chaîne castCrew pour la recherche
     const castCrewStr = [...directors, ...actors, ...(d.genres||[]).map(g=>g.name)].join(' ');
     // Sauvegarder dans l'item en cours d'édition
-    if(editingId){
-      const item = collection.find(it=>it.id===editingId);
-      if(item) item.castCrew = castCrewStr;
+    if(editingKey){
+      const group = collection.find(g=>g.key===editingKey);
+      if(group) group.items.forEach(it=>{ it.castCrew = castCrewStr; });
     }
     content.innerHTML=
       '<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' · ')+'</div>'
       +(directors.length?'<div style="margin-top:4px;font-size:11px;color:var(--muted);">Réal. : <span style="color:var(--text);">'+directors.join(', ')+'</span></div>':'')
       +(actors.length?'<div style="font-size:11px;color:var(--muted);">Avec : <span style="color:var(--text);">'+actors.join(', ')+'</span></div>':'')
-      +'<div style="margin-top:6px;">'+(d.overview||'Pas de synopsis.')+'</div>'
-      +(editingId&&collection.find(i=>i.id===editingId)?.createdAt?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">📅 Ajouté le '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' à '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div>':'');
+      +'<div style="margin-top:6px;">'+(d.overview||'Pas de synopsis.')+'</div>';
   }catch(e){ content.innerHTML='<span>Erreur TMDB.</span>'; }
 }
 function searchPriceOnline(){
@@ -3796,8 +3437,8 @@ async function loadDirectorFilms(personId,personName){
       img.addEventListener('click',()=>{
         resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
         pendingPoster={url:img.dataset.url,isPhoto:false}; pendingTmdbId=img.dataset.id;
-        document.getElementById('posterPreview').innerHTML='<div style="position:relative;display:inline-block;"><img src="'+img.dataset.url+'" style="display:block;"><button type="button" onclick="clearPoster()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1;">✕</button></div>';
-        hint.innerHTML='Film selectionné. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
+        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
+        hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
         document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
         if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
         loadTmdbInfo(pendingTmdbId);
@@ -3811,43 +3452,24 @@ async function searchPoster(){
   const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('searchResults');
   hint.textContent='Recherche...'; resultsDiv.innerHTML='';
   try{
-    // Chercher sur 2 pages + en anglais si peu de résultats
-    const isSerie=document.getElementById('toggleSerie').dataset.active==='1';
-    const endpoint=isSerie?'tv':'movie';
-    const [r1,r2]=await Promise.all([
-      fetch('https://api.themoviedb.org/3/search/'+endpoint+'?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR&page=1&include_adult=false'),
-      fetch('https://api.themoviedb.org/3/search/'+endpoint+'?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=en-US&page=1&include_adult=false')
-    ]);
-    const [d1,d2]=await Promise.all([r1.json(),r2.json()]);
-    const seen=new Set();
-    const merged=[...(d1.results||[]),...(d2.results||[])].filter(r=>{
-      if(seen.has(r.id)) return false; seen.add(r.id); return true;
-    });
-    const withPoster=merged.filter(r=>r.poster_path);
-    const results=withPoster.slice(0,20);
-    if(results.length===0){ hint.textContent='Aucun résultat. Essaie en anglais.'; return; }
+    const res=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
+    const data=await res.json();
+    const results=(data.results||[]).filter(r=>r.poster_path).slice(0,16);
+    if(results.length===0){ hint.textContent='Aucune affiche.'; return; }
     hint.textContent='Clique sur le bon film.';
     resultsDiv.innerHTML=results.map(r=>'<img src="https://image.tmdb.org/t/p/w200'+r.poster_path+'" data-url="https://image.tmdb.org/t/p/w500'+r.poster_path+'" data-year="'+(r.release_date||'').slice(0,4)+'" data-id="'+r.id+'" title="'+r.title+'">').join('');
     resultsDiv.querySelectorAll('img').forEach(img=>{
       img.addEventListener('click',()=>{
         resultsDiv.querySelectorAll('img').forEach(i=>i.classList.remove('selected')); img.classList.add('selected');
         pendingPoster={url:img.dataset.url,isPhoto:false}; pendingTmdbId=img.dataset.id;
-        document.getElementById('posterPreview').innerHTML='<div style="position:relative;display:inline-block;"><img src="'+img.dataset.url+'" style="display:block;"><button type="button" onclick="clearPoster()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1;">✕</button></div>';
-        hint.innerHTML='Film selectionné. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
+        document.getElementById('posterPreview').innerHTML='<img src="'+img.dataset.url+'">';
+        hint.innerHTML='Film selectionne. <button type="button" id="altPostersBtn" style="font-size:11px;padding:4px 10px;margin-left:6px;">Affiches alternatives</button>';
         document.getElementById('altPostersBtn').addEventListener('click',()=>loadAltPosters(img.dataset.id));
         if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
-        if(img.title) document.getElementById('inputTitle').value=img.title;
         loadTmdbInfo(pendingTmdbId);
       });
     });
   }catch(e){ hint.textContent='Erreur.'; }
-}
-function clearPoster(){
-  pendingPoster=null; pendingTmdbId=null;
-  document.getElementById('posterPreview').innerHTML='<span>Pas d’affiche</span>';
-  document.getElementById('modalHint').textContent='Affiche supprimée.';
-  document.getElementById('tmdbInfoBlock').style.display='none';
-  document.getElementById('tmdbInfoContent').innerHTML='';
 }
 function resizeImageFile(file){
   return new Promise((resolve,reject)=>{
@@ -3883,44 +3505,21 @@ async function saveItemModal(){
     const existing = collection.find(i=>i.id===editingId);
     if(existing) existingCastCrew = existing.castCrew || '';
   }
-  const loanedTo=document.getElementById('inputLoanedTo').value.trim();
-  let loanedAt=document.getElementById('inputLoanedAt').value||null;
-  if(loanedTo&&!loanedAt) loanedAt=new Date().toISOString().slice(0,10); // date du jour par défaut
-  if(!loanedTo) loanedAt=null; // pas de nom = pas de prêt
   const it={title,format:document.getElementById('inputFormat').value,year:document.getElementById('inputYear').value.trim(),
     watched:document.getElementById('inputWatched').checked,forTrade:document.getElementById('inputForTrade').checked,
     forSale:document.getElementById('inputForSale').checked,salePrice:parseFloat(document.getElementById('inputSalePrice').value)||null,
     isSteelbook:document.getElementById('inputSteelbook').checked,
-    loanedTo:loanedTo||null,loanedAt:loanedAt,
-    isSeries:document.getElementById('toggleSerie').dataset.active==='1',
-    seasons:document.getElementById('inputSeasons').value.trim()||null,
-    episodes:document.getElementById('inputEpisodes').value.trim()||null,
     shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
     notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
     customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null,
     castCrew:existingCastCrew};
   if(editingId){
     const existing=collection.find(i=>i.id===editingId);
-    Object.assign(existing,it);
-    try{
-      await saveItem(existing);
-    }catch(e){
-      alert('❌ '+e.message+'\n\nTa modification n\'a pas été sauvegardée. Vérifie ta connexion et réessaie.');
-      return;
-    }
-    closeModal();
-    await loadCollection();
+    Object.assign(existing,it); await saveItem(existing);
   } else {
-    const newIt={id:uid(),...it};
-    try{
-      await saveItem(newIt);
-    }catch(e){
-      alert('❌ '+e.message+'\n\nLe titre n\'a pas été sauvegardé. Vérifie ta connexion et réessaie.');
-      return;
-    }
-    closeModal();
-    await loadCollection(); // recharger depuis Supabase pour avoir le vrai created_at
+    const newIt={id:uid(),...it}; collection.push(newIt); await saveItem(newIt);
   }
+  closeModal(); render();
 }
 async function deleteItemModal(){
   if(!editingId) return;
@@ -3947,9 +3546,9 @@ async function removeDuplicates(){
 }
 async function deleteSelection(){
   if(selectedKeys.size===0) return;
-  const toDelete=collection.filter(i=>selectedKeys.has(i.id));
+  const toDelete=collection.filter(i=>selectedKeys.has(groupKeyOf(i.title)));
   if(!confirm('Retirer '+selectedKeys.size+' fiche(s) ?')) return;
-  await deleteItemsFromDb(toDelete.map(i=>i.id)); collection=collection.filter(i=>!selectedKeys.has(i.id));
+  await deleteItemsFromDb(toDelete.map(i=>i.id)); collection=collection.filter(i=>!selectedKeys.has(groupKeyOf(i.title)));
   selectionMode=false; selectedKeys=new Set(); lastSelectedKey=null;
   document.getElementById('selectModeBtn').textContent='Selectionner plusieurs';
   updateSelectionBar(); render();
@@ -4098,7 +3697,6 @@ document.getElementById('saveBtn').addEventListener('click',saveItemModal);
 document.getElementById('deleteBtn').addEventListener('click',deleteItemModal);
 document.getElementById('searchPriceBtn').addEventListener('click',searchPriceOnline);
 document.getElementById('searchPosterBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); });
-document.getElementById('inputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); } });
 document.getElementById('searchDirectorBtn').addEventListener('click',()=>{ const w=document.getElementById('directorSearchWrap'); w.style.display=w.style.display==='none'?'block':'none'; if(w.style.display==='block') document.getElementById('inputDirector').focus(); });
 document.getElementById('searchDirectorGoBtn').addEventListener('click',searchByDirector);
 document.getElementById('inputDirector').addEventListener('keydown',e=>{ if(e.key==='Enter') searchByDirector(); });
@@ -4107,97 +3705,6 @@ document.getElementById('photoInput').addEventListener('change',e=>{ if(e.target
 document.getElementById('filterFormat').addEventListener('change',render);
 document.getElementById('filterWatched').addEventListener('change',render);
 document.getElementById('filterSort').addEventListener('change',render);
-
-// Croix effacement recherche Mon Rayon
-const _sbClear=document.getElementById('clearSearchBox');
-const _sbInput=document.getElementById('searchBox');
-if(_sbClear&&_sbInput){
-  _sbInput.addEventListener('input',function(){
-    _sbClear.style.display=this.value?'block':'none'; render();
-  });
-  _sbClear.addEventListener('click',()=>{
-    _sbInput.value=''; _sbClear.style.display='none'; render();
-  });
-}
-
-// Bouton Tous les titres du site
-document.getElementById('allTitlesBtn').addEventListener('click', async function(){
-  const panel=document.getElementById('allTitlesPanel');
-  const wPanel=document.getElementById('allWantlistsPanel');
-  if(panel.style.display!=='none'){ panel.style.display='none'; this.textContent='📚 Tous les titres du site'; return; }
-  wPanel.style.display='none';
-  document.getElementById('allWantlistsBtn').textContent='Voir toutes les wantlists';
-  panel.innerHTML='<p style="padding:16px;font-family:Space Mono,monospace;font-size:11px;color:var(--muted);">Chargement...</p>';
-  panel.style.display='block';
-  this.textContent='✕ Fermer';
-  const {data}=await sb.from('collection').select('title,format,poster_url,tmdb_id,year,is_steelbook').order('title');
-  if(!data||!data.length){ panel.innerHTML='<p style="padding:16px;font-family:Space Mono,monospace;font-size:11px;color:var(--muted);">Aucun titre.</p>'; return; }
-  // Dédoublonner par tmdb_id ou par titre
-  const seen=new Set(); const uniq=[];
-  data.forEach(r=>{ const k=r.tmdb_id||r.title; if(!seen.has(k)){ seen.add(k); uniq.push(r); }});
-  // Récupérer les owners par tmdb_id
-  const tmdbIds=[...new Set(uniq.filter(r=>r.tmdb_id).map(r=>r.tmdb_id))];
-  const {data:ownersData}=await sb.from('collection').select('tmdb_id,title,profiles(id,username)');
-  const ownerMap={};
-  (ownersData||[]).forEach(r=>{
-    const k=r.tmdb_id||r.title;
-    if(!ownerMap[k]) ownerMap[k]=[];
-    const u=r.profiles?.username;
-    const uid=r.profiles?.id;
-    if(u&&uid&&!ownerMap[k].find(x=>x.uid===uid)) ownerMap[k].push({u,uid});
-  });
-  panel.innerHTML='<div style="padding:8px 16px;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">'+uniq.length+' titres uniques répertoriés sur le site — ordre alphabétique</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;padding:0 16px 16px;">'
-    +uniq.map(r=>{
-      const fmt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'4K',LASERDISC:'LD'}[r.format]||r.format||'';
-      const k=r.tmdb_id||r.title;
-      const owners=ownerMap[k]||[];
-      const ownerChips=owners.map(o=>{
-        const safeName=o.u.replace(/['"]/g,'');
-        return '<span onclick="openAllTitlesMember(\''+o.uid+'\',\''+safeName+'\')" style="font-family:Space Mono,monospace;font-size:7px;color:var(--cyan);cursor:pointer;text-decoration:underline;white-space:nowrap;">'+escHtml(o.u)+'</span>';
-      }).join('<span style="color:var(--muted);"> · </span>');
-      return '<div style="background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;cursor:pointer;" onclick="void(0)">'
-        +(r.poster_url?'<img src="'+r.poster_url+'" style="width:100%;aspect-ratio:2/3;object-fit:cover;display:block;">':'<div style="aspect-ratio:2/3;background:#1c1c26;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);text-align:center;padding:4px;">'+escHtml(r.title)+'</div>')
-        +'<div style="padding:4px 5px;"><div style="font-family:Space Mono,monospace;font-size:8px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escHtml(r.title)+'</div>'
-        +'<span style="font-family:Space Mono,monospace;font-size:7px;color:var(--muted);">'+fmt+(r.year?' · '+r.year:'')+'</span>'
-        +(ownerChips?'<div style="margin-top:2px;display:flex;flex-wrap:wrap;gap:2px;">'+ownerChips+'</div>':'')
-        +'</div></div>';
-    }).join('')+'</div>';
-});
-
-// ── Helpers pour "Tous les titres du site" ──────────────────────────
-function _restoreAllTitles(){
-  const panel=document.getElementById('allTitlesPanel');
-  const btn=document.getElementById('allTitlesBtn');
-  // Forcer wantlist active
-  showSection('sectionWantlist', false);
-  // Remettre le panel visible après le changement de section
-  requestAnimationFrame(()=>{
-    if(panel._wasOpen){
-      panel.style.display='block';
-      btn.textContent='✕ Fermer';
-    }
-  });
-}
-function openAllTitlesMember(uid, uname){
-  const panel=document.getElementById('allTitlesPanel');
-  panel._wasOpen=panel.style.display!=='none';
-  panel.style.display='none';
-  document.getElementById('allTitlesBtn').textContent='📚 Tous les titres du site';
-  openMemberCollection(uid, uname, _restoreAllTitles);
-}
-async function openAllTitlesFilm(tmdbId, title, posterUrl, year, format, ownerUid, ownerUname){
-  // Chercher la vraie fiche avec les notes dans la collection du owner
-  let it={title, posterUrl:posterUrl||null, year, format, isSteelbook:false, forSale:false, forTrade:false, watched:false, notes:'', estimatedValue:null, salePrice:null};
-  if(ownerUid && tmdbId){
-    const {data}=await sb.from('collection').select('*').eq('user_id',ownerUid).eq('tmdb_id',tmdbId).limit(1);
-    if(data&&data.length) it=fromRow(data[0]);
-  }
-  const panel=document.getElementById('allTitlesPanel');
-  panel._wasOpen=panel.style.display!=='none';
-  openMemberFilm(it, ownerUid, ownerUname, null);
-}
-
 document.getElementById('overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('overlay')) closeModal(); });
 document.getElementById('exportBtn').addEventListener('click',exportCollection);
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importInput').click());
@@ -4212,7 +3719,7 @@ document.getElementById('deleteSelectionBtn').addEventListener('click',deleteSel
 document.getElementById('cancelSelectionBtn').addEventListener('click',toggleSelectMode);
 const searchBox=document.getElementById('searchBox'),searchWrap=searchBox.closest('.search-wrap');
 searchBox.addEventListener('input',()=>{ searchWrap.classList.toggle('has-value',searchBox.value.length>0); render(); });
-document.getElementById('clearSearchBox').addEventListener('click',()=>{ searchBox.value=''; searchWrap.classList.remove('has-value'); render(); searchBox.focus(); });
+document.getElementById('clearSearch').addEventListener('click',()=>{ searchBox.value=''; searchWrap.classList.remove('has-value'); render(); searchBox.focus(); });
 document.getElementById('allWantlistsBtn').addEventListener('click', async ()=>{
   const panel = document.getElementById('allWantlistsPanel');
   const btn = document.getElementById('allWantlistsBtn');
@@ -4344,13 +3851,8 @@ async function loadWantOwners(tmdbId){
   ).join('');
 }
 document.getElementById('overlayWant').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayWant')){ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); }});
-document.getElementById('memberCloseBtn').addEventListener('click',()=>{
-  const el=document.getElementById('overlayMember');
-  const cb=el._onClose; el._onClose=null;
-  el.classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow='';
-  if(cb) setTimeout(cb, 50);
-});
-document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ const el=document.getElementById('overlayMember'); const cb=el._onClose; el._onClose=null; el.classList.remove('open'); document.body.classList.remove('modal-open'); if(cb) setTimeout(cb,50); }});
+document.getElementById('memberCloseBtn').addEventListener('click',()=>{ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); document.body.style.overflow=''; });
+document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMember')){ document.getElementById('overlayMember').classList.remove('open'); document.body.classList.remove('modal-open'); }});
 const memberSearch=document.getElementById('memberSearch'),memberSearchWrap=memberSearch.closest('.search-wrap');
 memberSearch.addEventListener('input',()=>{ memberSearchWrap.classList.toggle('has-value',memberSearch.value.length>0); loadMembers(); });
 document.getElementById('clearMemberSearch').addEventListener('click',()=>{ memberSearch.value=''; memberSearchWrap.classList.remove('has-value'); loadMembers(); });
@@ -4381,356 +3883,21 @@ async function loadLoginCarousel(){
   }catch(e){}
 }
 
-
-loadLoginCarousel();
-
-// ── LIGHTBOX BONBON CINÉ — zoom + drag ────────────────────────────────
-(function(){
-  let scale=1, tx=0, ty=0, dragging=false, lastX=0, lastY=0;
-  let pinchDist=null;
-
-  function applyTransform(){
-    const img=document.getElementById('bonbonLightboxImg');
-    if(img) img.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;
-  }
-
-  window.bonbonZoom=function(delta){
-    scale=Math.min(5,Math.max(1,scale+delta));
-    if(scale===1){tx=0;ty=0;}
-    applyTransform();
-  };
-  window.bonbonResetZoom=function(){
-    scale=1;tx=0;ty=0;applyTransform();
-    document.getElementById('bonbonLightboxInner').style.cursor='grab';
-  };
-  window.closeBonbonLightbox=function(){
-    document.getElementById('bonbonLightbox').style.display='none';
-    bonbonResetZoom();
-  };
-
-  document.addEventListener('DOMContentLoaded',()=>{
-    const lb=document.getElementById('bonbonLightbox');
-    const inner=document.getElementById('bonbonLightboxInner');
-    if(!lb||!inner) return;
-
-    // Fermer en cliquant sur le fond (pas sur l'image)
-    lb.addEventListener('click',e=>{ if(e.target===lb||e.target===inner) closeBonbonLightbox(); });
-
-    // Scroll pour zoomer (desktop)
-    inner.addEventListener('wheel',e=>{
-      e.preventDefault();
-      const delta=e.deltaY<0?0.15:-0.15;
-      scale=Math.min(5,Math.max(1,scale+delta));
-      if(scale===1){tx=0;ty=0;}
-      applyTransform();
-    },{passive:false});
-
-    // Drag (desktop)
-    inner.addEventListener('mousedown',e=>{
-      if(e.button!==0) return;
-      dragging=true; lastX=e.clientX; lastY=e.clientY;
-      inner.style.cursor='grabbing'; e.preventDefault();
-    });
-    window.addEventListener('mousemove',e=>{
-      if(!dragging) return;
-      tx+=e.clientX-lastX; ty+=e.clientY-lastY;
-      lastX=e.clientX; lastY=e.clientY;
-      applyTransform();
-    });
-    window.addEventListener('mouseup',()=>{ dragging=false; inner.style.cursor='grab'; });
-
-    // Touch — drag + pinch (mobile)
-    inner.addEventListener('touchstart',e=>{
-      if(e.touches.length===1){
-        dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
-      } else if(e.touches.length===2){
-        dragging=false;
-        pinchDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-      }
-      e.preventDefault();
-    },{passive:false});
-    inner.addEventListener('touchmove',e=>{
-      if(e.touches.length===1&&dragging){
-        tx+=e.touches[0].clientX-lastX; ty+=e.touches[0].clientY-lastY;
-        lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
-        applyTransform();
-      } else if(e.touches.length===2&&pinchDist!==null){
-        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
-        scale=Math.min(5,Math.max(1,scale*(d/pinchDist)));
-        pinchDist=d;
-        if(scale===1){tx=0;ty=0;}
-        applyTransform();
-      }
-      e.preventDefault();
-    },{passive:false});
-    inner.addEventListener('touchend',e=>{
-      if(e.touches.length<2) pinchDist=null;
-      if(e.touches.length===0) dragging=false;
-    });
-
-    // Touches clavier
-    lb.addEventListener('keydown',e=>{ if(e.key==='Escape') closeBonbonLightbox(); });
-  });
-})();
-
-function openCGU(){
-  document.getElementById('cguOverlay').style.display='flex';
-  document.body.classList.add('modal-open');
+async function loadHeaderCarousel(){
+  try{
+    const res = await fetch(`https://api.themoviedb.org/3/movie/popular?api_key=${TMDB_KEY}&language=fr-FR&page=${Math.ceil(Math.random()*5)}`);
+    const d = await res.json();
+    const films = (d.results||[]).filter(f=>f.poster_path).slice(0,10);
+    if(!films.length) return;
+    const track = document.getElementById('headerCarousel');
+    // Doubler pour la boucle infinie
+    const html = films.map(f=>`<img src="https://image.tmdb.org/t/p/w185${f.poster_path}" alt="${f.title}">`).join('');
+    track.innerHTML = html + html;
+  }catch(e){}
 }
-function closeCGU(){
-  document.getElementById('cguOverlay').style.display='none';
-  document.body.classList.remove('modal-open');
-}
-document.getElementById('cguOverlay').addEventListener('click',e=>{
-  if(e.target===document.getElementById('cguOverlay')) closeCGU();
-});
 
+loadHeaderCarousel();
 initAuth();
-
-// ═══════════════════════════════════════════════
-// BONS PLANS
-// ═══════════════════════════════════════════════
-let pendingDealPoster=null, pendingDealTmdbId=null, currentUserId=null, editingDealId=null;
-
-// currentUserId et isAdmin sont synchronisés avec currentUser/currentProfile
-sb.auth.onAuthStateChange((_,session)=>{ currentUserId=session?.user?.id||null; });
-(async()=>{ const {data}=await sb.auth.getUser(); if(data&&data.user) currentUserId=data.user.id; })();
-
-const fmtDeal={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K'};
-
-let _dealsCache=[];
-async function loadDeals(){
-  const list=document.getElementById('dealsList');
-  list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:8px;">Chargement...</p>';
-  const {data:deals,error}=await sb.from('deals').select('*').order('votes_hot',{ascending:false}).order('created_at',{ascending:false});
-  if(deals) _dealsCache=deals;
-  if(error||!deals||deals.length===0){
-    list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:11px;padding:8px;">Aucun bon plan pour l\'instant — sois le premier à en signaler un !</p>';
-    return;
-  }
-  // Récupérer les votes de l'utilisateur courant
-  let myVotes={};
-  if(currentUserId){
-    const {data:vdata}=await sb.from('deal_votes').select('deal_id,vote').eq('user_id',currentUserId);
-    if(vdata) vdata.forEach(v=>myVotes[v.deal_id]=v.vote);
-  }
-  const now=Date.now();
-  list.innerHTML=deals.map(d=>{
-    const dead=d.votes_dead>d.votes_hot&&d.votes_dead>=3;
-    const age=Math.floor((now-new Date(d.created_at).getTime())/86400000);
-    const ageStr=age===0?"aujourd'hui":age===1?"hier":age+" jours";
-    const pct=d.price_normal&&d.price_deal?Math.round((1-d.price_deal/d.price_normal)*100):null;
-    const myV=myVotes[d.id]||null;
-    const steelStr=d.is_steelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'';
-    return `<div style="background:var(--card);border:1px solid ${dead?'#2a2a2a':'var(--card-border)'};border-radius:10px;overflow:hidden;display:flex;flex-direction:column;opacity:${dead?'0.45':'1'};transition:opacity .2s;">
-      <div style="display:flex;gap:14px;padding:14px;">
-        <div style="flex-shrink:0;position:relative;">
-          ${d.poster_url
-            ?`<img src="${d.poster_url}" style="width:80px;height:116px;object-fit:cover;border-radius:6px;display:block;">`
-            :`<div style="width:80px;height:116px;background:#1c1c26;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:28px;">🎬</div>`}
-        </div>
-        <div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between;">
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--text);line-height:1.1;margin-bottom:6px;">${d.title}</div>
-            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">
-              ${d.format?`<span style="font-family:Space Mono,monospace;font-size:9px;background:#1c1c26;border:1px solid var(--card-border);padding:2px 7px;border-radius:2px;">${fmtDeal[d.format]||d.format}</span>`:''}
-              ${steelStr}
-              <span style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">${d.merchant||''}</span>
-            </div>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--cyan);line-height:1;">${d.price_deal.toFixed(2)} €</span>
-            ${d.price_normal?`<span style="font-family:Space Mono,monospace;font-size:12px;color:var(--muted);text-decoration:line-through;">${d.price_normal.toFixed(2)} €</span>`:''}
-            ${pct?`<span style="font-family:Space Mono,monospace;font-size:11px;font-weight:700;background:#2fae5e22;color:#2fae5e;padding:3px 8px;border-radius:4px;">−${pct}%</span>`:''}
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--card-border);background:rgba(0,0,0,0.18);">
-        <button onclick="voteDeal('${d.id}','hot')" style="font-size:13px;padding:5px 12px;background:${myV==='hot'?'rgba(255,107,43,0.25)':'transparent'};border:1px solid ${myV==='hot'?'#ff6b2b':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">🔥 ${d.votes_hot}</button>
-        <button onclick="voteDeal('${d.id}','dead')" style="font-size:13px;padding:5px 12px;background:${myV==='dead'?'#333':'transparent'};border:1px solid ${myV==='dead'?'#666':'var(--card-border)'};border-radius:5px;cursor:pointer;color:var(--text);">💀 ${d.votes_dead}</button>
-        ${d.url?`<a href="${safeUrl(d.url)}" target="_blank" rel="noopener noreferrer" style="margin-left:auto;font-family:Space Mono,monospace;font-size:10px;padding:6px 14px;background:var(--cyan);color:#0d0d14;border-radius:5px;text-decoration:none;font-weight:700;white-space:nowrap;">Voir le deal →</a>`:''}
-        ${(d.user_id===currentUserId||currentProfile?.is_admin)?`<button onclick="deleteDeal('${d.id}')" title="Supprimer" style="font-size:10px;padding:5px 9px;color:#ff8080;background:transparent;border:1px solid #3a1414;border-radius:5px;cursor:pointer;${d.url?'':'margin-left:auto;'}">✕</button>`:''}
-        ${d.user_id===currentUserId?`<button onclick="openEditDeal('${d.id}')" title="Modifier" style="font-size:10px;padding:5px 9px;color:var(--cyan);background:transparent;border:1px solid var(--card-border);border-radius:5px;cursor:pointer;">✏️</button>`:''}
-        ${currentProfile?.is_admin&&d.user_id!==currentUserId?`<span title="Admin" style="font-size:9px;font-family:Space Mono,monospace;color:#ff8c42;padding:2px 6px;border:1px solid #ff8c42;border-radius:3px;opacity:0.7;">ADMIN</span>`:''}
-      </div>
-      <div style="padding:5px 14px 9px;font-family:Space Mono,monospace;font-size:9px;color:var(--muted);">Signalé par <strong style="color:var(--text);">${d.username||'anonyme'}</strong> · ${ageStr}${dead?' · 💀 <span style="color:#ff8080;">Deal expiré / introuvable</span>':''}</div>
-    </div>`;
-  }).join('');
-}
-
-async function voteDeal(dealId, vote){
-  if(!currentUserId){ alert('Connecte-toi pour voter.'); return; }
-
-  // Lire le vote existant
-  const {data:existing}=await sb.from('deal_votes').select('vote').eq('deal_id',dealId).eq('user_id',currentUserId).maybeSingle();
-  const {data:deal}=await sb.from('deals').select('votes_hot,votes_dead').eq('id',dealId).single();
-  if(!deal) return;
-
-  let newHot=deal.votes_hot||0, newDead=deal.votes_dead||0;
-
-  if(existing){
-    // Toujours supprimer l'ancien vote d'abord
-    await sb.from('deal_votes').delete().eq('deal_id',dealId).eq('user_id',currentUserId);
-    // Décrémenter l'ancien compteur
-    if(existing.vote==='hot') newHot=Math.max(0,newHot-1);
-    else newDead=Math.max(0,newDead-1);
-
-    if(existing.vote===vote){
-      // Même vote → simple annulation, on ne réinsère pas
-      await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
-      loadDeals(); return;
-    }
-  }
-
-  // Insérer le nouveau vote et incrémenter
-  await sb.from('deal_votes').insert({deal_id:dealId,user_id:currentUserId,vote});
-  if(vote==='hot') newHot++;
-  else newDead++;
-  await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
-  loadDeals();
-}
-
-async function deleteDeal(id){
-  const isAdmin=currentProfile?.is_admin||false;
-  const msg=isAdmin?'Supprimer ce bon plan (action admin) ?':'Supprimer ce bon plan ?';
-  if(!confirm(msg)) return;
-  await sb.from('deal_votes').delete().eq('deal_id',id);
-  await sb.from('deals').delete().eq('id',id);
-  loadDeals();
-}
-
-function openEditDeal(id){
-  const d=_dealsCache.find(x=>x.id===id);
-  if(!d) return;
-  editingDealId=id;
-  pendingDealPoster=d.poster_url||null;
-  pendingDealTmdbId=d.tmdb_id?String(d.tmdb_id):null;
-  document.getElementById('dealInputTitle').value=d.title||'';
-  document.getElementById('dealInputPrice').value=d.price_deal||'';
-  document.getElementById('dealInputNormal').value=d.price_normal||'';
-  document.getElementById('dealInputUrl').value=d.url||'';
-  document.getElementById('dealInputFormat').value=d.format||'BLURAY4K';
-  document.getElementById('dealInputMerchant').value=d.merchant||'Amazon';
-  document.getElementById('dealInputSteelbook').checked=!!d.is_steelbook;
-  document.getElementById('dealSearchResults').innerHTML='';
-  document.getElementById('dealPosterPreview').innerHTML=d.poster_url
-    ?`<img src="${d.poster_url}" style="height:110px;border-radius:6px;flex-shrink:0;">${d.tmdb_id?`<div style="display:flex;flex-direction:column;gap:6px;justify-content:flex-end;"><button type="button" onclick="loadDealAltPosters('${d.tmdb_id}')" style="font-size:10px;padding:4px 10px;">🎨 Affiches alternatives</button></div>`:''}`:'' ;
-  document.getElementById('dealModalTitle').textContent='✏️ Modifier le bon plan';
-  document.getElementById('saveDealBtn').textContent='Enregistrer';
-  document.getElementById('dealOverlay').style.display='flex';
-  document.body.classList.add('modal-open');
-}
-
-// ── Modal ajout deal ──
-document.getElementById('addDealBtn').addEventListener('click',()=>{
-  if(!currentUserId){ alert('Connecte-toi pour signaler un bon plan.'); return; }
-  editingDealId=null; pendingDealPoster=null; pendingDealTmdbId=null;
-  ['dealInputTitle','dealInputPrice','dealInputNormal','dealInputUrl'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('dealInputSteelbook').checked=false;
-  document.getElementById('dealSearchResults').innerHTML='';
-  document.getElementById('dealPosterPreview').innerHTML='';
-  document.getElementById('dealModalTitle').textContent='🔥 Signaler un bon plan';
-  document.getElementById('saveDealBtn').textContent='Publier le bon plan';
-  document.getElementById('dealOverlay').style.display='flex';
-  document.body.classList.add('modal-open');
-});
-document.getElementById('cancelDealBtn').addEventListener('click',()=>{
-  editingDealId=null;
-  document.getElementById('dealOverlay').style.display='none';
-  document.body.classList.remove('modal-open');
-});
-document.getElementById('dealSearchPosterBtn').addEventListener('click', searchDealPoster);
-document.getElementById('dealInputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); searchDealPoster(); }});
-document.getElementById('dealUploadPhotoBtn').addEventListener('click',()=>document.getElementById('dealPhotoInput').click());
-document.getElementById('dealPhotoInput').addEventListener('change',async e=>{
-  const file=e.target.files[0]; if(!file) return;
-  try{
-    const dataUrl=await resizeImageFile(file);
-    pendingDealPoster=dataUrl; pendingDealTmdbId=null;
-    document.getElementById('dealPosterPreview').innerHTML=`<img src="${dataUrl}" style="height:110px;border-radius:6px;">`;
-    document.getElementById('dealSearchResults').innerHTML='';
-  }catch(err){ alert('Erreur photo.'); }
-});
-
-async function searchDealPoster(){
-  const title=document.getElementById('dealInputTitle').value.trim();
-  if(!title) return;
-  const res=document.getElementById('dealSearchResults');
-  res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Recherche...</span>';
-  try{
-    const r=await fetch('https://api.themoviedb.org/3/search/movie?api_key='+TMDB_KEY+'&query='+encodeURIComponent(title)+'&language=fr-FR');
-    const d=await r.json();
-    const results=(d.results||[]).filter(x=>x.poster_path).slice(0,12);
-    if(!results.length){ res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Aucun résultat.</span>'; return; }
-    res.innerHTML=results.map(m=>`<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" data-url="https://image.tmdb.org/t/p/w500${m.poster_path}" data-id="${m.id}" data-title="${m.title.replace(/"/g,'&quot;')}" title="${m.title} (${(m.release_date||'').slice(0,4)})" style="height:90px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:border-color .1s;">`).join('');
-    res.querySelectorAll('img').forEach(img=>img.addEventListener('click',()=>{
-      res.querySelectorAll('img').forEach(i=>i.style.borderColor='transparent');
-      img.style.borderColor='var(--cyan)';
-      pendingDealPoster=img.dataset.url;
-      pendingDealTmdbId=img.dataset.id;
-      if(img.dataset.title) document.getElementById('dealInputTitle').value=img.dataset.title;
-      setDealPosterPreview(img.dataset.url, img.dataset.id);
-    }));
-  }catch(e){ res.innerHTML='<span style="color:#ff8080;font-size:10px;">Erreur.</span>'; }
-}
-
-function setDealPosterPreview(url, tmdbId){
-  const prev=document.getElementById('dealPosterPreview');
-  prev.innerHTML=`<img src="${url}" style="height:110px;border-radius:6px;flex-shrink:0;">
-    <div style="display:flex;flex-direction:column;gap:6px;justify-content:flex-end;">
-      <button type="button" onclick="loadDealAltPosters('${tmdbId}')" style="font-size:10px;padding:4px 10px;">🎨 Affiches alternatives</button>
-    </div>`;
-}
-
-async function loadDealAltPosters(tmdbId){
-  const res=document.getElementById('dealSearchResults');
-  res.innerHTML='<span style="font-family:Space Mono,monospace;font-size:10px;color:var(--muted);">Chargement...</span>';
-  try{
-    const r=await fetch('https://api.themoviedb.org/3/movie/'+tmdbId+'/images?api_key='+TMDB_KEY+'&include_image_language=fr,en,null');
-    const d=await r.json();
-    const posters=(d.posters||[]).slice(0,20);
-    if(!posters.length){ res.innerHTML='<span style="font-size:10px;color:var(--muted);">Aucune affiche alternative.</span>'; return; }
-    res.innerHTML=posters.map(p=>`<img src="https://image.tmdb.org/t/p/w92${p.file_path}" data-url="https://image.tmdb.org/t/p/w500${p.file_path}" data-id="${tmdbId}" style="height:90px;width:auto;border-radius:4px;cursor:pointer;border:2px solid transparent;flex-shrink:0;transition:border-color .1s;">`).join('');
-    res.querySelectorAll('img').forEach(img=>img.addEventListener('click',()=>{
-      res.querySelectorAll('img').forEach(i=>i.style.borderColor='transparent');
-      img.style.borderColor='var(--cyan)';
-      pendingDealPoster=img.dataset.url;
-      setDealPosterPreview(img.dataset.url, tmdbId);
-    }));
-  }catch(e){ res.innerHTML='<span style="color:#ff8080;font-size:10px;">Erreur.</span>'; }
-}
-
-document.getElementById('saveDealBtn').addEventListener('click', async()=>{
-  const title=document.getElementById('dealInputTitle').value.trim();
-  const price=parseFloat(document.getElementById('dealInputPrice').value);
-  if(!title){ alert('Donne un titre.'); return; }
-  if(!price||price<=0){ alert('Indique le prix du deal.'); return; }
-  const payload={
-    title,
-    format:document.getElementById('dealInputFormat').value,
-    poster_url:pendingDealPoster||null,
-    tmdb_id:pendingDealTmdbId?parseInt(pendingDealTmdbId):null,
-    price_normal:parseFloat(document.getElementById('dealInputNormal').value)||null,
-    price_deal:price,
-    merchant:document.getElementById('dealInputMerchant').value,
-    url:document.getElementById('dealInputUrl').value.trim()||null,
-    is_steelbook:document.getElementById('dealInputSteelbook').checked
-  };
-  let error;
-  if(editingDealId){
-    ({error}=await sb.from('deals').update(payload).eq('id',editingDealId));
-  } else {
-    const {data:prof}=await sb.from('profiles').select('username').eq('id',currentUserId).single();
-    ({error}=await sb.from('deals').insert({...payload,user_id:currentUserId,username:prof?.username||'anonyme'}));
-  }
-  if(error){ alert('Erreur : '+error.message); return; }
-  editingDealId=null;
-  document.getElementById('dealOverlay').style.display='none';
-  document.body.classList.remove('modal-open');
-  document.getElementById('dealModalTitle').textContent='🔥 Signaler un bon plan';
-  document.getElementById('saveDealBtn').textContent='Publier le bon plan';
-  loadDeals();
-});
 
 </script>
 </body>
