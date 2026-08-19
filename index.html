@@ -278,6 +278,7 @@
   .notif-empty{padding:20px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;}
 
   /* NOTE PUBLIQUE + COMMENTAIRES */
+  .public-note-icon{position:absolute;bottom:4px;right:4px;z-index:4;background:rgba(13,13,20,0.85);border:1px solid var(--card-border);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;}
   .public-note-block{margin-top:12px;padding:12px;background:#1c1c26;border-radius:6px;}
   .public-note-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
   .public-note-text{font-size:13px;line-height:1.6;margin-bottom:10px;white-space:pre-wrap;}
@@ -894,7 +895,7 @@
   <div id="forumPosts" class="forum-posts"></div>
 </div>
 <!-- MODAL FICHE FILM MEMBRE -->
-<div class="overlay" id="overlayMemberFilm">
+<div class="overlay" id="overlayMemberFilm" style="z-index:100001;">
   <div class="modal" style="max-width:480px;">
     <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;">
       <div id="mfPoster" style="width:80px;flex-shrink:0;"></div>
@@ -1037,6 +1038,29 @@
         <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">Rendre ma collection visible par les autres membres</span>
       </label>
       <div class="hint">Si décoché, ton profil apparaît dans la liste des membres mais ta collection reste privée.</div>
+    </div>
+
+    <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
+      <h3 style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:0 0 6px;">🔔 Notifications</h3>
+      <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 12px;">Choisis ce qui déclenche une notification pour toi.</p>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifyMentions" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">Mentions dans Le Mur (@toi)</span>
+        </label>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifyNoteComments" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">Commentaires sur mes notes publiques</span>
+        </label>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="notifyDeals" style="width:16px;height:16px;">
+          <span style="text-transform:none;font-size:13px;color:var(--text);letter-spacing:normal;">Nouveaux bons plans</span>
+        </label>
+      </div>
     </div>
 
     <div style="border-top:1px solid var(--card-border);margin-top:24px;padding-top:20px;">
@@ -1495,6 +1519,9 @@ async function onLogin(user){
   document.getElementById('profileCity').value=profile.city||'';
   loadCDCFromProfile(profile);
   document.getElementById('profilePublic').checked=profile.collection_public!==false;
+  document.getElementById('notifyMentions').checked=profile.notify_mentions!==false;
+  document.getElementById('notifyNoteComments').checked=profile.notify_note_comments!==false;
+  document.getElementById('notifyDeals').checked=profile.notify_deals!==false;
   updateCurrentAvatar(profile.avatar_url||null, profile.avatar_position||null);
   updateBannerPreview(profile.banner_url||null);
 
@@ -2351,12 +2378,13 @@ async function postNoteComment(collectionId, ownerId, ownerUsername){
   input.value = '';
   // Prévenir le propriétaire du film (sauf s'il commente sa propre note)
   if(ownerId && ownerId !== currentUser.id){
-    await sb.from('notifications').insert({
+    const {error:notifError} = await sb.from('notifications').insert({
       user_id: ownerId,
       from_user_id: currentUser.id,
       type: 'note_comment',
       collection_id: collectionId
     });
+    if(notifError) console.warn('Notification non envoyée :', notifError.message);
   }
   loadNoteComments(collectionId, ownerId, ownerUsername);
 }
@@ -3259,25 +3287,35 @@ async function loadForum(){
 }
 
 async function loadNotifications(){
-  const {data:notifs} = await sb.from('notifications')
+  const {data:raw} = await sb.from('notifications')
     .select('*,from_user:from_user_id(username),post:post_id(content),film:collection_id(title)')
     .eq('user_id', currentUser.id)
     .order('created_at', {ascending:false})
     .limit(30);
 
+  // On filtre selon les préférences de notif choisies dans le profil
+  const prefs = currentProfile || {};
+  const notifs = (raw||[]).filter(n=>{
+    const t = n.type || 'mention';
+    if(t==='mention') return prefs.notify_mentions !== false;
+    if(t==='note_comment') return prefs.notify_note_comments !== false;
+    if(t==='new_deal') return prefs.notify_deals !== false;
+    return true;
+  });
+
   // Petit badge rose à côté de "Le Mur" : seulement les mentions non lues (comme avant)
-  const mentionUnread = (notifs||[]).filter(n=>!n.seen && n.type!=='note_comment').length;
+  const mentionUnread = notifs.filter(n=>!n.seen && (n.type||'mention')==='mention').length;
   const badge = document.getElementById('notifBadge');
   if(mentionUnread > 0){ badge.style.display = 'inline'; badge.textContent = mentionUnread; }
   else { badge.style.display = 'none'; }
 
-  // Cloche globale dans l'en-tête : toutes les notifs (mentions + commentaires sur tes notes)
-  const totalUnread = (notifs||[]).filter(n=>!n.seen).length;
+  // Cloche globale dans l'en-tête : toutes les notifs (mentions + commentaires + bons plans)
+  const totalUnread = notifs.filter(n=>!n.seen).length;
   const bellBadge = document.getElementById('notifBellBadge');
   if(totalUnread > 0){ bellBadge.style.display = 'flex'; bellBadge.textContent = totalUnread; }
   else { bellBadge.style.display = 'none'; }
 
-  renderNotifDropdown(notifs||[]);
+  renderNotifDropdown(notifs);
 }
 
 function renderNotifDropdown(notifs){
@@ -3292,6 +3330,8 @@ function renderNotifDropdown(notifs){
     let text;
     if(n.type==='note_comment'){
       text = '<b>'+escHtml(from)+'</b> a commenté ta note sur « '+escHtml(n.film ? n.film.title : 'un film')+' »';
+    } else if(n.type==='new_deal'){
+      text = '🔥 <b>'+escHtml(from)+'</b> a signalé un nouveau bon plan'+(n.deal_title?' : « '+escHtml(n.deal_title)+' »':'');
     } else {
       text = '<b>'+escHtml(from)+'</b> t\'a mentionné dans Le Mur';
     }
@@ -3315,6 +3355,8 @@ async function handleNotifClick(notifId, type, collectionId){
     } else {
       alert("Ce film n'existe plus.");
     }
+  } else if(type==='new_deal'){
+    showSection('sectionDeals');
   } else {
     showSection('sectionForum');
   }
@@ -4055,6 +4097,7 @@ async function openMemberCollection(userId, username, onClose){
       return '<div class="tape '+(it.isSteelbook?'steelbook':'')+'" style="cursor:pointer;" data-id="'+it.id+'">'
         +'<div class="poster-wrap">'
         +fmtBannerHtml(it.format)
+        +(it.publicNote?'<span class="public-note-icon" title="Ce film a une note publique">💬</span>':'')
         +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
           :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
         +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
@@ -4196,6 +4239,9 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
   if(pendingBannerUrl) updates.banner_url = pendingBannerUrl;
   updates.letterboxd_username = letterboxd || null;
   updates.senscritique_username = senscritique || null;
+  updates.notify_mentions = document.getElementById('notifyMentions').checked;
+  updates.notify_note_comments = document.getElementById('notifyNoteComments').checked;
+  updates.notify_deals = document.getElementById('notifyDeals').checked;
   // Sauvegarder coups de cœur avec les textes à jour
   const cdcFinal = cdcData.map((slot, i) => ({
     ...slot,
@@ -5367,7 +5413,22 @@ document.getElementById('saveDealBtn').addEventListener('click', async()=>{
     ({error}=await sb.from('deals').update(payload).eq('id',editingDealId));
   } else {
     const {data:prof}=await sb.from('profiles').select('username').eq('id',currentUserId).single();
-    ({error}=await sb.from('deals').insert({...payload,user_id:currentUserId,username:prof?.username||'anonyme'}));
+    const {error:insErr}=await sb.from('deals').insert({...payload,user_id:currentUserId,username:prof?.username||'anonyme'});
+    error = insErr;
+    if(!error){
+      // Prévenir tous les autres membres qu'un nouveau bon plan a été signalé
+      const {data:otherProfiles} = await sb.from('profiles').select('id').neq('id', currentUserId);
+      if(otherProfiles && otherProfiles.length){
+        const notifRows = otherProfiles.map(p=>({
+          user_id: p.id,
+          from_user_id: currentUserId,
+          type: 'new_deal',
+          deal_title: title
+        }));
+        const {error:notifErr} = await sb.from('notifications').insert(notifRows);
+        if(notifErr) console.warn('Notifications bons plans non envoyées :', notifErr.message);
+      }
+    }
   }
   if(error){ alert('Erreur : '+error.message); return; }
   editingDealId=null;
