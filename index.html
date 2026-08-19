@@ -4486,8 +4486,17 @@ async function loadWantOwners(tmdbId){
   if(!others.length){ block.style.display='none'; return; }
   block.style.display='block';
   list.innerHTML = others.map(o=>
-    `<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-right:8px;">📀 ${o.profiles.username}</span>`
+    `<span class="want-owner-link" data-uid="${o.user_id}" data-uname="${(o.profiles.username||'').replace(/"/g,'&quot;')}" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);margin-right:8px;cursor:pointer;text-decoration:underline;">📀 ${o.profiles.username}</span>`
   ).join('');
+  list.querySelectorAll('.want-owner-link').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const uid = el.dataset.uid, uname = el.dataset.uname;
+      document.getElementById('overlayWant').classList.remove('open');
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow='';
+      openMemberCollection(uid, uname);
+    });
+  });
 }
 document.getElementById('overlayWant').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayWant')){ document.getElementById('overlayWant').classList.remove('open'); document.body.classList.remove('modal-open'); }});
 document.getElementById('memberCloseBtn').addEventListener('click',()=>{
