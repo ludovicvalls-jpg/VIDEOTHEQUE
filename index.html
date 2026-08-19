@@ -353,6 +353,10 @@
   .post-content{font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
   .post-content .mention{color:var(--pink);font-weight:600;cursor:pointer;}
   .post-delete{font-size:11px;color:var(--muted);cursor:pointer;border:none;background:transparent;padding:4px 8px;}
+  .post-actions{display:flex;align-items:center;gap:6px;margin-top:10px;}
+  .post-like-btn{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;border:1px solid var(--card-border);background:transparent;padding:4px 10px;border-radius:14px;display:inline-flex;align-items:center;gap:5px;transition:border-color .15s,color .15s;}
+  .post-like-btn:hover{border-color:var(--pink);color:var(--pink);}
+  .post-like-btn.liked{border-color:var(--pink);color:var(--pink);background:rgba(255,46,136,0.08);}
   .post-delete:hover{color:#ff8080;}
   .notif-card{background:var(--card);border:1px solid var(--pink);border-radius:6px;padding:12px 16px;font-size:13px;display:flex;gap:10px;align-items:center;}
   .notif-card .notif-text{flex:1;line-height:1.5;}
@@ -500,6 +504,16 @@
         <div class="extras-card-title">Coups de cœur</div>
         <div class="extras-card-desc">Les 3 films préférés de chaque membre de la communauté</div>
       </div>
+      <div class="extras-card" onclick="showExtrasSection('extrasClassement')">
+        <div class="extras-card-icon">🏆</div>
+        <div class="extras-card-title">Classement</div>
+        <div class="extras-card-desc">Le classement des plus gros collectionneurs de la communauté</div>
+      </div>
+      <div class="extras-card" onclick="showExtrasSection('extrasSondage')">
+        <div class="extras-card-icon">🍿</div>
+        <div class="extras-card-title">Sondage Ciné</div>
+        <div class="extras-card-desc">Proposez des films et votez pour la prochaine soirée ciné</div>
+      </div>
     </div>
   </div>
 
@@ -565,6 +579,48 @@
     <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">❤️ Coups de cœur de la communauté</h2>
     <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;">Les 3 films chouchous de chaque membre</p>
     <div id="cdcGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:16px;"></div>
+  </div>
+
+  <!-- SOUS-SECTION CLASSEMENT -->
+  <div id="extrasClassement" style="display:none;padding:20px 24px;max-width:680px;margin:0 auto;">
+    <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">🏆 Classement des collectionneurs</h2>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;">Qui a la plus grosse vidéothèque de la communauté ?</p>
+    <div id="classementList"></div>
+  </div>
+
+  <!-- SOUS-SECTION SONDAGE CINÉ -->
+  <div id="extrasSondage" style="display:none;padding:20px 24px;max-width:680px;margin:0 auto;">
+    <button onclick="showExtrasSection(null)" style="font-family:'Space Mono',monospace;font-size:11px;margin-bottom:16px;">← Retour aux Extras</button>
+    <h2 style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin:0 0 4px;">🍿 Sondage Ciné</h2>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin:0 0 16px;">Proposez des films, la communauté vote pour la prochaine soirée</p>
+    <button id="sondageCreateBtn" class="primary" style="margin-bottom:18px;">+ Créer un sondage</button>
+    <div id="sondageList"></div>
+  </div>
+
+  <!-- MODAL CRÉATION DE SONDAGE -->
+  <div class="overlay" id="overlaySondage">
+    <div class="modal">
+      <h2>Nouveau sondage ciné</h2>
+      <div class="field"><label>Question</label><input type="text" id="sondageQuestion" placeholder="Ex: Quel film pour vendredi soir ?"></div>
+      <div class="field">
+        <label>Ajouter des films (recherche TMDB)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="sondageSearchInput" placeholder="Titre du film..." style="flex:1;">
+          <button type="button" id="sondageSearchBtn">Chercher</button>
+        </div>
+        <div id="sondageSearchResults" class="search-results" style="margin-top:10px;"></div>
+      </div>
+      <div class="field">
+        <label>Films proposés au vote <span style="font-size:10px;color:var(--muted);">(2 minimum)</span></label>
+        <div id="sondageOptionsList" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+      </div>
+      <div id="sondageMsg" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--pink);min-height:16px;margin-bottom:8px;"></div>
+      <div class="modal-actions">
+        <button id="sondageCancelBtn">Annuler</button>
+        <button class="primary" id="sondagePublishBtn">Publier le sondage</button>
+      </div>
+    </div>
   </div>
 
   <!-- SOUS-SECTION QUIZ -->
@@ -2569,10 +2625,14 @@ function showExtrasSection(id){
   document.getElementById('extrasQuiz').style.display = id==='extrasQuiz' ? 'block' : 'none';
   document.getElementById('extrasCDC').style.display = id==='extrasCDC' ? 'block' : 'none';
   document.getElementById('extrasBonbon').style.display = id==='extrasBonbon' ? 'block' : 'none';
+  document.getElementById('extrasClassement').style.display = id==='extrasClassement' ? 'block' : 'none';
+  document.getElementById('extrasSondage').style.display = id==='extrasSondage' ? 'block' : 'none';
   if(id==='extrasFilms') buildExtrasKonbiniGrid();
   if(id==='extrasQuiz') document.getElementById('extrasQuizCard').innerHTML = '<button onclick="initExtrasQuiz()" class="primary">Lancer le quiz</button>';
   if(id==='extrasCDC') loadAllCDC();
   if(id==='extrasBonbon') showBonbonExtras();
+  if(id==='extrasClassement') loadClassement();
+  if(id==='extrasSondage') loadSondages();
 }
 
 async function loadAllCDC(){
@@ -2598,6 +2658,214 @@ async function loadAllCDC(){
       ${f.text?`<div style="font-size:9px;color:var(--muted);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-style:italic;">"${f.text}"</div>`:''}
     </div>
   `).join('');
+}
+
+// ── CLASSEMENT DES COLLECTIONNEURS ──
+async function loadClassement(){
+  const list = document.getElementById('classementList');
+  list.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
+  const {data:profiles} = await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
+  if(!profiles||profiles.length===0){ list.innerHTML='<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Aucun membre.</div>'; return; }
+  const countMap={};
+  await Promise.all(profiles.map(async p=>{
+    const {count} = await sb.from('collection').select('id', {count:'exact', head:true}).eq('user_id',p.id);
+    countMap[p.id] = count || 0;
+  }));
+  const ranked = profiles.filter(p=>p.username).sort((a,b)=>(countMap[b.id]||0)-(countMap[a.id]||0));
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = ranked.map((p, idx)=>{
+    const isMe = p.id===currentUser.id;
+    const total = countMap[p.id]||0;
+    const rankLabel = medals[idx] || ('#'+(idx+1));
+    const avatarPos = p.avatar_position || '50% 25%';
+    const av = p.avatar_url
+      ? `<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;object-position:${avatarPos};position:absolute;top:0;left:0;">`
+      : `<span style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--cyan);">${(p.username||'?').slice(0,1).toUpperCase()}</span>`;
+    return `<div class="classement-row" data-uid="${p.id}" data-uname="${(p.username||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--card-border);cursor:pointer;">
+      <div style="width:28px;text-align:center;font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);flex-shrink:0;">${rankLabel}</div>
+      <div style="width:36px;height:36px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;">${av}</div>
+      <div style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.username}${isMe?' <span style="font-size:11px;color:var(--muted);font-weight:400;">(moi)</span>':''}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:13px;color:var(--cyan);flex-shrink:0;">${p.collection_public!==false?total+' titre'+(total>1?'s':''):'Privée'}</div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.classement-row').forEach(row=>{
+    row.addEventListener('click', ()=> openMemberCollection(row.dataset.uid, row.dataset.uname));
+  });
+}
+
+// ── SONDAGE CINÉ ──
+let sondageOptions = [];
+
+function openSondageModal(){
+  sondageOptions = [];
+  document.getElementById('sondageQuestion').value = '';
+  document.getElementById('sondageSearchInput').value = '';
+  document.getElementById('sondageSearchResults').innerHTML = '';
+  document.getElementById('sondageMsg').textContent = '';
+  renderSondageOptions();
+  document.getElementById('overlaySondage').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+
+function closeSondageModal(){
+  document.getElementById('overlaySondage').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('sondageCreateBtn').addEventListener('click', openSondageModal);
+document.getElementById('sondageCancelBtn').addEventListener('click', closeSondageModal);
+document.getElementById('overlaySondage').addEventListener('click', e=>{
+  if(e.target===document.getElementById('overlaySondage')) closeSondageModal();
+});
+
+async function searchSondageFilm(){
+  const q = document.getElementById('sondageSearchInput').value.trim();
+  const results = document.getElementById('sondageSearchResults');
+  if(!q) return;
+  results.innerHTML = '<div style="color:var(--muted);font-size:11px;font-family:Space Mono,monospace;">Recherche...</div>';
+  try{
+    const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${encodeURIComponent(q)}&language=fr-FR`);
+    const d = await res.json();
+    const films = (d.results||[]).filter(f=>f.poster_path).slice(0,8);
+    if(!films.length){ results.innerHTML='<div style="color:var(--muted);font-size:11px;font-family:Space Mono,monospace;">Aucun résultat.</div>'; return; }
+    results.innerHTML = films.map(f=>
+      `<img src="https://image.tmdb.org/t/p/w92${f.poster_path}" data-id="${f.id}" data-title="${(f.title||'').replace(/"/g,'&quot;')}" data-poster="https://image.tmdb.org/t/p/w500${f.poster_path}" title="${f.title}" style="cursor:pointer;">`
+    ).join('');
+    results.querySelectorAll('img').forEach(img=>{
+      img.addEventListener('click', ()=>{
+        const id = img.dataset.id;
+        if(sondageOptions.some(o=>o.tmdb_id===id)) return;
+        sondageOptions.push({tmdb_id:id, title:img.dataset.title, poster_url:img.dataset.poster});
+        renderSondageOptions();
+        document.getElementById('sondageSearchInput').value = '';
+        results.innerHTML = '';
+      });
+    });
+  }catch(e){ results.innerHTML = '<div style="color:var(--muted);font-size:11px;font-family:Space Mono,monospace;">Erreur de recherche.</div>'; }
+}
+document.getElementById('sondageSearchBtn').addEventListener('click', searchSondageFilm);
+document.getElementById('sondageSearchInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter'){ e.preventDefault(); searchSondageFilm(); }
+});
+
+function renderSondageOptions(){
+  const wrap = document.getElementById('sondageOptionsList');
+  if(!sondageOptions.length){
+    wrap.innerHTML = '<div style="color:var(--muted);font-size:11px;font-family:Space Mono,monospace;">Aucun film ajouté pour le moment.</div>';
+    return;
+  }
+  wrap.innerHTML = sondageOptions.map((o,i)=>`
+    <div style="width:80px;text-align:center;" data-idx="${i}">
+      <div style="position:relative;">
+        <img src="${o.poster_url}" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:4px;">
+        <span class="sondage-remove-opt" data-idx="${i}" style="position:absolute;top:-6px;right:-6px;background:var(--pink);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;">✕</span>
+      </div>
+      <div style="font-size:10px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${o.title}</div>
+    </div>`).join('');
+  wrap.querySelectorAll('.sondage-remove-opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      sondageOptions.splice(parseInt(el.dataset.idx), 1);
+      renderSondageOptions();
+    });
+  });
+}
+
+async function publishSondage(){
+  const question = validateText(document.getElementById('sondageQuestion').value.trim(), 200);
+  const msg = document.getElementById('sondageMsg');
+  if(!question){ msg.textContent = 'Écris une question pour ton sondage.'; return; }
+  if(sondageOptions.length < 2){ msg.textContent = 'Ajoute au moins 2 films à proposer.'; return; }
+  msg.style.color = 'var(--muted)';
+  msg.textContent = 'Publication...';
+
+  const {data:poll, error} = await sb.from('movie_polls').insert({
+    created_by: currentUser.id,
+    question: question
+  }).select().single();
+  if(error){ msg.style.color='var(--pink)'; msg.textContent = 'Erreur à la publication.'; return; }
+
+  const optionsToInsert = sondageOptions.map(o => ({
+    poll_id: poll.id,
+    tmdb_id: o.tmdb_id,
+    title: o.title,
+    poster_url: o.poster_url
+  }));
+  await sb.from('movie_poll_options').insert(optionsToInsert);
+
+  closeSondageModal();
+  loadSondages();
+}
+document.getElementById('sondagePublishBtn').addEventListener('click', publishSondage);
+
+async function loadSondages(){
+  const list = document.getElementById('sondageList');
+  list.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Chargement...</div>';
+
+  const {data:polls} = await sb.from('movie_polls').select('*,profiles(username)').order('created_at', {ascending:false});
+  if(!polls || !polls.length){
+    list.innerHTML = '<div style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Aucun sondage pour le moment. Sois le premier à en proposer un !</div>';
+    return;
+  }
+
+  const pollIds = polls.map(p=>p.id);
+  const {data:options} = await sb.from('movie_poll_options').select('*').in('poll_id', pollIds);
+  const {data:votes} = await sb.from('movie_poll_votes').select('*').in('poll_id', pollIds);
+
+  list.innerHTML = polls.map(poll=>{
+    const opts = (options||[]).filter(o=>o.poll_id===poll.id);
+    const pollVotes = (votes||[]).filter(v=>v.poll_id===poll.id);
+    const totalVotes = pollVotes.length;
+    const myVote = pollVotes.find(v=>v.user_id===currentUser.id);
+    const isOwn = poll.created_by === currentUser.id;
+    const author = poll.profiles ? poll.profiles.username : 'Membre';
+    const date = new Date(poll.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short'});
+
+    const optsHtml = opts.map(o=>{
+      const n = pollVotes.filter(v=>v.option_id===o.id).length;
+      const pct = totalVotes>0 ? Math.round(n/totalVotes*100) : 0;
+      const isMyVote = myVote && myVote.option_id===o.id;
+      return `<div class="sondage-opt" data-poll="${poll.id}" data-opt="${o.id}" style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:6px;cursor:pointer;border:1px solid ${isMyVote?'var(--pink)':'var(--card-border)'};margin-bottom:8px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;bottom:0;width:${pct}%;background:${isMyVote?'rgba(255,46,136,0.15)':'rgba(46,230,255,0.08)'};z-index:0;"></div>
+        <img src="${o.poster_url}" style="width:34px;aspect-ratio:2/3;object-fit:cover;border-radius:3px;position:relative;z-index:1;flex-shrink:0;">
+        <div style="flex:1;min-width:0;position:relative;z-index:1;">
+          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(o.title)}${isMyVote?' ✓':''}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);">${n} vote${n>1?'s':''} · ${pct}%</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:14px 16px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:600;">${escHtml(poll.question)}</div>
+        ${isOwn ? `<button class="sondage-delete" data-poll="${poll.id}" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;flex-shrink:0;">✕</button>` : ''}
+      </div>
+      <div>${optsHtml}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;">Proposé par ${escHtml(author)} · ${date} · ${totalVotes} vote${totalVotes>1?'s':''} au total</div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.sondage-opt').forEach(el=>{
+    el.addEventListener('click', ()=> voteSondage(el.dataset.poll, el.dataset.opt));
+  });
+  list.querySelectorAll('.sondage-delete').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteSondage(btn.dataset.poll));
+  });
+}
+
+async function voteSondage(pollId, optionId){
+  await sb.from('movie_poll_votes').upsert({
+    poll_id: pollId,
+    user_id: currentUser.id,
+    option_id: optionId
+  }, {onConflict: 'poll_id,user_id'});
+  loadSondages();
+}
+
+async function deleteSondage(pollId){
+  if(!confirm('Supprimer ce sondage ?')) return;
+  await sb.from('movie_polls').delete().eq('id', pollId);
+  loadSondages();
 }
 
 // ── GÉOCODAGE ET CARTE ──
@@ -2854,7 +3122,7 @@ async function loadForum(){
   const {data:profiles} = await sb.from('profiles').select('id,username');
   allProfiles = profiles || [];
   const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
-  renderPosts(posts || []);
+  await renderPosts(posts || []);
   loadNotifications();
 }
 
@@ -2874,12 +3142,23 @@ async function loadNotifications(){
   }
 }
 
-function renderPosts(posts){
+async function renderPosts(posts){
   const container = document.getElementById('forumPosts');
   if(posts.length === 0){
     container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-family:Space Mono,monospace;font-size:12px;">Pas encore de message. Sois le premier !</div>';
     return;
   }
+
+  // Récupère tous les likes des posts affichés, pour compter et savoir si j'ai déjà liké
+  const postIds = posts.map(p => p.id);
+  const {data:likes} = await sb.from('post_likes').select('post_id,user_id').in('post_id', postIds);
+  const likeCounts = {};
+  const likedByMe = {};
+  (likes || []).forEach(l => {
+    likeCounts[l.post_id] = (likeCounts[l.post_id] || 0) + 1;
+    if(l.user_id === currentUser.id) likedByMe[l.post_id] = true;
+  });
+
   container.innerHTML = posts.map(p => {
     const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const isOwn = p.user_id === currentUser.id;
@@ -2890,6 +3169,8 @@ function renderPosts(posts){
     const avatarHtml = avatarUrl
       ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;object-position:${avatarPos};">`
       : `<span>${username.slice(0,1).toUpperCase()}</span>`;
+    const count = likeCounts[p.id] || 0;
+    const iLiked = !!likedByMe[p.id];
     return `<div class="post-card" data-pid="${p.id}">
       <div class="post-avatar">${avatarHtml}</div>
       <div style="flex:1;">
@@ -2902,6 +3183,9 @@ function renderPosts(posts){
         </div>
         <div class="post-content">${contentHtml}</div>
         ${p.image_url ? `<img src="${p.image_url}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;"><span style="display:none;font-family:Space Mono,monospace;font-size:10px;color:var(--muted);font-style:italic;">Image non disponible</span>` : ''}
+        <div class="post-actions">
+          <button class="post-like-btn ${iLiked ? 'liked' : ''}" data-pid="${p.id}">${iLiked ? '❤️' : '🤍'} <span>${count > 0 ? count : ''}</span></button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -2909,6 +3193,20 @@ function renderPosts(posts){
   container.querySelectorAll('.post-delete').forEach(btn => {
     btn.addEventListener('click', () => deletePost(btn.dataset.pid));
   });
+  container.querySelectorAll('.post-like-btn').forEach(btn => {
+    btn.addEventListener('click', () => toggleLike(btn.dataset.pid));
+  });
+}
+
+async function toggleLike(postId){
+  const {data:existing} = await sb.from('post_likes').select('id').eq('post_id', postId).eq('user_id', currentUser.id).maybeSingle();
+  if(existing){
+    await sb.from('post_likes').delete().eq('id', existing.id);
+  } else {
+    await sb.from('post_likes').insert({post_id: postId, user_id: currentUser.id});
+  }
+  const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
+  await renderPosts(posts || []);
 }
 
 async function publishPost(){
@@ -2947,14 +3245,14 @@ async function publishPost(){
   }
 
   const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
-  renderPosts(posts || []);
+  await renderPosts(posts || []);
 }
 
 async function deletePost(postId){
   if(!confirm("Supprimer ce message ?")) return;
   await sb.from('posts').delete().eq('id', postId);
   const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
-  renderPosts(posts || []);
+  await renderPosts(posts || []);
 }
 
 // Autocomplétion des mentions @
