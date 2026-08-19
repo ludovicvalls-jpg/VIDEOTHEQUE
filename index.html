@@ -329,7 +329,6 @@
   .activity-card:hover{border-color:var(--cyan);}
   .activity-poster{width:100%;aspect-ratio:2/3;background:#1c1c26;overflow:hidden;position:relative;}
   .activity-poster img{width:100%;height:100%;object-fit:cover;}
-  .activity-poster .tag{position:absolute;top:6px;left:6px;}
   .activity-info{padding:8px;}
   .activity-title{font-size:12px;font-weight:600;line-height:1.3;margin:0 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .activity-member{display:flex;align-items:center;gap:6px;margin-top:6px;}
@@ -2798,7 +2797,7 @@ async function loadActivity(){
           data-uid="${item.user_id}"
           data-uname="${item.username||'Membre'}">
           <div class="activity-poster">
-            <span class="tag ${item.format}">${fmtLabel(item.format)}</span>
+            ${fmtBannerHtml(item.format)}
             ${item.poster_url
               ? `<img src="${item.poster_url}" alt="${item.title}">`
               : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;color:var(--muted);font-size:12px;padding:8px;text-align:center;">${item.title}</div>`}
@@ -3562,16 +3561,18 @@ async function openMemberCollection(userId, username, onClose){
     if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>{
       const clickable = (it.forSale||it.forTrade) && userId!==currentUser.id;
+      const badgesHtml=[
+        it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':(it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':''),
+        it.isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'',
+        clickable?'<span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);">✉️ Contacter</span>':''
+      ].filter(Boolean).join('');
       return '<div class="tape '+(it.isSteelbook?'steelbook':'')+'" style="cursor:'+(clickable?'pointer':'default')+';" data-title="'+it.title+'" data-sale="'+it.forSale+'" data-trade="'+it.forTrade+'">'
         +'<div class="poster-wrap">'
-        +(it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
+        +fmtBannerHtml(it.format)
         +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
           :'<div class="poster-placeholder">'+it.title+'</div>')+'</div>'
         +'<div class="tape-info"><p class="tape-title">'+it.title+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
-        +'<div class="tape-bottom"><div class="tape-format-row"><span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
-        +(it.isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
-        +(clickable?'<span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);">✉️ Contacter</span>':'')
-        +'</div></div>'
+        +(badgesHtml?'<div class="tape-bottom"><div class="tape-format-row">'+badgesHtml+'</div></div>':'')
         +'</div>';
     }).join('');
 
@@ -3751,7 +3752,9 @@ function resetModal(){
   ['inputTitle','inputTitleOriginal','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes'].forEach(id=>document.getElementById(id).value='');
   setMediaType('film');
   document.getElementById('loanHint').textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
-  document.getElementById('inputFormat').value='VHS';
+  const lastFormat = localStorage.getItem('lastUsedFormat');
+  const validFormats = ['VHS','DVD','BLURAY','BLURAY4K','LASERDISC'];
+  document.getElementById('inputFormat').value = (lastFormat && validFormats.includes(lastFormat)) ? lastFormat : 'VHS';
   ['inputWatched','inputForTrade','inputForSale','inputSteelbook'].forEach(id=>document.getElementById(id).checked=false);
   document.getElementById('communityInfoBlock').style.display='none';
   document.getElementById('saleBlock').style.display='none';
@@ -4060,6 +4063,7 @@ async function saveItemModal(){
       alert('❌ '+e.message+'\n\nLe titre n\'a pas été sauvegardé. Vérifie ta connexion et réessaie.');
       return;
     }
+    localStorage.setItem('lastUsedFormat', newIt.format); // se souvenir du format pour le prochain ajout
     closeModal();
     await loadCollection(); // recharger depuis Supabase pour avoir le vrai created_at
   }
