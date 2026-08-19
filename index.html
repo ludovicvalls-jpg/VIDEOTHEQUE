@@ -1132,6 +1132,7 @@
         <button id="searchPosterBtn" type="button">Par titre</button>
         <button id="searchDirectorBtn" type="button">Par réalisateur</button>
         <button id="uploadPhotoBtn" type="button">Photo</button>
+        <button id="posterUrlBtn" type="button">🔗 URL image</button>
         <input type="file" id="photoInput" accept="image/*" style="display:none;">
       </div>
       <div id="directorSearchWrap" style="display:none;margin-top:10px;">
@@ -1140,6 +1141,12 @@
           <button id="searchDirectorGoBtn" type="button">Chercher</button>
         </div>
         <div id="directorResults" style="margin-top:8px;"></div>
+      </div>
+      <div id="posterUrlWrap" style="display:none;margin-top:10px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="inputPosterUrl" placeholder="Colle un lien d'image (https://...)" style="flex:1;">
+          <button id="posterUrlGoBtn" type="button">Valider</button>
+        </div>
       </div>
       <div id="searchResults" class="search-results"></div>
       <div class="hint" id="modalHint"></div>
@@ -4047,7 +4054,7 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
 function resetModal(){
   editingId=null; pendingPoster=null; pendingTmdbId=null;
   document.getElementById('modalTitle').textContent='Ajouter un titre';
-  ['inputTitle','inputTitleOriginal','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes'].forEach(id=>document.getElementById(id).value='');
+  ['inputTitle','inputTitleOriginal','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes','inputPosterUrl'].forEach(id=>document.getElementById(id).value='');
   setMediaType('film');
   document.getElementById('loanHint').textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
   const lastFormat = localStorage.getItem('lastUsedFormat');
@@ -4066,6 +4073,7 @@ function resetModal(){
   document.getElementById('copySelector').innerHTML='';
   document.getElementById('directorSearchWrap').style.display='none';
   document.getElementById('directorResults').innerHTML='';
+  document.getElementById('posterUrlWrap').style.display='none';
 }
 document.getElementById('inputForSale').addEventListener('change',()=>{
   document.getElementById('saleBlock').style.display=document.getElementById('inputForSale').checked?'block':'none';
@@ -4541,13 +4549,37 @@ document.getElementById('cancelBtn').addEventListener('click',closeModal);
 document.getElementById('saveBtn').addEventListener('click',saveItemModal);
 document.getElementById('deleteBtn').addEventListener('click',deleteItemModal);
 document.getElementById('searchPriceBtn').addEventListener('click',searchPriceOnline);
-document.getElementById('searchPosterBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); });
-document.getElementById('inputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); } });
-document.getElementById('inputTitleOriginal').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; searchPoster(); } });
-document.getElementById('searchDirectorBtn').addEventListener('click',()=>{ const w=document.getElementById('directorSearchWrap'); w.style.display=w.style.display==='none'?'block':'none'; if(w.style.display==='block') document.getElementById('inputDirector').focus(); });
+document.getElementById('searchPosterBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; searchPoster(); });
+document.getElementById('inputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; searchPoster(); } });
+document.getElementById('inputTitleOriginal').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; searchPoster(); } });
+document.getElementById('searchDirectorBtn').addEventListener('click',()=>{ document.getElementById('posterUrlWrap').style.display='none'; const w=document.getElementById('directorSearchWrap'); w.style.display=w.style.display==='none'?'block':'none'; if(w.style.display==='block') document.getElementById('inputDirector').focus(); });
 document.getElementById('searchDirectorGoBtn').addEventListener('click',searchByDirector);
 document.getElementById('inputDirector').addEventListener('keydown',e=>{ if(e.key==='Enter') searchByDirector(); });
-document.getElementById('uploadPhotoBtn').addEventListener('click',()=>document.getElementById('photoInput').click());
+document.getElementById('uploadPhotoBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; document.getElementById('photoInput').click(); });
+document.getElementById('posterUrlBtn').addEventListener('click',()=>{
+  document.getElementById('directorSearchWrap').style.display='none';
+  const w=document.getElementById('posterUrlWrap');
+  w.style.display=w.style.display==='none'?'block':'none';
+  if(w.style.display==='block') document.getElementById('inputPosterUrl').focus();
+});
+document.getElementById('posterUrlGoBtn').addEventListener('click',applyPosterUrl);
+document.getElementById('inputPosterUrl').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); applyPosterUrl(); } });
+function applyPosterUrl(){
+  const url=document.getElementById('inputPosterUrl').value.trim();
+  const hint=document.getElementById('modalHint');
+  if(!url){ hint.textContent="Colle d'abord un lien d'image."; return; }
+  if(!/^https?:\/\//i.test(url)){ hint.textContent="Le lien doit commencer par http:// ou https://"; return; }
+  hint.textContent='Chargement de l\'image...';
+  const testImg=new Image();
+  testImg.onload=()=>{
+    pendingPoster={url:url,isPhoto:false};
+    document.getElementById('posterPreview').innerHTML='<div style="position:relative;display:inline-block;"><img src="'+url+'" style="display:block;"><button type="button" onclick="clearPoster()" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:12px;cursor:pointer;line-height:1;">✕</button></div>';
+    hint.textContent='✓ Affiche récupérée depuis le lien.';
+    document.getElementById('searchResults').innerHTML='';
+  };
+  testImg.onerror=()=>{ hint.textContent="Impossible de charger cette image, vérifie le lien."; };
+  testImg.src=url;
+}
 document.getElementById('photoInput').addEventListener('change',e=>{ if(e.target.files[0]) handlePhotoUpload(e.target.files[0]); });
 document.getElementById('filterFormat').addEventListener('change',render);
 document.getElementById('filterWatched').addEventListener('change',render);
