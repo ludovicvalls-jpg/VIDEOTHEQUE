@@ -134,10 +134,10 @@
   .search-wrap.has-value .clear-btn{display:block;}
 
   /* RAYON */
-  .grid{padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}  
-  @media(min-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px;padding:24px;}}
-  .tape{background:var(--card);border:1px solid var(--card-border);border-radius:6px;overflow:hidden;position:relative;cursor:pointer;transition:transform .15s,border-color .15s;}
-  .tape:hover{transform:translateY(-3px);border-color:var(--cyan);}
+  .grid{padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;}
+  @media(min-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;padding:16px;}}
+  .tape{background:var(--card);border-radius:4px;overflow:hidden;position:relative;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+  .tape:hover{transform:scale(1.045);z-index:2;box-shadow:0 6px 18px rgba(0,0,0,0.5);}
   .poster-wrap{width:100%;aspect-ratio:2/3;background:#1c1c26;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
   .poster-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
   .poster-placeholder{font-family:'Bebas Neue',sans-serif;color:var(--muted);font-size:13px;text-align:center;padding:10px;letter-spacing:1px;}
@@ -147,19 +147,27 @@
   .tag.BLURAY{background:var(--pink);}
   .tag.BLURAY4K{background:#9b5cff;}
   .tag.LASERDISC{background:#f97316;}
+  /* Bandeau "maison" par format, en haut de la jaquette (remplace la pastille de format) */
+  .fmt-banner{position:absolute;top:0;left:0;right:0;height:18px;display:flex;align-items:center;justify-content:center;gap:4px;z-index:3;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;letter-spacing:0.5px;pointer-events:none;}
+  .fmt-banner svg{width:11px;height:11px;flex-shrink:0;}
+  .fmt-banner.b-VHS{background:#141414;color:#e8dcc0;border-bottom:1px solid #000;}
+  .fmt-banner.b-DVD{background:linear-gradient(180deg,#e8ebf0,#c7ccd6);color:#141824;}
+  .fmt-banner.b-BLURAY{background:#0d6fd6;color:#fff;}
+  .fmt-banner.b-BLURAY4K{background:#0a0a0a;color:#e2b13c;border-bottom:1px solid #b8860b;}
+  .fmt-banner.b-LASERDISC{background:linear-gradient(180deg,#d9b968,#a9843a);color:#1a1206;}
   .photo-badge{position:absolute;bottom:8px;right:8px;background:rgba(13,13,20,0.85);border:1px solid var(--cyan);color:var(--cyan);font-size:9px;font-family:'Space Mono',monospace;padding:2px 6px;border-radius:2px;}
   .dup-badge{position:absolute;top:8px;right:8px;z-index:3;width:22px;height:22px;border-radius:50%;background:var(--pink);color:#1a0410;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
   .tape.selectable{cursor:pointer;}
   .tape.selected{outline:2px solid var(--cyan);outline-offset:-1px;}
-  .select-mark{position:absolute;top:8px;left:8px;z-index:3;width:20px;height:20px;border-radius:4px;background:rgba(13,13,20,0.85);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;}
+  .select-mark{position:absolute;top:24px;left:6px;z-index:4;width:20px;height:20px;border-radius:4px;background:rgba(13,13,20,0.85);border:1px solid var(--card-border);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;}
   .tape.selected .select-mark{background:var(--cyan);color:#0d0d14;border-color:var(--cyan);}
   .tape.selectable .tag{}
-  .tape-info{padding:8px 10px 4px;}
-  .tape-title{font-size:13px;font-weight:600;line-height:1.3;margin:0 0 4px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
-  .tape-year{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
+  .tape-info{padding:5px 6px 3px;}
+  .tape-title{font-size:11px;font-weight:600;line-height:1.25;margin:0 0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .tape-year{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
   .tape-note-flag{font-family:'Space Mono',monospace;font-size:10px;color:var(--pink);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .tape-bottom{padding:6px 10px 10px;border-top:1px solid var(--card-border);margin-top:6px;}
-  .tape-format-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+  .tape-bottom{padding:0 6px 6px;}
+  .tape-format-row{display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
   .trade-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ffd23f;color:#1a0410;}
   .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
   .loan-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ff8c42;color:#1a0410;}
@@ -1325,6 +1333,15 @@ let selectionMode=false, selectedKeys=new Set(), lastGroups=new Map(), lastRende
 function uid(){ return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16);}); }
 function groupKeyOf(t){ return t; } // titre gardé pour compat, mais on groupe par id maintenant
 function fmtLabel(f){ return {VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'}[f]||f; }
+// Bandeau "maison" en haut de la jaquette, façon boîtier physique (remplace la pastille de format)
+const FMT_BANNER_LABEL={VHS:'VHS',DVD:'DVD',BLURAY:'BLU-RAY',BLURAY4K:'4K UHD',LASERDISC:'LASERDISC'};
+const FMT_BANNER_ICON_REEL='<svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+const FMT_BANNER_ICON_DISC='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.4" fill="currentColor"/></svg>';
+function fmtBannerHtml(f){
+  const icon=f==='VHS'?FMT_BANNER_ICON_REEL:FMT_BANNER_ICON_DISC;
+  const label=FMT_BANNER_LABEL[f]||f;
+  return '<div class="fmt-banner b-'+f+'">'+icon+label+'</div>';
+}
 
 async function initAuth(){
   const {data:{session}}=await sb.auth.getSession();
@@ -3114,8 +3131,16 @@ function render(){
       const d=loanedItem.loanedAt?Math.max(0,Math.floor((Date.now()-new Date(loanedItem.loanedAt).getTime())/86400000)):null;
       loanTitle='Prêté à '+loanedItem.loanedTo+(d!==null?' depuis '+(d===0?"aujourd'hui":d+' jour'+(d>1?'s':'')):'');
     }
+    const badgesHtml=[
+      isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'',
+      hasSale?'<span class="sale-badge">VENTE</span>':(hasTrade?'<span class="trade-badge">ÉCHANGE</span>':''),
+      loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'',
+      it.isSeries?'<span class="series-badge">SÉRIE</span>':''
+    ].filter(Boolean).join('');
+    const seasonsHtml=(it.isSeries&&it.seasons)?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);padding:0 0 4px;">'+it.seasons+(it.episodes?' · '+it.episodes+' ép.':'')+'</div>':'';
     return '<div class="tape '+(selectionMode?'selectable':'')+' '+(isSelected?'selected':'')+' '+(isSteelbook?'steelbook':'')+'" data-key="'+g.key+'">'
       +'<div class="poster-wrap">'
+      +fmtBannerHtml(it.format)
       +(selectionMode?'<div class="select-mark">&#x2713;</div>':'')
       // pas de badge doublon (chaque fiche est unique)
       +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
@@ -3126,16 +3151,7 @@ function render(){
       +(it.year?'<span class="tape-year">'+it.year+'</span>':'')
       +((it.shelf||it.notes)?'<div class="tape-note-flag">'+(it.shelf||'Note')+'</div>':'')
       +'</div>'
-      +'<div class="tape-bottom">'
-      +'<div class="tape-format-row">'
-      +'<span class="tag '+it.format+'">'+fmtLabel(it.format)+'</span>'
-      +(isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'')
-      +(hasSale?'<span class="sale-badge">VENTE</span>':hasTrade?'<span class="trade-badge">ÉCHANGE</span>':'')
-      +(loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'')
-      +(it.isSeries?'<span class="series-badge">SÉRIE</span>':'')
-      +'</div>'
-      +(it.isSeries&&it.seasons?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);padding:0 8px 4px;">'+it.seasons+(it.episodes?' · '+it.episodes+' ép.':'')+'</div>':'')
-      +'</div>'
+      +((badgesHtml||seasonsHtml)?'<div class="tape-bottom">'+(badgesHtml?'<div class="tape-format-row">'+badgesHtml+'</div>':'')+seasonsHtml+'</div>':'')
       +'</div>';
   }).join('');
   grid.querySelectorAll('.tape').forEach(el=>{
