@@ -260,6 +260,34 @@
   .hamburger-item:hover{background:var(--card-border);}
   .hamburger-danger{color:#ff8080;}
   .hamburger-danger:hover{background:#3a1414;}
+
+  /* NOTIFICATIONS */
+  .notif-wrap{position:relative;}
+  .notif-bell-btn{position:relative;background:var(--card);border:1px solid var(--card-border);border-radius:6px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:border-color .15s;}
+  .notif-bell-btn:hover{border-color:var(--cyan);}
+  .notif-bell-badge{position:absolute;top:-4px;right:-4px;background:#ff2e2e;color:#fff;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+  .notif-dropdown{display:none;position:fixed;top:70px;right:8px;background:var(--card);border:1px solid var(--card-border);border-radius:8px;width:300px;max-width:calc(100vw - 16px);max-height:70vh;overflow-y:auto;z-index:999999;box-shadow:0 8px 30px rgba(0,0,0,0.4);}
+  .notif-dropdown.open{display:block;}
+  .notif-dropdown-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--card-border);font-family:'Space Mono',monospace;font-size:12px;color:var(--text);position:sticky;top:0;background:var(--card);}
+  .notif-dropdown-header a{font-size:10px;color:var(--cyan);text-decoration:none;cursor:pointer;}
+  .notif-item{display:block;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--card-border);cursor:pointer;background:transparent;border-left:3px solid transparent;font-family:'Inter',sans-serif;font-size:12px;color:var(--text);line-height:1.4;}
+  .notif-item:last-child{border-bottom:none;}
+  .notif-item:hover{background:var(--card-border);}
+  .notif-item.unseen{border-left-color:var(--pink);background:rgba(255,46,136,0.06);}
+  .notif-item-date{display:block;font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px;}
+  .notif-empty{padding:20px;text-align:center;color:var(--muted);font-family:'Space Mono',monospace;font-size:11px;}
+
+  /* NOTE PUBLIQUE + COMMENTAIRES */
+  .public-note-block{margin-top:12px;padding:12px;background:#1c1c26;border-radius:6px;}
+  .public-note-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+  .public-note-text{font-size:13px;line-height:1.6;margin-bottom:10px;white-space:pre-wrap;}
+  .note-comment{padding:8px 0;border-top:1px solid var(--card-border);font-size:12px;line-height:1.5;}
+  .note-comment-author{font-weight:600;color:var(--cyan);margin-right:6px;}
+  .note-comment-date{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);}
+  .note-comment-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;float:right;}
+  .note-comment-form{display:flex;gap:6px;margin-top:10px;}
+  .note-comment-form input{flex:1;}
+
   /* STATS */
   .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
   .stat-card{background:#1c1c26;border:1px solid var(--card-border);border-radius:6px;padding:14px;}
@@ -448,6 +476,16 @@
     <div class="neon-sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
   </div>
   <div class="header-right">
+    <div class="notif-wrap">
+      <button id="notifBellBtn" class="notif-bell-btn" title="Notifications">🔔<span id="notifBellBadge" class="notif-bell-badge" style="display:none;"></span></button>
+      <div class="notif-dropdown" id="notifDropdown">
+        <div class="notif-dropdown-header">
+          <span>Notifications</span>
+          <a href="#" id="notifMarkAllBtn">Tout marquer comme lu</a>
+        </div>
+        <div id="notifList"></div>
+      </div>
+    </div>
     <div class="hamburger-wrap">
       <button id="hamburgerBtn" class="hamburger-btn" title="Menu">
         <div id="hamburgerAvatar" class="hamburger-avatar"></div>
@@ -868,6 +906,15 @@
     </div>
     <div id="mfInfos" style="display:flex;flex-direction:column;gap:10px;"></div>
     <div id="mfNotes" style="display:none;margin-top:12px;padding:12px;background:#1c1c26;border-radius:6px;font-size:13px;line-height:1.6;"></div>
+    <div id="mfPublicNoteBlock" class="public-note-block" style="display:none;">
+      <div class="public-note-label">💬 Note publique</div>
+      <div class="public-note-text" id="mfPublicNoteText"></div>
+      <div id="mfCommentsList"></div>
+      <div class="note-comment-form">
+        <input type="text" id="mfCommentInput" placeholder="Ajouter un commentaire...">
+        <button type="button" id="mfCommentBtn">Envoyer</button>
+      </div>
+    </div>
     <div class="modal-actions">
       <button id="mfMsgBtn" style="display:none;">✉️ Contacter</button>
       <button id="mfCloseBtn">Fermer</button>
@@ -1118,6 +1165,7 @@
     </div>
     <div class="field"><label>Emplacement</label><input type="text" id="inputShelf" placeholder="Ex: Étagère 1"></div>
     <div class="field"><label>Notes</label><textarea id="inputNotes" rows="3" placeholder="Jaquette abîmée, édition japonaise..." style="width:100%;resize:vertical;"></textarea></div>
+    <div class="field"><label>Note publique <span style="font-size:10px;color:var(--muted);">(visible par toute la communauté, les autres peuvent la commenter)</span></label><textarea id="inputPublicNote" rows="3" placeholder="Ton avis, une anecdote sur ce film..." style="width:100%;resize:vertical;"></textarea></div>
 
     <!-- INFOS COMMUNAUTAIRES -->
     <div class="field" id="communityInfoBlock" style="display:none;">
@@ -1648,7 +1696,7 @@ document.getElementById('signupPassword').addEventListener('input',()=>{
 
 function toRow(it){
   return {id:it.id,user_id:currentUser.id,title:it.title,title_original:it.titleOriginal||null,format:it.format,year:it.year||null,
-    watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,poster_url:it.posterUrl||null,
+    watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,public_note:it.publicNote||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
     estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
     cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null,
@@ -1656,7 +1704,7 @@ function toRow(it){
 }
 function fromRow(r){
   return {id:r.id,title:r.title,titleOriginal:r.title_original||'',format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
-    notes:r.notes||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
+    notes:r.notes||'',publicNote:r.public_note||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
     estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
     castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
     isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||'',createdAt:r.created_at||null,updatedAt:r.updated_at||null};
@@ -2175,10 +2223,12 @@ async function loadLetterboxd(lbUsername, container){
 // ── FICHE FILM MEMBRE ──
 let currentMemberFilmUserId = null;
 let currentMemberFilmUsername = null;
+let currentMemberFilmItemId = null;
 
 function openMemberFilm(it, memberUserId, memberUsername, onClose){
   currentMemberFilmUserId = memberUserId;
   currentMemberFilmUsername = memberUsername;
+  currentMemberFilmItemId = it.id || null;
 
   const posterEl = document.getElementById('mfPoster');
   posterEl.innerHTML = it.posterUrl
@@ -2230,6 +2280,17 @@ function openMemberFilm(it, memberUserId, memberUsername, onClose){
     notesEl.textContent=it.notes;
   }
 
+  // Note publique + commentaires : seulement si on a une vraie fiche (avec un id) et un propriétaire connu
+  const pubBlock = document.getElementById('mfPublicNoteBlock');
+  if(it.id && memberUserId && it.publicNote){
+    pubBlock.style.display='block';
+    document.getElementById('mfPublicNoteText').textContent = it.publicNote;
+    loadNoteComments(it.id, memberUserId, memberUsername);
+  } else {
+    pubBlock.style.display='none';
+    document.getElementById('mfCommentsList').innerHTML='';
+  }
+
   document.getElementById('overlayMemberFilm').classList.add('open');
   document.getElementById('overlayMemberFilm')._onClose=onClose||null;
 }
@@ -2244,6 +2305,67 @@ function closeMemberFilm(){
 document.getElementById('mfCloseBtn').addEventListener('click', closeMemberFilm);
 document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) closeMemberFilm(); });
 
+// ── COMMENTAIRES SUR UNE NOTE PUBLIQUE ──
+async function loadNoteComments(collectionId, ownerId, ownerUsername){
+  const listEl = document.getElementById('mfCommentsList');
+  listEl.innerHTML = '<div style="font-size:11px;color:var(--muted);font-family:Space Mono,monospace;">Chargement...</div>';
+  const {data:comments} = await sb.from('film_note_comments')
+    .select('*,profiles(username)')
+    .eq('collection_id', collectionId)
+    .order('created_at', {ascending:true});
+  if(!comments || !comments.length){
+    listEl.innerHTML = '';
+  } else {
+    listEl.innerHTML = comments.map(c=>{
+      const author = c.profiles ? c.profiles.username : 'Membre';
+      const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      const isOwn = c.user_id === currentUser.id;
+      return '<div class="note-comment" data-cid="'+c.id+'">'
+        +(isOwn?'<button type="button" class="note-comment-del" data-cid="'+c.id+'">✕</button>':'')
+        +'<span class="note-comment-author">'+escHtml(author)+'</span>'
+        +'<span class="note-comment-date">'+date+'</span><br>'
+        +escHtml(c.content)
+        +'</div>';
+    }).join('');
+    listEl.querySelectorAll('.note-comment-del').forEach(btn=>{
+      btn.addEventListener('click', ()=> deleteNoteComment(btn.dataset.cid, collectionId, ownerId, ownerUsername));
+    });
+  }
+  const btn = document.getElementById('mfCommentBtn');
+  btn.onclick = ()=> postNoteComment(collectionId, ownerId, ownerUsername);
+  const input = document.getElementById('mfCommentInput');
+  input.value = '';
+  input.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); postNoteComment(collectionId, ownerId, ownerUsername); } };
+}
+
+async function postNoteComment(collectionId, ownerId, ownerUsername){
+  const input = document.getElementById('mfCommentInput');
+  const content = validateText(input.value.trim(), 500);
+  if(!content) return;
+  const {error} = await sb.from('film_note_comments').insert({
+    collection_id: collectionId,
+    user_id: currentUser.id,
+    content: content
+  });
+  if(error){ alert('❌ Erreur : impossible d\'envoyer le commentaire.'); return; }
+  input.value = '';
+  // Prévenir le propriétaire du film (sauf s'il commente sa propre note)
+  if(ownerId && ownerId !== currentUser.id){
+    await sb.from('notifications').insert({
+      user_id: ownerId,
+      from_user_id: currentUser.id,
+      type: 'note_comment',
+      collection_id: collectionId
+    });
+  }
+  loadNoteComments(collectionId, ownerId, ownerUsername);
+}
+
+async function deleteNoteComment(commentId, collectionId, ownerId, ownerUsername){
+  if(!confirm('Supprimer ce commentaire ?')) return;
+  await sb.from('film_note_comments').delete().eq('id', commentId);
+  loadNoteComments(collectionId, ownerId, ownerUsername);
+}
 
 document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -3138,19 +3260,77 @@ async function loadForum(){
 
 async function loadNotifications(){
   const {data:notifs} = await sb.from('notifications')
-    .select('*,from_user:from_user_id(username),post:post_id(content)')
+    .select('*,from_user:from_user_id(username),post:post_id(content),film:collection_id(title)')
     .eq('user_id', currentUser.id)
-    .eq('seen', false)
-    .order('created_at', {ascending:false});
+    .order('created_at', {ascending:false})
+    .limit(30);
 
+  // Petit badge rose à côté de "Le Mur" : seulement les mentions non lues (comme avant)
+  const mentionUnread = (notifs||[]).filter(n=>!n.seen && n.type!=='note_comment').length;
   const badge = document.getElementById('notifBadge');
-  if(notifs && notifs.length > 0){
-    badge.style.display = 'inline';
-    badge.textContent = notifs.length;
-  } else {
-    badge.style.display = 'none';
-  }
+  if(mentionUnread > 0){ badge.style.display = 'inline'; badge.textContent = mentionUnread; }
+  else { badge.style.display = 'none'; }
+
+  // Cloche globale dans l'en-tête : toutes les notifs (mentions + commentaires sur tes notes)
+  const totalUnread = (notifs||[]).filter(n=>!n.seen).length;
+  const bellBadge = document.getElementById('notifBellBadge');
+  if(totalUnread > 0){ bellBadge.style.display = 'flex'; bellBadge.textContent = totalUnread; }
+  else { bellBadge.style.display = 'none'; }
+
+  renderNotifDropdown(notifs||[]);
 }
+
+function renderNotifDropdown(notifs){
+  const list = document.getElementById('notifList');
+  if(!notifs.length){
+    list.innerHTML = '<div class="notif-empty">Pas de notification pour le moment.</div>';
+    return;
+  }
+  list.innerHTML = notifs.map(n=>{
+    const from = n.from_user ? n.from_user.username : 'Quelqu\'un';
+    const date = new Date(n.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    let text;
+    if(n.type==='note_comment'){
+      text = '<b>'+escHtml(from)+'</b> a commenté ta note sur « '+escHtml(n.film ? n.film.title : 'un film')+' »';
+    } else {
+      text = '<b>'+escHtml(from)+'</b> t\'a mentionné dans Le Mur';
+    }
+    return '<div class="notif-item '+(n.seen?'':'unseen')+'" data-id="'+n.id+'" data-type="'+(n.type||'mention')+'" data-cid="'+(n.collection_id||'')+'">'
+      +text
+      +'<span class="notif-item-date">'+date+'</span>'
+      +'</div>';
+  }).join('');
+  list.querySelectorAll('.notif-item').forEach(el=>{
+    el.addEventListener('click', ()=> handleNotifClick(el.dataset.id, el.dataset.type, el.dataset.cid));
+  });
+}
+
+async function handleNotifClick(notifId, type, collectionId){
+  await sb.from('notifications').update({seen:true}).eq('id', notifId);
+  document.getElementById('notifDropdown').classList.remove('open');
+  if(type==='note_comment' && collectionId){
+    const {data} = await sb.from('collection').select('*').eq('id', collectionId).maybeSingle();
+    if(data){
+      openMemberFilm(fromRow(data), currentUser.id, currentProfile.username || 'Moi', null);
+    } else {
+      alert("Ce film n'existe plus.");
+    }
+  } else {
+    showSection('sectionForum');
+  }
+  loadNotifications();
+}
+
+document.getElementById('notifBellBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  document.getElementById('notifDropdown').classList.toggle('open');
+});
+document.addEventListener('click', ()=> document.getElementById('notifDropdown').classList.remove('open'));
+document.getElementById('notifMarkAllBtn').addEventListener('click', async e=>{
+  e.preventDefault();
+  await sb.from('notifications').update({seen:true}).eq('user_id', currentUser.id).eq('seen', false);
+  loadNotifications();
+});
 
 async function renderPosts(posts){
   const container = document.getElementById('forumPosts');
@@ -3249,7 +3429,8 @@ async function publishPost(){
       await sb.from('notifications').insert({
         user_id: profile.id,
         from_user_id: currentUser.id,
-        post_id: post.id
+        post_id: post.id,
+        type: 'mention'
       });
     }
   }
@@ -3865,13 +4046,13 @@ async function openMemberCollection(userId, username, onClose){
     memberCollCount.textContent = items.length + ' titre' + (items.length>1?'s':'');
     if(items.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Aucun titre.</div>'; return; }
     document.getElementById('memberGrid').innerHTML=items.map(it=>{
-      const clickable = (it.forSale||it.forTrade) && userId!==currentUser.id;
+      const contactable = (it.forSale||it.forTrade) && userId!==currentUser.id;
       const badgesHtml=[
         it.forSale?'<span class="sale-badge">VENTE'+(it.salePrice?' '+it.salePrice+'€':'')+'</span>':(it.forTrade?'<span class="trade-badge">ÉCHANGE</span>':''),
         it.isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'',
-        clickable?'<span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);">✉️ Contacter</span>':''
+        contactable?'<span style="font-family:Space Mono,monospace;font-size:9px;color:var(--cyan);">✉️ Contacter</span>':''
       ].filter(Boolean).join('');
-      return '<div class="tape '+(it.isSteelbook?'steelbook':'')+'" style="cursor:'+(clickable?'pointer':'default')+';" data-title="'+it.title+'" data-sale="'+it.forSale+'" data-trade="'+it.forTrade+'">'
+      return '<div class="tape '+(it.isSteelbook?'steelbook':'')+'" style="cursor:pointer;" data-id="'+it.id+'">'
         +'<div class="poster-wrap">'
         +fmtBannerHtml(it.format)
         +(it.posterUrl?'<img src="'+it.posterUrl+'" alt="'+it.title+'">'
@@ -3881,31 +4062,13 @@ async function openMemberCollection(userId, username, onClose){
         +'</div>';
     }).join('');
 
-    // Clic sur une fiche à vendre ou à l'échange → messagerie pré-remplie
-    if(userId !== currentUser.id){
-      document.querySelectorAll('#memberGrid .tape').forEach(card=>{
-        const isSale = card.dataset.sale === 'true';
-        const isTrade = card.dataset.trade === 'true';
-        if(!isSale && !isTrade) return;
-        card.addEventListener('click', ()=>{
-          const type = isSale ? 'en vente' : 'à l\'échange';
-          const msg = `Bonjour ${username}, je suis intéressé par "${card.dataset.title}" que tu as ${type}, est-il toujours disponible ?`;
-          document.getElementById('overlayMember').classList.remove('open');
-          document.body.classList.remove('modal-open');
-          document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-          document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-          document.querySelector('.nav-tab[data-section="sectionMessages"]')?.classList.add('active');
-          document.getElementById('sectionMessages').classList.add('active');
-          loadConversations().then(()=>{
-            openConversation(userId, username);
-            setTimeout(()=>{
-              const input = document.getElementById('msgInput');
-              if(input) input.value = msg;
-            }, 400);
-          });
-        });
-      });
-    }
+    // Clic sur une fiche → ouvre le détail du film (notes, note publique + commentaires,
+    // et le bouton "Contacter" si le titre est en vente/échange, géré directement dans la fiche)
+    document.querySelectorAll('#memberGrid .tape').forEach(card=>{
+      const it = items.find(i=>i.id===card.dataset.id);
+      if(!it) return;
+      card.addEventListener('click', ()=> openMemberFilm(it, userId, username));
+    });
   }
 
   renderMemberGrid('all');
@@ -4054,7 +4217,7 @@ document.getElementById('saveProfileBtn').addEventListener('click',async()=>{
 function resetModal(){
   editingId=null; pendingPoster=null; pendingTmdbId=null;
   document.getElementById('modalTitle').textContent='Ajouter un titre';
-  ['inputTitle','inputTitleOriginal','inputYear','inputShelf','inputValue','inputNotes','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes','inputPosterUrl'].forEach(id=>document.getElementById(id).value='');
+  ['inputTitle','inputTitleOriginal','inputYear','inputShelf','inputValue','inputNotes','inputPublicNote','inputSalePrice','inputDirector','inputLoanedTo','inputLoanedAt','inputSeasons','inputEpisodes','inputPosterUrl'].forEach(id=>document.getElementById(id).value='');
   setMediaType('film');
   document.getElementById('loanHint').textContent="Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.";
   const lastFormat = localStorage.getItem('lastUsedFormat');
@@ -4131,6 +4294,7 @@ function fillFormFromItem(it){
   document.getElementById('inputShelf').value=it.shelf||'';
   document.getElementById('inputValue').value=it.estimatedValue||'';
   document.getElementById('inputNotes').value=it.notes||'';
+  document.getElementById('inputPublicNote').value=it.publicNote||'';
   document.getElementById('deleteBtn').style.display='inline-block';
   pendingPoster=it.posterUrl?{url:it.posterUrl,isPhoto:!!it.customPhoto}:null;
   document.getElementById('posterPreview').innerHTML=it.posterUrl?'<img src="'+it.posterUrl+'">':"<span>Pas d'affiche</span>";
@@ -4347,7 +4511,7 @@ async function saveItemModal(){
     seasons:document.getElementById('inputSeasons').value.trim()||null,
     episodes:document.getElementById('inputEpisodes').value.trim()||null,
     shelf:document.getElementById('inputShelf').value.trim(),estimatedValue:parseFloat(document.getElementById('inputValue').value)||null,
-    notes:document.getElementById('inputNotes').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
+    notes:document.getElementById('inputNotes').value.trim(),publicNote:document.getElementById('inputPublicNote').value.trim(),posterUrl:pendingPoster?pendingPoster.url:null,
     customPhoto:pendingPoster?pendingPoster.isPhoto:false,tmdbId:pendingTmdbId||null,
     castCrew:existingCastCrew};
   if(editingId){
