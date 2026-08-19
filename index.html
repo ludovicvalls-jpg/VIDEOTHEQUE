@@ -388,46 +388,46 @@
       <button class="login-tab" id="tabSignup">Créer un compte</button>
     </div>
     <div style="text-align:center;padding:6px 0 2px;"><a onclick="openCGU()" style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);text-decoration:underline;cursor:pointer;">Conditions Générales d'Utilisation</a></div>
-    <div id="loginForm">
-      <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="ton@email.com" autocomplete="email"></div>
-      <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
-      <button class="login-btn" id="loginBtn">Se connecter</button>
+    <form id="loginForm" autocomplete="on" onsubmit="return false;">
+      <div class="login-field"><label>Email</label><input type="email" id="loginEmail" name="email" placeholder="ton@email.com" autocomplete="username"></div>
+      <div class="login-field"><label>Mot de passe</label><input type="password" id="loginPassword" name="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="login-btn" id="loginBtn" type="submit">Se connecter</button>
       <div style="text-align:right;margin-top:10px;">
         <a href="#" id="linkForgotPassword" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--cyan);text-decoration:none;">Mot de passe oublié ?</a>
       </div>
-    </div>
-    <div id="signupForm" style="display:none;">
+    </form>
+    <form id="signupForm" autocomplete="on" onsubmit="return false;" style="display:none;">
       <div class="login-field">
         <label>Pseudo <span style="font-size:10px;color:var(--muted);">(lettres, chiffres, _ uniquement)</span></label>
-        <input type="text" id="signupUsername" placeholder="Ex: VideoManiac69" autocomplete="username">
+        <input type="text" id="signupUsername" name="username" placeholder="Ex: VideoManiac69" autocomplete="username">
         <div id="usernameHint" style="font-size:10px;margin-top:4px;min-height:14px;"></div>
       </div>
-      <div class="login-field"><label>Email</label><input type="email" id="signupEmail" placeholder="ton@email.com" autocomplete="email"></div>
+      <div class="login-field"><label>Email</label><input type="email" id="signupEmail" name="email" placeholder="ton@email.com" autocomplete="email"></div>
       <div class="login-field">
         <label>Mot de passe <span style="font-size:10px;color:var(--muted);">(8 caractères minimum)</span></label>
-        <input type="password" id="signupPassword" placeholder="8 caractères minimum" autocomplete="new-password">
+        <input type="password" id="signupPassword" name="new-password" placeholder="8 caractères minimum" autocomplete="new-password">
         <div id="passwordStrength" style="font-size:10px;margin-top:4px;min-height:14px;"></div>
       </div>
-      <button class="login-btn" id="signupBtn">Créer mon compte</button>
+      <button class="login-btn" id="signupBtn" type="submit">Créer mon compte</button>
       <div class="login-info">Gratuit · Sans pub · Sans revente de données<br>Un email de confirmation te sera envoyé.</div>
-    </div>
-    <div id="forgotForm" style="display:none;">
+    </form>
+    <form id="forgotForm" autocomplete="on" onsubmit="return false;" style="display:none;">
       <div class="login-info" style="margin-bottom:14px;">Entre ton email, on t'envoie un lien pour choisir un nouveau mot de passe.</div>
-      <div class="login-field"><label>Email</label><input type="email" id="forgotEmail" placeholder="ton@email.com" autocomplete="email"></div>
-      <button class="login-btn" id="forgotBtn">Envoyer le lien</button>
+      <div class="login-field"><label>Email</label><input type="email" id="forgotEmail" name="email" placeholder="ton@email.com" autocomplete="username"></div>
+      <button class="login-btn" id="forgotBtn" type="submit">Envoyer le lien</button>
       <div style="text-align:center;margin-top:14px;">
         <a href="#" id="linkBackToLogin1" style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);text-decoration:none;">← Retour à la connexion</a>
       </div>
-    </div>
-    <div id="resetForm" style="display:none;">
+    </form>
+    <form id="resetForm" autocomplete="on" onsubmit="return false;" style="display:none;">
       <div class="login-info" style="margin-bottom:14px;">Choisis ton nouveau mot de passe.</div>
       <div class="login-field">
         <label>Nouveau mot de passe <span style="font-size:10px;color:var(--muted);">(8 caractères minimum)</span></label>
-        <input type="password" id="resetPassword1" placeholder="8 caractères minimum" autocomplete="new-password">
+        <input type="password" id="resetPassword1" name="new-password" placeholder="8 caractères minimum" autocomplete="new-password">
       </div>
-      <div class="login-field"><label>Confirmer le mot de passe</label><input type="password" id="resetPassword2" placeholder="Répète le mot de passe" autocomplete="new-password"></div>
-      <button class="login-btn" id="resetPasswordBtn">Réinitialiser mon mot de passe</button>
-    </div>
+      <div class="login-field"><label>Confirmer le mot de passe</label><input type="password" id="resetPassword2" name="new-password-confirm" placeholder="Répète le mot de passe" autocomplete="new-password"></div>
+      <button class="login-btn" id="resetPasswordBtn" type="submit">Réinitialiser mon mot de passe</button>
+    </form>
     <div class="login-error" id="loginError"></div>
     </div><!-- fin login-content -->
   </div>
@@ -1630,11 +1630,8 @@ document.getElementById('signupPassword').addEventListener('input',()=>{
   else { hint.style.color='#2fae5e'; hint.textContent='✓ Solide ('+val.length+' caractères)'; }
 });
 
-document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
-document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
-document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
-document.getElementById('forgotEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('forgotBtn').click(); });
-document.getElementById('resetPassword2').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('resetPasswordBtn').click(); });
+// Note : les champs de connexion/inscription sont maintenant dans de vrais <form>,
+// donc la touche Entrée déclenche nativement le bouton (plus besoin d'écouteurs manuels ici).
 
 function toRow(it){
   return {id:it.id,user_id:currentUser.id,title:it.title,title_original:it.titleOriginal||null,format:it.format,year:it.year||null,
@@ -4807,10 +4804,6 @@ document.getElementById('overlayMember').addEventListener('click',e=>{ if(e.targ
 const memberSearch=document.getElementById('memberSearch'),memberSearchWrap=memberSearch.closest('.search-wrap');
 memberSearch.addEventListener('input',()=>{ memberSearchWrap.classList.toggle('has-value',memberSearch.value.length>0); loadMembers(); });
 document.getElementById('clearMemberSearch').addEventListener('click',()=>{ memberSearch.value=''; memberSearchWrap.classList.remove('has-value'); loadMembers(); });
-document.getElementById('loginEmail').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
-document.getElementById('loginPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('loginBtn').click(); });
-document.getElementById('signupPassword').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('signupBtn').click(); });
-
 async function loadLoginCarousel(){
   try{
     const pages = [1,2,3];
