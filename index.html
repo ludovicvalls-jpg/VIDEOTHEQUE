@@ -499,7 +499,7 @@
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">Mon Rayon</div>
-        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">Wantlist</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">MARKET</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">Membres</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMessages">Messages <span id="msgBadgeMenu" style="background:var(--cyan);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;display:none;"></span></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionActivity">Derniers Ajouts</div>
@@ -517,7 +517,7 @@
 <!-- NAV -->
 <div class="nav-tabs">
   <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
-  <button class="nav-tab" data-section="sectionWantlist">Wantlist</button>
+  <button class="nav-tab" data-section="sectionWantlist">MARKET</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:#0d0d14;color:var(--cyan);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
   <button class="nav-tab" data-section="sectionActivity">Derniers Ajouts</button>
@@ -838,14 +838,33 @@
 </div>
 
 <div class="section" id="sectionWantlist">
-  <div class="toolbar">
-    <button id="addWantBtn" class="primary">+ Ajouter à la wantlist</button>
-    <button id="allWantlistsBtn">Voir toutes les wantlists</button>
-    <button id="allTitlesBtn">📚 Tous les titres du site</button>
+  <div style="display:flex;gap:8px;padding:16px 16px 0;flex-wrap:wrap;">
+    <button class="deals-filter-btn market-subtab active" data-markettab="buy">🔎 Acheter</button>
+    <button class="deals-filter-btn market-subtab" data-markettab="sale">💰 Vendre</button>
+    <button class="deals-filter-btn market-subtab" data-markettab="trade">🔄 Échanger</button>
   </div>
-  <div id="allWantlistsPanel" style="display:none;padding:0 0 16px;"></div>
-  <div id="allTitlesPanel" style="display:none;"></div>
-  <div class="want-grid" id="wantGrid"></div>
+
+  <!-- ACHETER : ma wantlist -->
+  <div id="marketTabBuy">
+    <div class="toolbar">
+      <button id="addWantBtn" class="primary">+ Ajouter à ma wantlist</button>
+      <button id="allWantlistsBtn">Voir toutes les wantlists</button>
+      <button id="allTitlesBtn">📚 Tous les titres du site</button>
+    </div>
+    <div id="allWantlistsPanel" style="display:none;padding:0 0 16px;"></div>
+    <div id="allTitlesPanel" style="display:none;"></div>
+    <div class="want-grid" id="wantGrid"></div>
+  </div>
+
+  <!-- VENDRE : tous les films marqués "à la vente" chez tous les membres -->
+  <div id="marketTabSale" style="display:none;">
+    <div class="want-grid" id="marketSaleGrid"></div>
+  </div>
+
+  <!-- ÉCHANGER : tous les films marqués "à l'échange" chez tous les membres -->
+  <div id="marketTabTrade" style="display:none;">
+    <div class="want-grid" id="marketTradeGrid"></div>
+  </div>
 </div>
 
 <!-- SECTION MEMBRES -->
@@ -3809,6 +3828,52 @@ async function renderWantlist(){
   }).join('');
   grid.querySelectorAll('.want-card').forEach(el=>el.addEventListener('click',()=>openWantEdit(el.dataset.wid)));
 }
+
+// ── MARKET : Vendre / Échanger (agrège les films marqués par tous les membres) ──
+async function loadMarketListings(kind){
+  // kind: 'for_sale' ou 'for_trade'
+  const gridId = kind==='for_sale' ? 'marketSaleGrid' : 'marketTradeGrid';
+  const grid = document.getElementById(gridId);
+  grid.innerHTML = '<div style="padding:20px;color:var(--muted);">Chargement...</div>';
+  const {data} = await sb.from('collection')
+    .select('*,profiles(username)')
+    .eq(kind, true)
+    .order('updated_at', {ascending:false})
+    .limit(200);
+  if(!data || !data.length){
+    grid.innerHTML = '<div class="empty"><div class="logo">'+(kind==='for_sale'?'RIEN À VENDRE':'RIEN À ÉCHANGER')+'</div><div>'+(kind==='for_sale'?"Aucun membre n'a encore mis de film à la vente.":"Aucun membre n'a encore proposé de film à l'échange.")+'</div></div>';
+    return;
+  }
+  grid.innerHTML = data.map(r=>{
+    const it = fromRow(r);
+    const owner = r.profiles ? r.profiles.username : 'Membre';
+    const priceLine = (kind==='for_sale' && it.salePrice) ? ('💰 '+it.salePrice+' € · '+escHtml(owner)) : escHtml(owner);
+    return '<div class="want-card" data-cid="'+r.id+'">'
+      +'<div class="poster-wrap">'+(it.posterUrl?'<img src="'+it.posterUrl+'">':'<div class="poster-placeholder">'+escHtml(it.title)+'</div>')+'</div>'
+      +'<div class="tape-info"><p class="tape-title">'+escHtml(it.title)+'</p>'+(it.year?'<span class="tape-year">'+it.year+'</span>':'')+'</div>'
+      +'<div class="want-owners">'+priceLine+'</div>'
+      +'</div>';
+  }).join('');
+  grid.querySelectorAll('.want-card').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const r = data.find(x=>String(x.id)===el.dataset.cid);
+      if(r) openMemberFilm(fromRow(r), r.user_id, r.profiles?r.profiles.username:'Membre', null);
+    });
+  });
+}
+
+document.querySelectorAll('.market-subtab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.market-subtab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.markettab;
+    document.getElementById('marketTabBuy').style.display = tab==='buy' ? 'block' : 'none';
+    document.getElementById('marketTabSale').style.display = tab==='sale' ? 'block' : 'none';
+    document.getElementById('marketTabTrade').style.display = tab==='trade' ? 'block' : 'none';
+    if(tab==='sale') loadMarketListings('for_sale');
+    if(tab==='trade') loadMarketListings('for_trade');
+  });
+});
 
 function openWantAdd(){
   editingWantId=null; pendingWantPoster=null; pendingWantTmdbId=null;
