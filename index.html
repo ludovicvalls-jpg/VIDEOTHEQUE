@@ -478,6 +478,9 @@
   </div>
   <div class="header-right">
     <div class="notif-wrap">
+      <button id="msgIconBtn" class="notif-bell-btn" title="Messages">✉️<span id="msgIconBadge" class="notif-bell-badge" style="display:none;"></span></button>
+    </div>
+    <div class="notif-wrap">
       <button id="notifBellBtn" class="notif-bell-btn" title="Notifications">🔔<span id="notifBellBadge" class="notif-bell-badge" style="display:none;"></span></button>
       <div class="notif-dropdown" id="notifDropdown">
         <div class="notif-dropdown-header">
@@ -968,7 +971,11 @@
   </div>
 </div>
 <div class="section" id="sectionMessages">
-  <div class="messages-layout">
+  <div style="display:flex;gap:8px;padding:12px 16px 0;">
+    <button class="deals-filter-btn msg-subtab active" data-msgtab="conv">💬 Conversations</button>
+    <button class="deals-filter-btn msg-subtab" data-msgtab="comments">📝 Commentaires<span id="commentsSubBadge" style="display:none;background:var(--pink);color:#0d0d14;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:6px;font-weight:700;"></span></button>
+  </div>
+  <div class="messages-layout" id="msgTabConv">
     <div class="conversations-list" id="conversationsList"></div>
     <div class="conversation-view" id="conversationView">
       <div class="conversation-empty" id="conversationEmpty">
@@ -977,6 +984,7 @@
       </div>
     </div>
   </div>
+  <div id="msgTabComments" style="display:none;padding:16px;max-width:720px;margin:0 auto;"></div>
 </div>
 
 <div class="section" id="sectionProfile">
@@ -2032,7 +2040,78 @@ function updateMsgBadge(count){
     if(badge) badge.style.display='none';
     if(badgeMenu) badgeMenu.style.display='none';
   }
+  updateMsgIconBadge();
 }
+
+// Pastille de l'icône ✉️ dans l'en-tête : messages privés non lus + commentaires reçus non lus
+async function updateMsgIconBadge(){
+  if(!currentUser) return;
+  const {count:msgCount} = await sb.from('messages').select('id',{count:'exact',head:true}).eq('to_user_id',currentUser.id).eq('seen',false);
+  const {count:commentCount} = await sb.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('type','note_comment').eq('seen',false);
+  const total = (msgCount||0) + (commentCount||0);
+  const badge = document.getElementById('msgIconBadge');
+  if(badge){
+    if(total > 0){ badge.style.display='flex'; badge.textContent=total; }
+    else { badge.style.display='none'; }
+  }
+  const subBadge = document.getElementById('commentsSubBadge');
+  if(subBadge){
+    if(commentCount > 0){ subBadge.style.display='inline'; subBadge.textContent=commentCount; }
+    else { subBadge.style.display='none'; }
+  }
+}
+
+// Liste des commentaires reçus sur mes films (onglet "Commentaires" de la messagerie)
+async function loadReceivedComments(){
+  const el = document.getElementById('msgTabComments');
+  if(!el) return;
+  el.innerHTML = '<div style="padding:20px;color:var(--muted);">Chargement...</div>';
+  const {data, error} = await sb.from('film_note_comments')
+    .select('id,content,created_at,user_id,collection_id,profiles(username),collection:collection_id!inner(id,title,user_id)')
+    .eq('collection.user_id', currentUser.id)
+    .order('created_at', {ascending:false})
+    .limit(50);
+  if(error){ el.innerHTML = '<div style="padding:20px;color:#ff8080;">Erreur de chargement.</div>'; return; }
+  if(!data || !data.length){
+    el.innerHTML = '<div style="padding:20px;color:var(--muted);">Aucun commentaire reçu pour le moment.</div>';
+    return;
+  }
+  el.innerHTML = data.map(c=>{
+    const author = c.profiles ? c.profiles.username : 'Quelqu\'un';
+    const filmTitle = c.collection ? c.collection.title : 'un film';
+    const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return '<div class="received-comment-item" data-cid="'+c.collection_id+'" style="padding:12px 14px;border:1px solid var(--card-border);border-radius:6px;margin-bottom:8px;cursor:pointer;">'
+      +'<div style="font-family:\'Space Mono\',monospace;font-size:10px;color:var(--muted);margin-bottom:4px;"><b style="color:var(--cyan);">'+escHtml(author)+'</b> sur « '+escHtml(filmTitle)+' » · '+date+'</div>'
+      +'<div style="font-size:13px;">'+escHtml(c.content)+'</div>'
+      +'</div>';
+  }).join('');
+  el.querySelectorAll('.received-comment-item').forEach(item=>{
+    item.addEventListener('click', async ()=>{
+      const cid = item.dataset.cid;
+      const {data:filmData} = await sb.from('collection').select('*').eq('id', cid).maybeSingle();
+      if(filmData){ openMemberFilm(fromRow(filmData), currentUser.id, currentProfile.username || 'Moi', null); }
+    });
+  });
+}
+
+document.querySelectorAll('.msg-subtab').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    document.querySelectorAll('.msg-subtab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.msgtab;
+    document.getElementById('msgTabConv').style.display = tab==='comments' ? 'none' : 'flex';
+    document.getElementById('msgTabComments').style.display = tab==='comments' ? 'block' : 'none';
+    if(tab==='comments'){
+      await loadReceivedComments();
+      await sb.from('notifications').update({seen:true}).eq('user_id',currentUser.id).eq('type','note_comment').eq('seen',false);
+      updateMsgIconBadge();
+    }
+  });
+});
+
+document.getElementById('msgIconBtn').addEventListener('click', ()=>{
+  showSection('sectionMessages');
+});
 
 async function openConversation(userId, username){
   activeConvUserId = userId;
@@ -2084,6 +2163,7 @@ async function openConversation(userId, username){
          (msg.from_user_id===currentUser.id && msg.to_user_id===userId)){
         await fetchMessages();
         if(msg.to_user_id===currentUser.id) markMessagesRead(userId);
+        updateMsgIconBadge();
       }
     })
     .subscribe();
@@ -3300,8 +3380,8 @@ async function loadNotifications(){
   const prefs = currentProfile || {};
   const notifs = (raw||[]).filter(n=>{
     const t = n.type || 'mention';
+    if(t==='note_comment') return false; // affiché désormais dans l'onglet "Commentaires" de la messagerie
     if(t==='mention') return prefs.notify_mentions !== false;
-    if(t==='note_comment') return prefs.notify_note_comments !== false;
     if(t==='new_deal') return prefs.notify_deals !== false;
     return true;
   });
@@ -3319,6 +3399,7 @@ async function loadNotifications(){
   else { bellBadge.style.display = 'none'; }
 
   renderNotifDropdown(notifs);
+  updateMsgIconBadge();
 }
 
 function renderNotifDropdown(notifs){
@@ -3351,14 +3432,7 @@ function renderNotifDropdown(notifs){
 async function handleNotifClick(notifId, type, collectionId){
   await sb.from('notifications').update({seen:true}).eq('id', notifId);
   document.getElementById('notifDropdown').classList.remove('open');
-  if(type==='note_comment' && collectionId){
-    const {data} = await sb.from('collection').select('*').eq('id', collectionId).maybeSingle();
-    if(data){
-      openMemberFilm(fromRow(data), currentUser.id, currentProfile.username || 'Moi', null);
-    } else {
-      alert("Ce film n'existe plus.");
-    }
-  } else if(type==='new_deal'){
+  if(type==='new_deal'){
     showSection('sectionDeals');
   } else {
     showSection('sectionForum');
