@@ -399,6 +399,9 @@
   .notif-card .notif-mark:hover{color:var(--cyan);}
   .member-filter-btn{font-size:11px;padding:6px 14px;}
   .member-filter-btn.active{background:var(--cyan);border-color:var(--cyan);color:#0d0d14;font-weight:700;}
+  .member-filter-annotations{border-color:var(--pink);color:var(--pink);border-radius:14px;}
+  .member-filter-annotations.active{background:var(--pink);border-color:var(--pink);color:#0d0d14;}
+  .member-filter-annotations:hover{border-color:var(--pink);color:var(--pink);}
   .member-filter-btn:hover{border-color:var(--cyan);color:var(--cyan);}position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--cyan);border-radius:6px;padding:14px 20px;width:320px;max-width:90vw;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,0.5);}
   .import-progress-bar{width:100%;height:6px;background:#1c1c26;border-radius:3px;overflow:hidden;margin-bottom:8px;}
   .import-progress-fill{height:100%;width:0%;background:var(--cyan);transition:width .2s;}
@@ -1383,6 +1386,7 @@
         <button class="member-filter-btn" data-filter="sale">Ventes</button>
         <button class="member-filter-btn" data-filter="steelbook">✦ SteelBook</button>
         <button class="member-filter-btn" data-filter="watched">Vus</button>
+        <button class="member-filter-btn member-filter-annotations" data-filter="annotations">💬 Annotations</button>
         <button class="member-filter-btn" data-filter="critiques" id="memberCritiquesBtn" style="display:none;">🎬 Critiques</button>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center;">
@@ -1410,6 +1414,7 @@
         <div id="memberLetterboxd" style="display:none;padding:12px 0;">
           <div id="memberLetterboxdContent"></div>
         </div>
+        <div id="memberAnnotations" style="display:none;padding:12px 0;"></div>
       </div>
       <div class="modal-actions"><button id="memberCloseBtn">Fermer</button></div>
     </div>
@@ -4352,6 +4357,42 @@ function updateBannerPreview(url){
   else bp.innerHTML='<span style="color:var(--muted);font-size:12px;font-family:Space Mono,monospace;">Pas encore de bannière</span>';
 }
 
+// ── Annotations : toutes les fiches (de n'importe quel membre) commentées par ce membre ──
+async function loadMemberAnnotations(memberId, memberUsername){
+  const el = document.getElementById('memberAnnotations');
+  if(!el) return;
+  el.innerHTML = '<div style="padding:20px;color:var(--muted);">Chargement...</div>';
+  const {data, error} = await sb.from('film_note_comments')
+    .select('id,content,created_at,collection_id,collection:collection_id(id,title,poster_url,format,year,user_id,profiles(username))')
+    .eq('user_id', memberId)
+    .order('created_at', {ascending:false})
+    .limit(100);
+  if(error){ el.innerHTML = '<div style="padding:20px;color:#ff8080;">Erreur de chargement.</div>'; return; }
+  const rows = (data||[]).filter(c=>c.collection);
+  if(!rows.length){
+    el.innerHTML = '<div style="padding:20px;color:var(--muted);">'+escHtml(memberUsername)+" n'a encore commenté aucune fiche.</div>";
+    return;
+  }
+  el.innerHTML = rows.map(c=>{
+    const film = c.collection;
+    const owner = film.profiles ? film.profiles.username : 'Membre';
+    const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    return '<div class="annotation-item" data-cid="'+film.id+'" data-uid="'+film.user_id+'" data-uname="'+escHtml(owner)+'" style="display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--card-border);border-radius:6px;margin-bottom:8px;cursor:pointer;">'
+      +'<div style="width:44px;flex-shrink:0;">'+(film.poster_url?'<img src="'+film.poster_url+'" style="width:100%;border-radius:4px;display:block;">':'<div class="poster-placeholder" style="aspect-ratio:2/3;font-size:8px;padding:2px;">'+escHtml(film.title)+'</div>')+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:12px;font-weight:600;">'+escHtml(film.title)+(film.year?' ('+film.year+')':'')+'</div>'
+      +'<div style="font-family:\'Space Mono\',monospace;font-size:9px;color:var(--muted);margin:2px 0 4px;">chez '+escHtml(owner)+' · '+date+'</div>'
+      +'<div style="font-size:12px;color:var(--text);">'+escHtml(c.content)+'</div>'
+      +'</div></div>';
+  }).join('');
+  el.querySelectorAll('.annotation-item').forEach(card=>{
+    card.addEventListener('click', async ()=>{
+      const {data:filmData} = await sb.from('collection').select('*').eq('id', card.dataset.cid).maybeSingle();
+      if(filmData){ openMemberFilm(fromRow(filmData), card.dataset.uid, card.dataset.uname, null); }
+    });
+  });
+}
+
 // ── BANNIÈRE dans la modal membre ──
 async function openMemberCollection(userId, username, onClose){
   document.getElementById('memberModalTitle').textContent = username;
@@ -4474,16 +4515,28 @@ async function openMemberCollection(userId, username, onClose){
   function renderMemberGrid(filter){
     const memberGrid = document.getElementById('memberGrid');
     const lbBlock = document.getElementById('memberLetterboxd');
+    const annotationsBlock = document.getElementById('memberAnnotations');
 
     if(filter === 'critiques'){
       memberGrid.style.display = 'none';
+      annotationsBlock.style.display = 'none';
       lbBlock.style.display = 'block';
       memberCollCount.textContent = '';
       return;
     }
 
+    if(filter === 'annotations'){
+      memberGrid.style.display = 'none';
+      lbBlock.style.display = 'none';
+      annotationsBlock.style.display = 'block';
+      memberCollCount.textContent = '';
+      loadMemberAnnotations(userId, username);
+      return;
+    }
+
     memberGrid.style.display = '';
     lbBlock.style.display = 'none';
+    annotationsBlock.style.display = 'none';
 
     const search = memberSB.value.toLowerCase();
     const fmt = memberFormatFilter.value;
