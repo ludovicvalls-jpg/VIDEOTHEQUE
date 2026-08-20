@@ -839,30 +839,57 @@
 
 <div class="section" id="sectionWantlist">
   <div style="display:flex;gap:8px;padding:16px 16px 0;flex-wrap:wrap;">
-    <button class="deals-filter-btn market-subtab active" data-markettab="buy">🔎 Acheter</button>
-    <button class="deals-filter-btn market-subtab" data-markettab="sale">💰 Vendre</button>
+    <button class="deals-filter-btn market-subtab active" data-markettab="buy">🔎 Wantlist</button>
+    <button class="deals-filter-btn market-subtab" data-markettab="sale">💰 Ventes</button>
     <button class="deals-filter-btn market-subtab" data-markettab="trade">🔄 Échanger</button>
   </div>
 
-  <!-- ACHETER : ma wantlist -->
+  <!-- WANTLIST : ma liste d'achat -->
   <div id="marketTabBuy">
     <div class="toolbar">
       <button id="addWantBtn" class="primary">+ Ajouter à ma wantlist</button>
       <button id="allWantlistsBtn">Voir toutes les wantlists</button>
       <button id="allTitlesBtn">📚 Tous les titres du site</button>
+      <select id="wantSortOrder" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
+        <option value="date_added">Date d'ajout</option>
+        <option value="alpha">Ordre alphabétique</option>
+        <option value="year">Année de sortie</option>
+      </select>
     </div>
     <div id="allWantlistsPanel" style="display:none;padding:0 0 16px;"></div>
     <div id="allTitlesPanel" style="display:none;"></div>
     <div class="want-grid" id="wantGrid"></div>
   </div>
 
-  <!-- VENDRE : tous les films marqués "à la vente" chez tous les membres -->
+  <!-- VENTES : tous les films marqués "à la vente" chez tous les membres -->
   <div id="marketTabSale" style="display:none;">
+    <div class="toolbar" style="padding:12px 16px 0;">
+      <select id="marketSaleSort" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
+        <option value="date_added">Date d'ajout (récent)</option>
+        <option value="date_added_asc">Date d'ajout (ancien)</option>
+        <option value="date_modified">Derniers modifiés</option>
+        <option value="price_asc">Prix croissant</option>
+        <option value="price_desc">Prix décroissant</option>
+        <option value="alpha">Ordre alphabétique</option>
+        <option value="year_desc">Année (récente)</option>
+        <option value="year_asc">Année (ancienne)</option>
+      </select>
+    </div>
     <div class="want-grid" id="marketSaleGrid"></div>
   </div>
 
   <!-- ÉCHANGER : tous les films marqués "à l'échange" chez tous les membres -->
   <div id="marketTabTrade" style="display:none;">
+    <div class="toolbar" style="padding:12px 16px 0;">
+      <select id="marketTradeSort" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
+        <option value="date_added">Date d'ajout (récent)</option>
+        <option value="date_added_asc">Date d'ajout (ancien)</option>
+        <option value="date_modified">Derniers modifiés</option>
+        <option value="alpha">Ordre alphabétique</option>
+        <option value="year_desc">Année (récente)</option>
+        <option value="year_asc">Année (ancienne)</option>
+      </select>
+    </div>
     <div class="want-grid" id="marketTradeGrid"></div>
   </div>
 </div>
@@ -1788,7 +1815,7 @@ async function deleteItemsFromDb(ids){ if(ids.length) await sb.from('collection'
 
 async function loadWantlist(){
   const {data}=await sb.from('wantlist').select('*').eq('user_id',currentUser.id);
-  wantlist=(data||[]).map(r=>({id:r.id,title:r.title,tmdbId:r.tmdb_id||null,posterUrl:r.poster_url||null,year:r.year||''}));
+  wantlist=(data||[]).map(r=>({id:r.id,title:r.title,tmdbId:r.tmdb_id||null,posterUrl:r.poster_url||null,year:r.year||'',createdAt:r.created_at||null}));
   renderWantlist();
 }
 async function saveWantItem(it){
@@ -3811,13 +3838,18 @@ function updateSelectionBar(){
 async function renderWantlist(){
   const grid=document.getElementById('wantGrid');
   if(wantlist.length===0){ grid.innerHTML='<div class="empty"><div class="logo">WANTLIST VIDE</div><div>Ajoute les films que tu cherches.</div></div>'; return; }
-  const tmdbIds=wantlist.filter(w=>w.tmdbId).map(w=>String(w.tmdbId));
+  const sortVal = document.getElementById('wantSortOrder')?.value || 'date_added';
+  const sorted = [...wantlist];
+  if(sortVal==='alpha') sorted.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(sortVal==='year') sorted.sort((a,b)=>(b.year||'0').localeCompare(a.year||'0'));
+  else sorted.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const tmdbIds=sorted.filter(w=>w.tmdbId).map(w=>String(w.tmdbId));
   let ownersMap={};
   if(tmdbIds.length>0){
     const {data:owners}=await sb.from('collection').select('tmdb_id,user_id,profiles(username)').in('tmdb_id',tmdbIds);
     (owners||[]).forEach(o=>{ if(!ownersMap[o.tmdb_id]) ownersMap[o.tmdb_id]=[]; if(o.profiles&&o.user_id!==currentUser.id) ownersMap[o.tmdb_id].push(o.profiles.username); });
   }
-  grid.innerHTML=wantlist.map(w=>{
+  grid.innerHTML=sorted.map(w=>{
     const owners=w.tmdbId?(ownersMap[String(w.tmdbId)]||[]):[];
     return '<div class="want-card" data-wid="'+w.id+'">'
       +'<div class="poster-wrap">'+(w.posterUrl?'<img src="'+w.posterUrl+'">'
@@ -3829,17 +3861,25 @@ async function renderWantlist(){
   grid.querySelectorAll('.want-card').forEach(el=>el.addEventListener('click',()=>openWantEdit(el.dataset.wid)));
 }
 
-// ── MARKET : Vendre / Échanger (agrège les films marqués par tous les membres) ──
+// ── MARKET : Ventes / Échanger (agrège les films marqués par tous les membres) ──
 async function loadMarketListings(kind){
   // kind: 'for_sale' ou 'for_trade'
   const gridId = kind==='for_sale' ? 'marketSaleGrid' : 'marketTradeGrid';
+  const sortSelId = kind==='for_sale' ? 'marketSaleSort' : 'marketTradeSort';
   const grid = document.getElementById(gridId);
+  const sortVal = document.getElementById(sortSelId)?.value || 'date_added';
   grid.innerHTML = '<div style="padding:20px;color:var(--muted);">Chargement...</div>';
-  const {data} = await sb.from('collection')
-    .select('*,profiles(username)')
-    .eq(kind, true)
-    .order('updated_at', {ascending:false})
-    .limit(200);
+  let query = sb.from('collection').select('*,profiles(username)').eq(kind, true);
+  if(sortVal==='date_added') query = query.order('created_at', {ascending:false});
+  else if(sortVal==='date_added_asc') query = query.order('created_at', {ascending:true});
+  else if(sortVal==='date_modified') query = query.order('updated_at', {ascending:false});
+  else if(sortVal==='alpha') query = query.order('title', {ascending:true});
+  else if(sortVal==='year_desc') query = query.order('year', {ascending:false});
+  else if(sortVal==='year_asc') query = query.order('year', {ascending:true});
+  else if(sortVal==='price_asc') query = query.order('sale_price', {ascending:true, nullsFirst:false});
+  else if(sortVal==='price_desc') query = query.order('sale_price', {ascending:false, nullsFirst:false});
+  else query = query.order('created_at', {ascending:false});
+  const {data} = await query.limit(200);
   if(!data || !data.length){
     grid.innerHTML = '<div class="empty"><div class="logo">'+(kind==='for_sale'?'RIEN À VENDRE':'RIEN À ÉCHANGER')+'</div><div>'+(kind==='for_sale'?"Aucun membre n'a encore mis de film à la vente.":"Aucun membre n'a encore proposé de film à l'échange.")+'</div></div>';
     return;
@@ -3874,6 +3914,10 @@ document.querySelectorAll('.market-subtab').forEach(btn=>{
     if(tab==='trade') loadMarketListings('for_trade');
   });
 });
+
+document.getElementById('wantSortOrder').addEventListener('change', renderWantlist);
+document.getElementById('marketSaleSort').addEventListener('change', ()=>loadMarketListings('for_sale'));
+document.getElementById('marketTradeSort').addEventListener('change', ()=>loadMarketListings('for_trade'));
 
 function openWantAdd(){
   editingWantId=null; pendingWantPoster=null; pendingWantTmdbId=null;
