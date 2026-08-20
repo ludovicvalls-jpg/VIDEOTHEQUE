@@ -850,6 +850,7 @@
       <button id="addWantBtn" class="primary">+ Ajouter à ma wantlist</button>
       <button id="allWantlistsBtn">Voir toutes les wantlists</button>
       <button id="allTitlesBtn">📚 Tous les titres du site</button>
+      <button id="wantBulkFormatBtn">🎯 Définir un support en masse</button>
       <select id="wantSortOrder" style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
         <option value="date_added">Date d'ajout</option>
         <option value="alpha">Ordre alphabétique</option>
@@ -1290,6 +1291,16 @@
   <div class="modal">
     <h2 id="wantModalTitle">Ajouter à la wantlist</h2>
     <div class="field"><label>Titre du film</label><input type="text" id="wantTitle" placeholder="Ex: The Thing"></div>
+    <div class="field"><label>Support recherché</label>
+      <select id="wantFormat">
+        <option value="">Peu importe</option>
+        <option value="VHS">VHS</option>
+        <option value="DVD">DVD</option>
+        <option value="BLURAY">Blu-ray</option>
+        <option value="BLURAY4K">Blu-ray 4K</option>
+        <option value="LASERDISC">Laser Disc</option>
+      </select>
+    </div>
     <div class="field" id="wantPosterField">
       <label>Affiche</label>
       <div class="poster-preview" id="wantPosterPreview"><span>Pas encore d'affiche</span></div>
@@ -1316,6 +1327,28 @@
       <button id="wantDeleteBtn" class="danger" style="display:none;">Supprimer</button>
       <button id="wantCancelBtn">Annuler</button>
       <button class="primary" id="wantSaveBtn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DÉFINIR UN SUPPORT EN MASSE (WANTLIST) -->
+<div class="overlay" id="overlayWantBulk">
+  <div class="modal">
+    <h2>Définir un support pour plusieurs titres</h2>
+    <p class="hint" style="margin-bottom:10px;">Ces titres de ta wantlist n'ont pas encore de support précisé. Coche ceux que tu veux mettre à jour, choisis un support, puis valide.</p>
+    <div id="wantBulkList" style="max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+    <div class="field"><label>Support à appliquer à la sélection</label>
+      <select id="wantBulkFormat">
+        <option value="VHS">VHS</option>
+        <option value="DVD">DVD</option>
+        <option value="BLURAY">Blu-ray</option>
+        <option value="BLURAY4K">Blu-ray 4K</option>
+        <option value="LASERDISC">Laser Disc</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button id="wantBulkCancelBtn">Annuler</button>
+      <button class="primary" id="wantBulkApplyBtn">Appliquer</button>
     </div>
   </div>
 </div>
@@ -1815,12 +1848,12 @@ async function deleteItemsFromDb(ids){ if(ids.length) await sb.from('collection'
 
 async function loadWantlist(){
   const {data}=await sb.from('wantlist').select('*').eq('user_id',currentUser.id);
-  wantlist=(data||[]).map(r=>({id:r.id,title:r.title,tmdbId:r.tmdb_id||null,posterUrl:r.poster_url||null,year:r.year||'',createdAt:r.created_at||null}));
+  wantlist=(data||[]).map(r=>({id:r.id,title:r.title,tmdbId:r.tmdb_id||null,posterUrl:r.poster_url||null,year:r.year||'',format:r.format||'',createdAt:r.created_at||null}));
   renderWantlist();
 }
 async function saveWantItem(it){
   await sb.from('wantlist').upsert({id:it.id,user_id:currentUser.id,title:it.title,
-    tmdb_id:it.tmdbId?String(it.tmdbId):null,poster_url:it.posterUrl||null,year:it.year||null});
+    tmdb_id:it.tmdbId?String(it.tmdbId):null,poster_url:it.posterUrl||null,year:it.year||null,format:it.format||null});
 }
 async function deleteWantItem(id){ await sb.from('wantlist').delete().eq('id',id); }
 
@@ -2232,11 +2265,22 @@ async function fetchMessages(){
     const isMine = msg.from_user_id === currentUser.id;
     const time = new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     return `<div>
-      <div class="msg-bubble ${isMine?'mine':'theirs'}">${msg.content}</div>
-      <div class="msg-time ${isMine?'mine':''}">${time}${isMine&&msg.seen?' ✓✓':''}</div>
+      <div class="msg-bubble ${isMine?'mine':'theirs'}">${escHtml(msg.content)}</div>
+      <div class="msg-time ${isMine?'mine':''}">${time}${isMine&&msg.seen?' ✓✓':''}${isMine?` · <span class="msg-del" data-mid="${msg.id}" style="cursor:pointer;text-decoration:underline;">supprimer</span>`:''}</div>
     </div>`;
   }).join('');
+  container.querySelectorAll('.msg-del').forEach(el=>{
+    el.addEventListener('click', ()=>deleteMessage(el.dataset.mid));
+  });
   container.scrollTop = container.scrollHeight;
+}
+
+async function deleteMessage(msgId){
+  if(!confirm('Supprimer définitivement ce message pour vous deux ?')) return;
+  const {error} = await sb.from('messages').delete().eq('id', msgId).eq('from_user_id', currentUser.id);
+  if(error){ alert('❌ Impossible de supprimer ce message : '+error.message); return; }
+  await fetchMessages();
+  loadConversations();
 }
 
 async function markMessagesRead(fromUserId){
@@ -3852,7 +3896,7 @@ async function renderWantlist(){
   grid.innerHTML=sorted.map(w=>{
     const owners=w.tmdbId?(ownersMap[String(w.tmdbId)]||[]):[];
     return '<div class="want-card" data-wid="'+w.id+'">'
-      +'<div class="poster-wrap">'+(w.posterUrl?'<img src="'+w.posterUrl+'">'
+      +'<div class="poster-wrap">'+(w.format?fmtBannerHtml(w.format):'')+(w.posterUrl?'<img src="'+w.posterUrl+'">'
         :'<div class="poster-placeholder">'+w.title+'</div>')+'</div>'
       +'<div class="tape-info"><p class="tape-title">'+w.title+'</p>'+(w.year?'<span class="tape-year">'+w.year+'</span>':'')+'</div>'
       +(owners.length>0?'<div class="want-owners">Possédé par : '+owners.join(', ')+'</div>':'')
@@ -3923,6 +3967,7 @@ function openWantAdd(){
   editingWantId=null; pendingWantPoster=null; pendingWantTmdbId=null;
   document.getElementById('wantModalTitle').textContent='Ajouter a la wantlist';
   document.getElementById('wantTitle').value='';
+  document.getElementById('wantFormat').value='';
   document.getElementById('wantPosterPreview').innerHTML='<span>Pas encore</span>';
   document.getElementById('wantResults').innerHTML='';
   document.getElementById('wantHint').textContent='';
@@ -3936,6 +3981,7 @@ function openWantEdit(id){
   editingWantId=id; pendingWantPoster=w.posterUrl?{url:w.posterUrl}:null; pendingWantTmdbId=w.tmdbId||null;
   document.getElementById('wantModalTitle').textContent='Modifier';
   document.getElementById('wantTitle').value=w.title;
+  document.getElementById('wantFormat').value=w.format||'';
   document.getElementById('wantPosterPreview').innerHTML=w.posterUrl?'<img src="'+w.posterUrl+'">':"<span>Pas d'affiche</span>";
   document.getElementById('wantResults').innerHTML='';
   document.getElementById('wantHint').textContent='';
@@ -3950,14 +3996,16 @@ function openWantEdit(id){
 async function saveWant(){
   const title=document.getElementById('wantTitle').value.trim();
   if(!title){ alert('Donne un titre.'); return; }
+  const format=document.getElementById('wantFormat').value;
   if(editingWantId){
     const w=wantlist.find(x=>x.id===editingWantId);
     w.title=title;
+    w.format=format;
     if(pendingWantPoster) w.posterUrl=pendingWantPoster.url;
     if(pendingWantTmdbId) w.tmdbId=pendingWantTmdbId;
     await saveWantItem(w);
   } else {
-    const w={id:uid(),title,posterUrl:pendingWantPoster?pendingWantPoster.url:null,tmdbId:pendingWantTmdbId||null,year:''};
+    const w={id:uid(),title,posterUrl:pendingWantPoster?pendingWantPoster.url:null,tmdbId:pendingWantTmdbId||null,year:'',format};
     wantlist.push(w); await saveWantItem(w);
   }
   document.getElementById('overlayWant').classList.remove('open');
@@ -3971,6 +4019,39 @@ async function deleteWant(){
   document.getElementById('overlayWant').classList.remove('open');
   renderWantlist();
 }
+
+// ── Définir un support en masse pour les titres de la wantlist qui n'en ont pas ──
+function openWantBulkModal(){
+  const missing = wantlist.filter(w=>!w.format);
+  const listEl = document.getElementById('wantBulkList');
+  if(missing.length===0){
+    listEl.innerHTML = '<div class="hint">Tous tes titres ont déjà un support précisé 🎉</div>';
+  } else {
+    listEl.innerHTML = '<label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--cyan);"><input type="checkbox" id="wantBulkSelectAll"> Tout sélectionner ('+missing.length+')</label>'
+      + missing.map(w=>'<label style="display:flex;align-items:center;gap:8px;font-size:13px;"><input type="checkbox" class="wantBulkItem" value="'+w.id+'"> '+escHtml(w.title)+(w.year?' ('+w.year+')':'')+'</label>').join('');
+    document.getElementById('wantBulkSelectAll').addEventListener('change', e=>{
+      document.querySelectorAll('.wantBulkItem').forEach(cb=>{ cb.checked=e.target.checked; });
+    });
+  }
+  document.getElementById('overlayWantBulk').classList.add('open');
+  document.body.classList.add('modal-open');
+}
+async function applyWantBulkFormat(){
+  const ids = Array.from(document.querySelectorAll('.wantBulkItem:checked')).map(cb=>cb.value);
+  if(ids.length===0){ alert('Sélectionne au moins un titre.'); return; }
+  const format = document.getElementById('wantBulkFormat').value;
+  const {error} = await sb.from('wantlist').update({format}).in('id', ids);
+  if(error){ alert('❌ Erreur : '+error.message); return; }
+  document.getElementById('overlayWantBulk').classList.remove('open');
+  document.body.classList.remove('modal-open');
+  await loadWantlist();
+}
+document.getElementById('wantBulkFormatBtn').addEventListener('click', openWantBulkModal);
+document.getElementById('wantBulkCancelBtn').addEventListener('click', ()=>{
+  document.getElementById('overlayWantBulk').classList.remove('open');
+  document.body.classList.remove('modal-open');
+});
+document.getElementById('wantBulkApplyBtn').addEventListener('click', applyWantBulkFormat);
 async function searchWantPoster(){
   const title=document.getElementById('wantTitle').value.trim();
   if(!title){ document.getElementById('wantHint').textContent='Ecris le titre.'; return; }
@@ -5472,23 +5553,27 @@ async function voteDeal(dealId, vote){
 
   if(existing){
     // Toujours supprimer l'ancien vote d'abord
-    await sb.from('deal_votes').delete().eq('deal_id',dealId).eq('user_id',currentUserId);
+    const {error:delErr}=await sb.from('deal_votes').delete().eq('deal_id',dealId).eq('user_id',currentUserId);
+    if(delErr){ alert('❌ Vote impossible : '+delErr.message); return; }
     // Décrémenter l'ancien compteur
     if(existing.vote==='hot') newHot=Math.max(0,newHot-1);
     else newDead=Math.max(0,newDead-1);
 
     if(existing.vote===vote){
       // Même vote → simple annulation, on ne réinsère pas
-      await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
+      const {error:updErr}=await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
+      if(updErr){ alert('❌ Vote impossible : '+updErr.message); return; }
       loadDeals(); return;
     }
   }
 
   // Insérer le nouveau vote et incrémenter
-  await sb.from('deal_votes').insert({deal_id:dealId,user_id:currentUserId,vote});
+  const {error:insErr}=await sb.from('deal_votes').insert({deal_id:dealId,user_id:currentUserId,vote});
+  if(insErr){ alert('❌ Vote impossible : '+insErr.message); return; }
   if(vote==='hot') newHot++;
   else newDead++;
-  await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
+  const {error:updErr2}=await sb.from('deals').update({votes_hot:newHot,votes_dead:newDead}).eq('id',dealId);
+  if(updErr2){ alert('❌ Vote impossible : '+updErr2.message); return; }
   loadDeals();
 }
 
