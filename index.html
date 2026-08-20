@@ -1278,6 +1278,7 @@
           <h2 id="memberModalTitle" style="margin:0 0 4px;"></h2>
           <div id="memberProfileBadge" style="display:flex;align-items:center;gap:8px;margin-top:4px;"></div>
         <div id="memberExternalLinks" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
+        <div id="memberAdminToggle" style="margin-top:8px;"></div>
         </div>
         <div style="margin-left:auto;" id="memberMsgBtn"></div>
       </div>
@@ -2346,7 +2347,7 @@ async function loadNoteComments(collectionId, ownerId, ownerUsername){
     listEl.innerHTML = comments.map(c=>{
       const author = c.profiles ? c.profiles.username : 'Membre';
       const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-      const isOwn = c.user_id === currentUser.id;
+      const isOwn = c.user_id === currentUser.id || currentProfile?.is_admin;
       return '<div class="note-comment" data-cid="'+c.id+'">'
         +(isOwn?'<button type="button" class="note-comment-del" data-cid="'+c.id+'">✕</button>':'')
         +'<span class="note-comment-author">'+escHtml(author)+'</span>'
@@ -2390,7 +2391,8 @@ async function postNoteComment(collectionId, ownerId, ownerUsername){
 }
 
 async function deleteNoteComment(commentId, collectionId, ownerId, ownerUsername){
-  if(!confirm('Supprimer ce commentaire ?')) return;
+  const msg = currentProfile?.is_admin ? 'Supprimer ce commentaire (action admin) ?' : 'Supprimer ce commentaire ?';
+  if(!confirm(msg)) return;
   await sb.from('film_note_comments').delete().eq('id', commentId);
   loadNoteComments(collectionId, ownerId, ownerUsername);
 }
@@ -2977,7 +2979,7 @@ async function loadSondages(){
     const pollVotes = (votes||[]).filter(v=>v.poll_id===poll.id);
     const totalVotes = pollVotes.length;
     const myVote = pollVotes.find(v=>v.user_id===currentUser.id);
-    const isOwn = poll.created_by === currentUser.id;
+    const isOwn = poll.created_by === currentUser.id || currentProfile?.is_admin;
     const author = poll.profiles ? poll.profiles.username : 'Membre';
     const date = new Date(poll.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short'});
 
@@ -3023,7 +3025,8 @@ async function voteSondage(pollId, optionId){
 }
 
 async function deleteSondage(pollId){
-  if(!confirm('Supprimer ce sondage ?')) return;
+  const msg = currentProfile?.is_admin ? 'Supprimer ce sondage (action admin) ?' : 'Supprimer ce sondage ?';
+  if(!confirm(msg)) return;
   await sb.from('movie_polls').delete().eq('id', pollId);
   loadSondages();
 }
@@ -3393,7 +3396,7 @@ async function renderPosts(posts){
 
   container.innerHTML = posts.map(p => {
     const date = new Date(p.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-    const isOwn = p.user_id === currentUser.id;
+    const isOwn = p.user_id === currentUser.id || currentProfile?.is_admin;
     const contentHtml = escHtml(p.content).replace(/@(\w+)/g, '<span class="mention">@$1</span>');
     const username = p.profiles ? p.profiles.username : 'Membre';
     const avatarUrl = p.profiles ? p.profiles.avatar_url : null;
@@ -3482,7 +3485,8 @@ async function publishPost(){
 }
 
 async function deletePost(postId){
-  if(!confirm("Supprimer ce message ?")) return;
+  const msg = currentProfile?.is_admin ? "Supprimer ce message (action admin) ?" : "Supprimer ce message ?";
+  if(!confirm(msg)) return;
   await sb.from('posts').delete().eq('id', postId);
   const {data:posts} = await sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').order('created_at', {ascending:false}).limit(50);
   await renderPosts(posts || []);
@@ -3957,7 +3961,7 @@ async function openMemberCollection(userId, username, onClose){
   document.body.classList.add('modal-open');
 
   // Charger le profil du membre pour la photo et le badge
-  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username,senscritique_username').eq('id',userId).single();
+  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username,senscritique_username,is_admin').eq('id',userId).single();
   const {count:countExact} = await sb.from('collection').select('id', {count:'exact', head:true}).eq('user_id',userId);
   const count = countExact || 0;
   const badge = await getBadge(count);
@@ -4017,6 +4021,29 @@ async function openMemberCollection(userId, username, onClose){
 
   const linksEl = document.getElementById('memberExternalLinks');
   if(linksEl) linksEl.innerHTML = linksHtml;
+
+  // Case "Droits admin" — visible seulement si JE suis admin et que ce n'est pas ma propre fiche
+  const adminToggleEl = document.getElementById('memberAdminToggle');
+  if(adminToggleEl){
+    if(currentProfile?.is_admin && userId !== currentUser.id){
+      const isTargetAdmin = !!profile?.is_admin;
+      adminToggleEl.innerHTML = `<label style="display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);cursor:pointer;">
+        <input type="checkbox" id="memberAdminCheckbox" ${isTargetAdmin?'checked':''}> Droits admin
+      </label>`;
+      document.getElementById('memberAdminCheckbox').addEventListener('change', async (e)=>{
+        const checked = e.target.checked;
+        const ok = confirm(checked ? `Donner les droits admin à ${username} ?` : `Retirer les droits admin à ${username} ?`);
+        if(!ok){ e.target.checked = !checked; return; }
+        const {error} = await sb.from('profiles').update({is_admin: checked}).eq('id', userId);
+        if(error){
+          alert("❌ Impossible de modifier les droits admin : " + error.message);
+          e.target.checked = !checked;
+        }
+      });
+    } else {
+      adminToggleEl.innerHTML = '';
+    }
+  }
 
   critiquesBtn.style.display = 'none';
   lbBlock.style.display = 'none';
