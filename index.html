@@ -1011,9 +1011,10 @@
 
 <!-- MODAL STATS -->
 <div class="overlay" id="overlayStats">
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:620px;">
     <h2>📊 Mes Stats</h2>
     <div id="statsContent"></div>
+    <div id="statsCommunityContent"></div>
     <div class="modal-actions"><button id="statsCloseBtn">Fermer</button></div>
   </div>
 </div>
@@ -1815,10 +1816,12 @@ function toRow(it){
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
     estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
     cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null,
-    is_series:!!it.isSeries,seasons:it.seasons||null,episodes:it.episodes||null};
+    is_series:!!it.isSeries,seasons:it.seasons||null,episodes:it.episodes||null,
+    genres:it.genres||null,directors:it.directors||null};
 }
 function fromRow(r){
   return {id:r.id,title:r.title,titleOriginal:r.title_original||'',format:r.format,year:r.year||'',watched:r.watched,shelf:r.shelf||'',
+    genres:r.genres||'',directors:r.directors||'',
     notes:r.notes||'',publicNote:r.public_note||'',posterUrl:r.poster_url||null,customPhoto:r.custom_photo,tmdbId:r.tmdb_id||null,
     estimatedValue:r.estimated_value||null,forTrade:r.for_trade||false,forSale:r.for_sale||false,salePrice:r.sale_price||null,isSteelbook:r.is_steelbook||false,
     castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
@@ -1951,6 +1954,7 @@ function openStats(){
   document.getElementById('overlayStats').classList.add('open');
   document.body.classList.add('modal-open');
   renderStats();
+  renderCommunityStats();
 }
 
 function renderStats(){
@@ -1982,6 +1986,40 @@ function renderStats(){
   formats.forEach(f=>{ valueByFormat[f] = c.filter(i=>i.format===f).reduce((s,i)=>s+(i.estimatedValue||0),0); });
 
   const maxCount = Math.max(...formats.map(f=>c.filter(i=>i.format===f).length));
+
+  // Répartition par genre (nécessite d'avoir cliqué "Mettre à jour les castings" au moins une fois)
+  const genreCounts = {};
+  c.forEach(i=>{ (i.genres||'').split(',').map(g=>g.trim()).filter(Boolean).forEach(g=>{ genreCounts[g]=(genreCounts[g]||0)+1; }); });
+  const sortedGenres = Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]);
+  const maxGenre = sortedGenres.length ? sortedGenres[0][1] : 0;
+  const filmsWithGenre = c.filter(i=>i.genres).length;
+
+  // Réalisateurs les plus présents
+  const directorCounts = {};
+  c.forEach(i=>{ (i.directors||'').split(',').map(d=>d.trim()).filter(Boolean).forEach(d=>{ directorCounts[d]=(directorCounts[d]||0)+1; }); });
+  const topDirectors = Object.entries(directorCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxDirector = topDirectors.length ? topDirectors[0][1] : 0;
+
+  // Courbe d'ajout sur les 12 derniers mois
+  const now = new Date();
+  const monthBuckets = [];
+  for(let i=11;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    monthBuckets.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), label:d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'}), count:0});
+  }
+  c.forEach(i=>{
+    if(!i.createdAt) return;
+    const d = new Date(i.createdAt);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const bucket = monthBuckets.find(b=>b.key===key);
+    if(bucket) bucket.count++;
+  });
+  const maxMonth = Math.max(1, ...monthBuckets.map(b=>b.count));
+
+  // Progression vers le prochain badge
+  const currentBadgeIdx = BADGES.findIndex(b=>c.length>=b.min && c.length<=b.max);
+  const currentBadge = BADGES[currentBadgeIdx] || BADGES[0];
+  const nextBadge = BADGES[currentBadgeIdx+1];
 
   document.getElementById('statsContent').innerHTML = `
     <div class="stats-grid">
@@ -2015,6 +2053,39 @@ function renderStats(){
       <div class="stats-bar-val">${count} titre${count>1?'s':''}</div>
     </div>`).join('')}`:''}
 
+    ${sortedGenres.length>0?`
+    <div class="stats-section-title">Répartition par genre</div>
+    <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin:-4px 0 8px;">${filmsWithGenre}/${c.length} titres ont un genre renseigné (utilise "🎬 Mettre à jour les castings" pour compléter)</div>
+    ${sortedGenres.map(([g,count])=>`<div class="stats-bar-row">
+      <div class="stats-bar-label">${g}</div>
+      <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(count/maxGenre*100)}%;background:var(--pink);"></div></div>
+      <div class="stats-bar-val">${count} titre${count>1?'s':''}</div>
+    </div>`).join('')}`:`
+    <div class="stats-section-title">Répartition par genre</div>
+    <p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">Clique sur "🎬 Mettre à jour les castings" dans Mon Rayon pour débloquer cette stat.</p>`}
+
+    ${topDirectors.length>0?`
+    <div class="stats-section-title">Réalisateurs les plus présents</div>
+    ${topDirectors.map(([d,count])=>`<div class="stats-bar-row">
+      <div class="stats-bar-label">${d}</div>
+      <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(count/maxDirector*100)}%;background:var(--cyan);"></div></div>
+      <div class="stats-bar-val">${count} film${count>1?'s':''}</div>
+    </div>`).join('')}`:''}
+
+    <div class="stats-section-title">Ajouts sur les 12 derniers mois</div>
+    <div style="display:flex;align-items:flex-end;gap:4px;height:80px;padding:4px 0 8px;">
+      ${monthBuckets.map(b=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;" title="${b.count} titre${b.count>1?'s':''}">
+        <div style="width:100%;background:var(--cyan);border-radius:2px 2px 0 0;height:${Math.round(b.count/maxMonth*56)}px;min-height:${b.count>0?'2px':'0'};"></div>
+        <div style="font-family:'Space Mono',monospace;font-size:8px;color:var(--muted);white-space:nowrap;">${b.label}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="stats-section-title">Progression vers le prochain badge</div>
+    ${nextBadge?`
+    <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:6px;">${currentBadge.name} → <span style="color:var(--pink);">${nextBadge.name}</span> (encore ${nextBadge.min-c.length} titre${(nextBadge.min-c.length)>1?'s':''})</div>
+    <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.min(100,Math.round((c.length-currentBadge.min)/(nextBadge.min-currentBadge.min)*100))}%;background:var(--pink);"></div></div>
+    `:`<p style="font-family:'Space Mono',monospace;font-size:11px;color:var(--pink);">🏆 ${currentBadge.name} — le badge le plus haut, bravo !</p>`}
+
     ${mostExpensive?`<div class="stats-section-title">Le plus précieux</div>
     <div style="background:#1c1c26;border:1px solid var(--card-border);border-radius:6px;padding:12px;display:flex;gap:12px;align-items:center;">
       ${mostExpensive.posterUrl?`<img src="${mostExpensive.posterUrl}" style="height:60px;width:auto;border-radius:4px;">`:''}
@@ -2027,6 +2098,71 @@ function renderStats(){
       <div><div style="font-weight:600;">${newest.title}</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);">${fmtLabel(newest.format)}${newest.year?' · '+newest.year:''}</div></div>
     </div>`:''}
   `;
+}
+
+async function renderCommunityStats(){
+  const el = document.getElementById('statsCommunityContent');
+  if(!el) return;
+  el.innerHTML = '<div class="stats-section-title">Communauté</div><p style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--muted);">Chargement...</p>';
+  try{
+    const {data:profiles} = await sb.from('profiles').select('id,username');
+    const counts = {};
+    await Promise.all((profiles||[]).map(async p=>{
+      const {count} = await sb.from('collection').select('id',{count:'exact',head:true}).eq('user_id',p.id);
+      counts[p.id] = count||0;
+    }));
+    const ranking = (profiles||[]).map(p=>({id:p.id, username:p.username||'Membre', count:counts[p.id]||0})).sort((a,b)=>b.count-a.count);
+    const myRank = ranking.findIndex(r=>r.id===currentUser.id)+1;
+    const top5 = ranking.slice(0,5);
+    const maxTop = top5.length ? top5[0].count||1 : 1;
+
+    const [totalTitlesRes, totalDealsRes, totalForSaleRes, totalForTradeRes, commentsReceivedRes, commentsGivenRes, myDealsRes, messagesRes] = await Promise.all([
+      sb.from('collection').select('id',{count:'exact',head:true}),
+      sb.from('deals').select('id',{count:'exact',head:true}),
+      sb.from('collection').select('id',{count:'exact',head:true}).eq('for_sale',true),
+      sb.from('collection').select('id',{count:'exact',head:true}).eq('for_trade',true),
+      sb.from('film_note_comments').select('id,collection:collection_id!inner(id,user_id)',{count:'exact',head:true}).eq('collection.user_id',currentUser.id).neq('user_id',currentUser.id),
+      sb.from('film_note_comments').select('id',{count:'exact',head:true}).eq('user_id',currentUser.id),
+      sb.from('deals').select('votes_hot').eq('user_id',currentUser.id),
+      sb.from('messages').select('id',{count:'exact',head:true}).or(`from_user_id.eq.${currentUser.id},to_user_id.eq.${currentUser.id}`),
+    ]);
+    const totalTitles = totalTitlesRes.count||0;
+    const totalDeals = totalDealsRes.count||0;
+    const totalForSale = totalForSaleRes.count||0;
+    const totalForTrade = totalForTradeRes.count||0;
+    const commentsReceived = commentsReceivedRes.count||0;
+    const commentsGiven = commentsGivenRes.count||0;
+    const flamesReceived = (myDealsRes.data||[]).reduce((s,d)=>s+(d.votes_hot||0),0);
+    const messagesCount = messagesRes.count||0;
+
+    el.innerHTML = `
+      <div class="stats-section-title">🏆 Classement des collectionneurs</div>
+      ${top5.map((r,idx)=>`<div class="stats-bar-row">
+        <div class="stats-bar-label">${idx+1}. ${escHtml(r.username)}${r.id===currentUser.id?' (toi)':''}</div>
+        <div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.round(r.count/maxTop*100)}%;background:${r.id===currentUser.id?'var(--pink)':'var(--cyan)'};"></div></div>
+        <div class="stats-bar-val">${r.count} titre${r.count>1?'s':''}</div>
+      </div>`).join('')}
+      ${myRank>5?`<div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--pink);margin-top:6px;">Ta position : ${myRank}${myRank===1?'er':'e'} sur ${ranking.length} membres</div>`:''}
+
+      <div class="stats-section-title">🌐 Chiffres du site</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card-num">${totalTitles}</div><div class="stat-card-label">Titres sur le site</div></div>
+        <div class="stat-card"><div class="stat-card-num">${ranking.length}</div><div class="stat-card-label">Membres</div></div>
+        <div class="stat-card"><div class="stat-card-num">${totalDeals}</div><div class="stat-card-label">Bons plans partagés</div></div>
+        <div class="stat-card"><div class="stat-card-num">${totalForSale+totalForTrade}</div><div class="stat-card-label">Titres en vente/échange</div></div>
+      </div>
+
+      <div class="stats-section-title">🙋 Tes stats sociales</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-card-num">${commentsReceived}</div><div class="stat-card-label">Commentaires reçus</div></div>
+        <div class="stat-card"><div class="stat-card-num">${commentsGiven}</div><div class="stat-card-label">Commentaires donnés</div></div>
+        <div class="stat-card"><div class="stat-card-num">🔥 ${flamesReceived}</div><div class="stat-card-label">Flammes reçues sur tes bons plans</div></div>
+        <div class="stat-card"><div class="stat-card-num">${messagesCount}</div><div class="stat-card-label">Messages échangés</div></div>
+      </div>
+    `;
+  }catch(e){
+    el.innerHTML = '<div class="stats-section-title">Communauté</div><p style="font-family:\'Space Mono\',monospace;font-size:11px;color:var(--muted);">Impossible de charger les stats communauté pour le moment.</p>';
+  }
 }
 // ── BADGES ──
 const BADGES = [
@@ -4672,7 +4808,7 @@ async function loadTmdbInfo(tmdbId){
     // Sauvegarder dans l'item en cours d'édition
     if(editingId){
       const item = collection.find(it=>it.id===editingId);
-      if(item) item.castCrew = castCrewStr;
+      if(item){ item.castCrew = castCrewStr; item.genres = genres; item.directors = directors.join(', '); }
     }
     content.innerHTML=
       '<div class="meta-line">'+[d.release_date?d.release_date.slice(0,4):'',d.runtime?d.runtime+' min':'',d.vote_average?d.vote_average.toFixed(1)+'/10':'',genres].filter(Boolean).join(' · ')+'</div>'
@@ -5017,12 +5153,12 @@ function exportCsv(){
 
 document.getElementById('updateCastingBtn').addEventListener('click', async ()=>{
   document.querySelectorAll('.dd').forEach(d=>d.removeAttribute('open'));
-  const films = collection.filter(i=>i.tmdbId && !i.castCrew);
+  const films = collection.filter(i=>i.tmdbId && (!i.castCrew || !i.genres || !i.directors));
   if(films.length === 0){
-    alert('Tous tes films ont déjà leur casting !');
+    alert('Tous tes films ont déjà leur casting, genres et réalisateurs !');
     return;
   }
-  const ok = confirm(`${films.length} film(s) sans casting trouvé(s). La mise à jour va démarrer en fond, ça peut prendre quelques minutes. Continue ?`);
+  const ok = confirm(`${films.length} film(s) à compléter (casting/genres/réalisateur). La mise à jour va démarrer en fond, ça peut prendre quelques minutes. Continue ?`);
   if(!ok) return;
 
   let done = 0;
@@ -5038,13 +5174,15 @@ document.getElementById('updateCastingBtn').addEventListener('click', async ()=>
       const actors = (credits.cast||[]).slice(0,8).map(c=>c.name);
       const genres = (movie.genres||[]).map(g=>g.name);
       it.castCrew = [...directors, ...actors, ...genres].join(' ');
+      it.genres = genres.join(', ');
+      it.directors = directors.join(', ');
       await saveItem(it);
       done++;
       // Petite pause pour ne pas surcharger l'API
       await new Promise(r=>setTimeout(r,200));
     }catch(e){ /* on continue si erreur sur un film */ }
   }
-  alert(`✓ ${done} film(s) mis à jour ! Tu peux maintenant rechercher par réalisateur ou acteur.`);
+  alert(`✓ ${done} film(s) mis à jour ! Tu peux maintenant rechercher par réalisateur ou acteur, et voir tes stats par genre.`);
 });
 document.getElementById('cancelBtn').addEventListener('click',closeModal);
 document.getElementById('saveBtn').addEventListener('click',saveItemModal);
