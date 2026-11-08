@@ -209,6 +209,41 @@
   #remonterBtn:hover{background:var(--cyan);color:#0d0d14;}
   #pleinEcranBtn{font-size:20px;color:var(--cyan);}
   #pleinEcranBtn.actif{color:var(--pink);}
+  /* FIL D'ACCUEIL */
+  .feed{max-width:640px;margin:0 auto;padding:12px 10px 40px;}
+  .feed-section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--pink);margin:10px 2px 8px;}
+  .online-strip{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none;}
+  .online-strip::-webkit-scrollbar{display:none;}
+  .online-chip{display:flex;flex-direction:column;align-items:center;width:60px;flex-shrink:0;text-align:center;}
+  .online-chip:hover{text-decoration:none;}
+  .online-name{font-family:'Space Mono',monospace;font-size:10px;color:var(--text);margin-top:4px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .online-when{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);}
+  .online-dot{position:absolute;right:0;bottom:0;width:12px;height:12px;border-radius:50%;background:#2fae5e;border:2px solid var(--bg);}
+  .feed-actions{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px;}
+  .feed-actions button{font-size:11px;padding:8px 12px;}
+  .feed-card{background:var(--card);border:1px solid var(--card-border);border-radius:10px;padding:12px;margin-bottom:10px;}
+  .feed-head{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
+  .feed-avatar{border-radius:50%;overflow:hidden;background:#1c1c26;border:1px solid var(--card-border);flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;font-family:'Bebas Neue',sans-serif;color:var(--cyan);font-size:16px;}
+  .feed-avatar img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;}
+  .feed-action{font-size:13px;line-height:1.35;color:var(--text);}
+  .feed-action .user-link{font-weight:700;}
+  .feed-when{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+  .feed-posters{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;}
+  .feed-posters::-webkit-scrollbar{display:none;}
+  .feed-poster{width:70px;height:105px;flex-shrink:0;border-radius:4px;overflow:hidden;background:#1c1c26;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);text-align:center;padding:2px;box-sizing:border-box;}
+  .feed-poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .feed-poster em{position:absolute;left:0;right:0;bottom:0;background:#2fae5e;color:#fff;font-style:normal;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;padding:1px 0;}
+  .feed-more{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--cyan);}
+  .feed-film-title{font-size:12px;font-weight:600;margin-top:6px;}
+  .feed-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:4px;}
+  .feed-note{display:flex;gap:10px;cursor:pointer;}
+  .feed-note img{width:56px;height:84px;object-fit:cover;border-radius:4px;flex-shrink:0;}
+  .feed-quote{font-size:13px;line-height:1.5;color:var(--text);font-style:italic;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;}
+  .feed-image{max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;}
+  .reac-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .reac{font-family:'Inter',sans-serif;font-size:12px;text-transform:none;letter-spacing:0;padding:5px 10px;border-radius:16px;}
+  .reac-label{font-size:11px;color:var(--muted);margin-left:2px;}
+  .reac.mine{border-color:var(--cyan);color:var(--cyan);background:rgba(46,230,255,0.08);}
   .user-link{cursor:pointer;}
   .user-link:hover{text-decoration:underline;color:var(--cyan);}
   .series-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#9b5cff;color:#fff;}
@@ -544,6 +579,7 @@
       </button>
       <div class="hamburger-menu" id="hamburgerMenu">
         <div class="hamburger-header" id="hamburgerHeader"></div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionAccueil">🏠 Accueil</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionRayon">Mon Rayon</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionWantlist">MARKET</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionMembers">Membres</div>
@@ -563,7 +599,8 @@
 
 <!-- NAV -->
 <div class="nav-tabs">
-  <button class="nav-tab active" data-section="sectionRayon">Mon Rayon</button>
+  <button class="nav-tab active" data-section="sectionAccueil">🏠 Accueil</button>
+  <button class="nav-tab" data-section="sectionRayon">Mon Rayon</button>
   <button class="nav-tab" data-section="sectionWantlist">MARKET</button>
   <button class="nav-tab" data-section="sectionMembers">Membres</button>
   <button class="nav-tab" data-section="sectionMessages">Messages <span id="msgBadge" style="display:none;background:#0d0d14;color:var(--cyan);font-size:10px;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:700;"></span></button>
@@ -735,7 +772,21 @@
 </div>
 
 <!-- SECTION MON RAYON -->
-<div class="section active" id="sectionRayon">
+<div class="section active" id="sectionAccueil">
+  <div class="feed">
+    <div class="feed-section-title">En ce moment</div>
+    <div class="online-strip" id="accueilEnLigne"></div>
+    <div class="feed-actions">
+      <button onclick="showSection('sectionForum')">✏️ Publier sur Le Mur</button>
+      <button onclick="showSection('sectionDeals')">🔥 Bons plans</button>
+      <button onclick="loadAccueil()" title="Actualiser">↻</button>
+    </div>
+    <div class="feed-section-title">Dans la communauté</div>
+    <div id="accueilFeed"></div>
+  </div>
+</div>
+
+<div class="section" id="sectionRayon">
   <div class="toolbar">
     <button id="addBtn" class="primary">+ Ajouter<span class="toolbar-desktop">&nbsp;un titre</span></button>
 
@@ -1685,6 +1736,7 @@ async function onLogin(user){
   await loadWantlist();
   await loadNotifications();
   loadActivity();
+  loadAccueil();
   // Vérifier les messages non lus
   const {data:unread} = await sb.from('messages').select('id').eq('to_user_id',user.id).eq('seen',false);
   updateMsgBadge((unread||[]).length);
@@ -2126,6 +2178,7 @@ function showSection(section, pushHistory=true){
   const tab = document.querySelector(`.nav-tab[data-section="${section}"]`);
   if(tab) tab.classList.add('active');
   document.getElementById(section).classList.add('active');
+  if(section==='sectionAccueil') loadAccueil();
   if(section==='sectionMembers') loadMembers();
   if(section==='sectionForum') loadForum();
   if(section==='sectionActivity') loadActivity();
@@ -2137,8 +2190,8 @@ window.addEventListener('popstate', e=>{
   if(e.state&&e.state.section){
     showSection(e.state.section, false);
   } else {
-    showSection('sectionRayon', false);
-    history.pushState({section:'sectionRayon'}, '', '#sectionRayon');
+    showSection('sectionAccueil', false);
+    history.pushState({section:'sectionAccueil'}, '', '#sectionAccueil');
   }
 });
 history.replaceState({section:'sectionRayon'}, '', '#sectionRayon');
@@ -3880,6 +3933,12 @@ function renderNotifDropdown(notifs){
       text = '<b>'+lienMembre(n.from_user_id, from)+'</b> a commenté ta note sur « '+escHtml(n.film ? n.film.title : 'un film')+' »';
     } else if(n.type==='new_deal'){
       text = '🔥 <b>'+lienMembre(n.from_user_id, from)+'</b> a signalé un nouveau bon plan'+(n.deal_title?' : « '+escHtml(n.deal_title)+' »':'');
+    } else if(n.type==='reaction'){
+      const m = n.meta || {};
+      const emo = (REACTIONS.find(r=>r.code===m.emoji)||{emoji:'❤️'}).emoji;
+      const t = m.titre ? ' « '+escHtml(m.titre)+' »' : '';
+      const quoi = m.cible_type==='ajouts' ? (/^\d+ films$/.test(m.titre||'') ? 'à tes '+escHtml(m.titre)+' ajoutés' : 'à ton ajout'+t) : m.cible_type==='note' ? 'à ton avis sur'+t : m.cible_type==='deal' ? 'à ton bon plan'+t : 'à ton sondage'+t;
+      text = emo+' <b>'+lienMembre(n.from_user_id, from)+'</b> a réagi '+quoi;
     } else if(n.type==='wantlist_match'){
       const quoi = n.film ? (n.film.for_sale ? 'met en vente' : (n.film.for_trade ? 'propose à l\'échange' : 'proposait')) : 'propose';
       text = '🎯 <b>'+lienMembre(n.from_user_id, from)+'</b> '+quoi+' « '+escHtml(n.film ? n.film.title : 'un film')+' », qui est dans ta wantlist';
@@ -3901,6 +3960,8 @@ async function handleNotifClick(notifId, type, collectionId){
   document.getElementById('notifDropdown').classList.remove('open');
   if(type==='new_deal'){
     showSection('sectionDeals');
+  } else if(type==='reaction'){
+    showSection('sectionAccueil');
   } else if(type==='wantlist_match'){
     showSection('sectionWantlist'); // onglet MARKET
   } else {
@@ -4635,6 +4696,227 @@ async function loadMemberAnnotations(memberId, memberUsername){
       if(filmData){ openMemberFilm(fromRow(filmData), card.dataset.uid, card.dataset.uname, null); }
     });
   });
+}
+
+// ── FIL D'ACCUEIL ──
+// Regroupe ce qui bouge dans la communauté (30 derniers jours) : ajouts de films groupés
+// par membre et par jour, avis publics, posts du Mur, bons plans, sondages.
+// Réactions en un appui (table reactions) ; les posts gardent leurs likes (post_likes).
+const REACTIONS = [
+  {code:'coeur', emoji:'❤️', label:"J'aime"},
+  {code:'feu',   emoji:'🔥', label:'Pépite'},
+  {code:'aussi', emoji:'🤝', label:"Je l'ai aussi"}
+];
+let accueilEtat = {reactions:[], profils:new Map(), items:[]};
+
+function ilYa(iso){
+  const min = Math.max(0, Math.round((Date.now()-new Date(iso).getTime())/60000));
+  if(min < 1) return "à l'instant";
+  if(min < 60) return 'il y a '+min+' min';
+  const h = Math.round(min/60);
+  if(h < 24) return 'il y a '+h+' h';
+  const j = Math.round(h/24);
+  if(j === 1) return 'hier';
+  if(j < 7) return 'il y a '+j+' jours';
+  return new Date(iso).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+}
+function avatarMembre(url, pos, nom, taille=36){
+  const style = 'width:'+taille+'px;height:'+taille+'px;';
+  return '<div class="feed-avatar" style="'+style+'">'
+    + (url ? '<img src="'+escHtml(url)+'" style="object-position:'+escHtml(pos||'50% 25%')+';">'
+           : '<span>'+escHtml((nom||'?').slice(0,1).toUpperCase())+'</span>')
+    + '</div>';
+}
+function jourLocal(iso){ const d=new Date(iso); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+async function loadAccueil(){
+  const feed = document.getElementById('accueilFeed');
+  const strip = document.getElementById('accueilEnLigne');
+  if(!feed || !currentUser) return;
+  if(!accueilEtat.items.length) feed.innerHTML = '<div class="activity-empty">Chargement...</div>';
+  const depuis = new Date(Date.now()-30*86400000).toISOString();
+
+  const notesReq = async ()=>{
+    const base = ()=> sb.from('collection').select('id,title,poster_url,public_note,user_id,created_at,updated_at,profiles(username,avatar_url,avatar_position)')
+      .not('public_note','is',null).neq('public_note','');
+    let r = await base().order('updated_at',{ascending:false}).limit(20);
+    if(r.error) r = await sb.from('collection').select('id,title,poster_url,public_note,user_id,created_at,profiles(username,avatar_url,avatar_position)')
+      .not('public_note','is',null).neq('public_note','').order('created_at',{ascending:false}).limit(20);
+    return r;
+  };
+  const [act, posts, notes, deals, polls, profs] = await Promise.all([
+    sb.from('public_activity').select('*').gte('created_at', depuis).order('created_at',{ascending:false}).limit(300),
+    sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').gte('created_at', depuis).order('created_at',{ascending:false}).limit(20),
+    notesReq(),
+    sb.from('deals').select('*').gte('created_at', depuis).order('created_at',{ascending:false}).limit(15),
+    sb.from('movie_polls').select('*,profiles(username,avatar_url,avatar_position)').gte('created_at', depuis).order('created_at',{ascending:false}).limit(10),
+    sb.from('profiles').select('id,username,avatar_url,avatar_position,last_seen_at')
+  ]);
+  const profils = new Map((profs.data||[]).map(p=>[p.id,p]));
+  accueilEtat.profils = profils;
+  const items = [];
+
+  // 1. Ajouts groupés par membre et par jour
+  const groupes = new Map();
+  (act.data||[]).forEach(a=>{
+    const cle = a.user_id+'_'+jourLocal(a.created_at);
+    if(!groupes.has(cle)) groupes.set(cle, {cle, uid:a.user_id, username:a.username, avatar_url:a.avatar_url, avatar_position:a.avatar_position, date:a.created_at, films:[]});
+    groupes.get(cle).films.push(a);
+  });
+  groupes.forEach(g=>items.push({type:'ajouts', cible:g.cle, date:g.date, uid:g.uid, username:g.username, avatar_url:g.avatar_url, avatar_position:g.avatar_position, data:g}));
+
+  // 2. Avis publics
+  (notes.data||[]).forEach(n=>{
+    const date = n.updated_at || n.created_at;
+    if(date < depuis) return;
+    items.push({type:'note', cible:n.id, date, uid:n.user_id, username:n.profiles?.username, avatar_url:n.profiles?.avatar_url, avatar_position:n.profiles?.avatar_position, data:n});
+  });
+  // 3. Posts du Mur
+  (posts.data||[]).forEach(p=>items.push({type:'post', cible:p.id, date:p.created_at, uid:p.user_id, username:p.profiles?.username, avatar_url:p.profiles?.avatar_url, avatar_position:p.profiles?.avatar_position, data:p}));
+  // 4. Bons plans
+  (deals.data||[]).forEach(d=>{ const p=profils.get(d.user_id)||{}; items.push({type:'deal', cible:d.id, date:d.created_at, uid:d.user_id, username:d.username||p.username, avatar_url:p.avatar_url, avatar_position:p.avatar_position, data:d}); });
+  // 5. Sondages
+  (polls.data||[]).forEach(s=>items.push({type:'sondage', cible:s.id, date:s.created_at, uid:s.created_by, username:s.profiles?.username, avatar_url:s.profiles?.avatar_url, avatar_position:s.profiles?.avatar_position, data:s}));
+
+  items.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  accueilEtat.items = items.slice(0,60);
+
+  // Réactions et likes des éléments affichés
+  const cibles = accueilEtat.items.filter(i=>i.type!=='post').map(i=>String(i.cible));
+  const postIds = accueilEtat.items.filter(i=>i.type==='post').map(i=>i.cible);
+  const [reacs, likes] = await Promise.all([
+    cibles.length ? sb.from('reactions').select('cible_type,cible_id,emoji,user_id').in('cible_id', cibles) : {data:[]},
+    postIds.length ? sb.from('post_likes').select('post_id,user_id').in('post_id', postIds) : {data:[]}
+  ]);
+  if(reacs.error) console.warn('Réactions non chargées :', reacs.error.message);
+  accueilEtat.reactions = reacs.data||[];
+  accueilEtat.likes = likes.data||[];
+
+  // Bandeau « En ce moment » : membres actifs ces 7 derniers jours
+  const actifs = (profs.data||[]).filter(p=>p.last_seen_at && Date.now()-new Date(p.last_seen_at).getTime() < 7*86400000)
+    .sort((a,b)=>b.last_seen_at.localeCompare(a.last_seen_at)).slice(0,15);
+  strip.innerHTML = actifs.length ? actifs.map(p=>{
+    const enLigne = Date.now()-new Date(p.last_seen_at).getTime() < 10*60000;
+    return '<div class="online-chip user-link" data-link-uid="'+escHtml(p.id)+'" data-link-uname="'+escHtml(p.username||'Membre')+'">'
+      + '<div style="position:relative;">'+avatarMembre(p.avatar_url,p.avatar_position,p.username,44)+(enLigne?'<span class="online-dot"></span>':'')+'</div>'
+      + '<div class="online-name">'+escHtml(p.username||'Membre')+'</div>'
+      + '<div class="online-when">'+(enLigne?'en ligne':ilYa(p.last_seen_at))+'</div></div>';
+  }).join('') : '<div class="online-when" style="padding:8px;">Personne ces 7 derniers jours.</div>';
+
+  renderAccueil();
+}
+
+function barreReactions(item){
+  if(item.type==='post'){
+    const likes = (accueilEtat.likes||[]).filter(l=>l.post_id===item.cible);
+    const mien = likes.some(l=>l.user_id===currentUser.id);
+    return '<div class="reac-bar"><button class="reac'+(mien?' mine':'')+'" data-like-post="'+escHtml(item.cible)+'" title="J\'aime">❤️ '+(likes.length||'')+'</button>'
+      + '<button class="reac" data-aller="sectionForum">💬 Voir sur Le Mur</button></div>';
+  }
+  const choix = REACTIONS.filter(r=> r.code!=='aussi' || item.type==='note' || (item.type==='ajouts' && item.data.films.length===1));
+  return '<div class="reac-bar">'+choix.map(r=>{
+    const liste = accueilEtat.reactions.filter(x=>x.cible_type===item.type && x.cible_id===String(item.cible) && x.emoji===r.code);
+    const mien = liste.some(x=>x.user_id===currentUser.id);
+    const noms = liste.map(x=>accueilEtat.profils.get(x.user_id)?.username).filter(Boolean).join(', ');
+    return '<button class="reac'+(mien?' mine':'')+'" data-reac="'+r.code+'" data-type="'+item.type+'" data-cible="'+escHtml(String(item.cible))+'" title="'+escHtml(r.label+(noms?' — '+noms:''))+'">'+r.emoji+' '+(liste.length||'')+(liste.length?'':'<span class="reac-label">'+r.label+'</span>')+'</button>';
+  }).join('')+'</div>';
+}
+
+function renderAccueil(){
+  const feed = document.getElementById('accueilFeed');
+  if(!accueilEtat.items.length){
+    feed.innerHTML = '<div class="activity-empty">Rien de neuf ces 30 derniers jours.<br>Ajoute un film, donne ton avis ou publie sur Le Mur pour lancer la discussion !</div>';
+    return;
+  }
+  feed.innerHTML = accueilEtat.items.map((item,idx)=>{
+    const d = item.data;
+    let action='', corps='';
+    if(item.type==='ajouts'){
+      const n = d.films.length, ventes = d.films.filter(f=>f.for_sale||f.for_trade).length;
+      action = n===1 ? 'a ajouté un film à sa collection' : 'a ajouté '+n+' films à sa collection';
+      const visibles = d.films.slice(0,8);
+      corps = '<div class="feed-posters">'+visibles.map(f=>'<div class="feed-poster" data-film="'+escHtml(f.id)+'" title="'+escHtml(f.title)+'">'
+          + (f.poster_url ? '<img src="'+escHtml(f.poster_url)+'" loading="lazy">' : '<span>'+escHtml(f.title)+'</span>')
+          + ((f.for_sale||f.for_trade)?'<em>'+(f.for_sale?'VENTE':'ÉCHANGE')+'</em>':'')+'</div>').join('')
+        + (n>8?'<div class="feed-poster feed-more user-link" data-link-uid="'+escHtml(item.uid)+'" data-link-uname="'+escHtml(item.username||'Membre')+'">+'+(n-8)+'</div>':'')
+        + '</div>'
+        + (n===1?'<div class="feed-film-title">'+escHtml(d.films[0].title)+'</div>':'')
+        + (ventes?'<div class="feed-sub">dont '+ventes+' à vendre ou à échanger</div>':'');
+    } else if(item.type==='note'){
+      action = 'a donné son avis sur <b>« '+escHtml(d.title)+' »</b>';
+      corps = '<div class="feed-note" data-film="'+escHtml(d.id)+'">'
+        + (d.poster_url?'<img src="'+escHtml(d.poster_url)+'" loading="lazy">':'')
+        + '<div><div class="feed-quote">'+escHtml(d.public_note)+'</div><div class="feed-sub" style="color:var(--cyan);">💬 Lire et commenter</div></div></div>';
+    } else if(item.type==='post'){
+      action = 'a publié sur Le Mur';
+      const txt = escHtml(d.content||'').replace(/@(\w+)/g,'<span class="mention user-link" data-link-uid="" data-link-uname="$1">@$1</span>');
+      corps = '<div class="feed-quote" style="font-style:normal;">'+txt+'</div>'
+        + (d.image_url?'<img src="'+escHtml(d.image_url)+'" class="feed-image" loading="lazy">':'');
+    } else if(item.type==='deal'){
+      action = 'a signalé un bon plan 🔥';
+      corps = '<div class="feed-note" data-aller="sectionDeals">'
+        + (d.poster_url?'<img src="'+escHtml(d.poster_url)+'" loading="lazy">':'')
+        + '<div><div style="font-weight:600;">'+escHtml(d.title)+'</div>'
+        + '<div class="feed-sub"><b style="color:var(--pink);font-size:14px;">'+escHtml(String(d.price_deal))+' €</b>'
+        + (d.price_normal?' <s>'+escHtml(String(d.price_normal))+' €</s>':'')+(d.merchant?' · '+escHtml(d.merchant):'')+'</div></div></div>';
+    } else if(item.type==='sondage'){
+      action = 'a lancé un sondage';
+      corps = '<div class="feed-note" data-sondage="1"><div><div style="font-weight:600;">📊 '+escHtml(d.question||'Sondage')+'</div><div class="feed-sub" style="color:var(--cyan);">Voter</div></div></div>';
+    }
+    return '<div class="feed-card" data-idx="'+idx+'">'
+      + '<div class="feed-head"><span class="user-link" data-link-uid="'+escHtml(item.uid||'')+'" data-link-uname="'+escHtml(item.username||'Membre')+'">'+avatarMembre(item.avatar_url,item.avatar_position,item.username)+'</span>'
+      + '<div style="min-width:0;"><div class="feed-action">'+lienMembre(item.uid,item.username)+' '+action+'</div><div class="feed-when">'+ilYa(item.date)+'</div></div></div>'
+      + corps + barreReactions(item) + '</div>';
+  }).join('');
+}
+
+// Clics dans le fil (un seul écouteur pour toutes les cartes)
+document.addEventListener('click', async e=>{
+  const feed = document.getElementById('accueilFeed');
+  if(!feed || !feed.contains(e.target)) return;
+  const reac = e.target.closest('[data-reac]');
+  if(reac){ await basculerReaction(reac.dataset.type, reac.dataset.cible, reac.dataset.reac); return; }
+  const like = e.target.closest('[data-like-post]');
+  if(like){ await basculerLikeAccueil(like.dataset.likePost); return; }
+  const aller = e.target.closest('[data-aller]');
+  if(aller){ showSection(aller.dataset.aller); window.scrollTo(0,0); return; }
+  if(e.target.closest('[data-sondage]')){ showSection('sectionExtras'); showExtrasSection('extrasSondage'); window.scrollTo(0,0); return; }
+  const film = e.target.closest('[data-film]');
+  if(film){
+    const {data:r} = await sb.from('collection').select('*').eq('id', film.dataset.film).maybeSingle();
+    if(r) openMemberFilm(fromRow(r), r.user_id, accueilEtat.profils.get(r.user_id)?.username||'Membre', null);
+  }
+});
+
+async function basculerReaction(type, cible, code){
+  const item = accueilEtat.items.find(i=>i.type===type && String(i.cible)===cible);
+  const mien = accueilEtat.reactions.find(x=>x.cible_type===type && x.cible_id===cible && x.emoji===code && x.user_id===currentUser.id);
+  if(mien){
+    accueilEtat.reactions = accueilEtat.reactions.filter(x=>x!==mien); renderAccueil();
+    const {error} = await sb.from('reactions').delete().eq('user_id',currentUser.id).eq('cible_type',type).eq('cible_id',cible).eq('emoji',code);
+    if(error){ console.warn('Réaction non retirée :', error.message); loadAccueil(); }
+    return;
+  }
+  accueilEtat.reactions.push({cible_type:type, cible_id:cible, emoji:code, user_id:currentUser.id}); renderAccueil();
+  const {error} = await sb.from('reactions').insert({user_id:currentUser.id, cible_type:type, cible_id:cible, emoji:code});
+  if(error){ console.warn('Réaction non enregistrée :', error.message); loadAccueil(); return; }
+  // Prévenir l'auteur (sauf si c'est moi)
+  if(item && item.uid && item.uid!==currentUser.id){
+    const d = item.data;
+    const titre = type==='ajouts' ? (d.films.length===1 ? d.films[0].title : d.films.length+' films') : type==='sondage' ? (d.question||'') : (d.title||'');
+    const {error:nErr} = await sb.from('notifications').insert({user_id:item.uid, from_user_id:currentUser.id, type:'reaction', meta:{emoji:code, cible_type:type, titre}});
+    if(nErr) console.warn('Notification de réaction non envoyée :', nErr.message);
+  }
+}
+async function basculerLikeAccueil(postId){
+  const mien = (accueilEtat.likes||[]).find(l=>l.post_id===postId && l.user_id===currentUser.id);
+  if(mien){
+    accueilEtat.likes = accueilEtat.likes.filter(l=>l!==mien); renderAccueil();
+    await sb.from('post_likes').delete().eq('post_id',postId).eq('user_id',currentUser.id);
+  } else {
+    accueilEtat.likes.push({post_id:postId, user_id:currentUser.id}); renderAccueil();
+    await sb.from('post_likes').insert({post_id:postId, user_id:currentUser.id});
+  }
 }
 
 // ── PSEUDOS CLIQUABLES ──
