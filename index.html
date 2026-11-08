@@ -1367,6 +1367,7 @@
         <div id="memberProfileAvatar" style="width:64px;height:64px;border-radius:50%;overflow:hidden;background:#1c1c26;border:2px solid var(--card-border);flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;margin-top:-40px;box-shadow:0 0 0 3px var(--card);"></div>
         <div>
           <h2 id="memberModalTitle" style="margin:0 0 4px;"></h2>
+          <div id="memberLastSeen" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);"></div>
           <div id="memberProfileBadge" style="display:flex;align-items:center;gap:8px;margin-top:4px;"></div>
         <div id="memberExternalLinks" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
         <div id="memberAdminToggle" style="margin-top:8px;"></div>
@@ -1602,6 +1603,7 @@ async function onLogin(user){
   }
 
   currentProfile=profile;
+  marquerConnexion(true);
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('app').style.display='block';
 
@@ -4420,6 +4422,37 @@ async function loadMemberAnnotations(memberId, memberUsername){
   });
 }
 
+// ── DERNIÈRE CONNEXION ──
+// L'application met à jour profiles.last_seen_at à l'ouverture, au retour sur l'onglet
+// et toutes les 5 minutes tant que l'onglet est visible. Moins de 10 min = « en ligne ».
+const LAST_SEEN_INTERVALLE = 5*60*1000;
+let lastSeenEnvoye = 0;
+async function marquerConnexion(force=false){
+  if(!currentUser) return;
+  if(!force && Date.now()-lastSeenEnvoye < LAST_SEEN_INTERVALLE) return;
+  lastSeenEnvoye = Date.now();
+  const {error} = await sb.from('profiles').update({last_seen_at: new Date().toISOString()}).eq('id', currentUser.id);
+  if(error) console.warn('Dernière connexion non enregistrée :', error.message);
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') marquerConnexion(); });
+setInterval(()=>{ if(document.visibilityState==='visible') marquerConnexion(); }, LAST_SEEN_INTERVALLE);
+
+function formatDerniereConnexion(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  const minutes = (Date.now()-d.getTime())/60000;
+  if(minutes < 10) return '<span style="color:var(--cyan);">● En ligne</span>';
+  const heure = d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  const debutJour = x => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const jours = Math.round((debutJour(new Date())-debutJour(d))/86400000);
+  let quand;
+  if(jours === 0) quand = "aujourd'hui à " + heure;
+  else if(jours === 1) quand = 'hier à ' + heure;
+  else quand = 'le ' + d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year: d.getFullYear()===new Date().getFullYear()?undefined:'numeric'}) + ' à ' + heure;
+  return 'Dernière connexion ' + quand;
+}
+
 // ── BANNIÈRE dans la modal membre ──
 async function openMemberCollection(userId, username, onClose){
   document.getElementById('memberModalTitle').textContent = username;
@@ -4429,10 +4462,14 @@ async function openMemberCollection(userId, username, onClose){
   document.body.classList.add('modal-open');
 
   // Charger le profil du membre pour la photo et le badge
-  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username,senscritique_username,is_admin').eq('id',userId).single();
+  const {data:profile} = await sb.from('profiles').select('avatar_url,avatar_position,banner_url,letterboxd_username,senscritique_username,is_admin,last_seen_at').eq('id',userId).single();
   const {count:countExact} = await sb.from('collection').select('id', {count:'exact', head:true}).eq('user_id',userId);
   const count = countExact || 0;
   const badge = await getBadge(count);
+
+  // Dernière connexion
+  const lastSeenEl = document.getElementById('memberLastSeen');
+  lastSeenEl.innerHTML = formatDerniereConnexion(profile?.last_seen_at);
 
   // Bannière
   const bannerEl = document.getElementById('memberBanner');
