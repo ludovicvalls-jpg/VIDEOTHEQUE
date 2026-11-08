@@ -243,6 +243,34 @@
   .feed-card .reac:hover{border-color:var(--accent);}
   .feed-section-title{background:linear-gradient(90deg,var(--pink),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;}
   /* Vitrine des nouveautés */
+  .deals-web:empty{display:none;}
+  .deals-entete{padding:16px 16px 12px;border-bottom:1px solid var(--card-border);display:flex;flex-direction:column;gap:12px;}
+  .deals-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;}
+  .deals-filtres{display:inline-flex;border:1px solid var(--card-border);border-radius:20px;overflow:hidden;}
+  .deals-filtre{border:none;border-radius:0;background:transparent;color:var(--muted);padding:7px 14px;font-size:13px;cursor:pointer;}
+  .deals-filtre.actif{background:var(--cyan);color:#0d0d14;font-weight:700;}
+  #sectionDeals[data-filtre="web"] .deals-bloc-commu, #sectionDeals[data-filtre="commu"] .deals-web{display:none;}
+  .deals-web:not(.tout) .deal-web-cache{display:none;}
+  .deals-web-plus{display:block;margin:14px auto 0;border-color:#ffa62e;color:#ffa62e;}
+  .deals-bloc{margin:14px 16px 0;padding:12px 14px 14px;border:1px solid rgba(46,230,255,.5);border-radius:10px;background:rgba(46,230,255,.04);box-shadow:0 0 12px rgba(46,230,255,.2);}
+  .deals-bloc-tete{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:12px;}
+  .deals-bloc-titre{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1px;color:var(--cyan);}
+  .deals-web{margin:14px 16px 16px;padding:12px 14px 14px;border:1px solid rgba(255,166,46,.6);border-radius:10px;background:rgba(255,166,46,.05);box-shadow:0 0 12px rgba(255,166,46,.25);}
+  .deals-web-tete{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-bottom:10px;}
+  .deals-web-titre{font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1px;color:#ffa62e;}
+  .deals-web-src{font-size:13px;color:var(--muted);}
+  .deals-web-src a{color:var(--muted);}
+  .deals-web-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+  @media(max-width:420px){.deals-web-liste{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}}
+  .deal-web{min-width:0;text-decoration:none;color:var(--text);background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:5px;transition:border-color .15s, transform .15s;}
+  .deal-web:hover{border-color:#ffa62e;transform:translateY(-2px);}
+  .deal-web-img{position:relative;height:110px;border-radius:5px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:30px;}
+  .deal-web-img img{max-width:100%;max-height:100%;object-fit:contain;}
+  .deal-web-groupe{position:absolute;top:4px;left:4px;background:rgba(13,13,20,.85);color:#ffa62e;font-family:'Space Mono',monospace;font-size:10px;padding:1px 5px;border-radius:3px;}
+  .deal-web-titre{font-size:13px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:3.9em;}
+  .deal-web-bas{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;font-size:12px;color:var(--muted);}
+  .deal-web-bas b{color:#ffa62e;font-family:'Space Mono',monospace;font-size:15px;}
+  .deal-web-date{font-size:11px;color:var(--muted);margin-top:auto;}
   .nouveautes{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 14px;scroll-snap-type:x mandatory;scrollbar-width:thin;}
   .nouveaute{width:118px;flex-shrink:0;scroll-snap-align:start;cursor:pointer;}
   .nouveaute-affiche{position:relative;width:118px;height:177px;border-radius:8px;overflow:hidden;background:#1c1c26;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;color:var(--muted);padding:4px;box-sizing:border-box;box-shadow:0 0 0 1px var(--card-border), 0 4px 14px rgba(0,0,0,.6);transition:transform .15s, box-shadow .15s;}
@@ -957,14 +985,25 @@
 
 <!-- SECTION WANTLIST -->
 <div class="section" id="sectionDeals">
-  <div style="padding:16px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--card-border);">
+  <div class="deals-entete">
     <div>
       <span style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--cyan);">🔥 Bons Plans</span>
-      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-left:10px;">Films à prix cassés signalés par la communauté</span>
+      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-left:10px;">Films à prix cassés, signalés par la communauté ou repérés sur le web</span>
     </div>
-    <button id="addDealBtn" class="primary" style="font-size:14px;padding:8px 16px;">+ Signaler un bon plan</button>
+    <div class="deals-actions">
+      <button id="addDealBtn" class="primary" style="font-size:14px;padding:8px 16px;">+ Signaler un bon plan</button>
+      <div class="deals-filtres" role="tablist">
+        <button type="button" class="deals-filtre actif" data-filtre="tous">Tous</button>
+        <button type="button" class="deals-filtre" data-filtre="commu">👥 De la commu</button>
+        <button type="button" class="deals-filtre" data-filtre="web">🌐 Du web</button>
+      </div>
+    </div>
   </div>
-  <div id="dealsList" style="padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:16px;"></div>
+  <div class="deals-bloc deals-bloc-commu" id="dealsCommuBloc">
+    <div class="deals-bloc-tete"><span class="deals-bloc-titre">👥 Les plans de la commu</span><span class="deals-web-src">signalés et votés par les membres</span></div>
+    <div id="dealsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:16px;"></div>
+  </div>
+  <div id="dealsWeb" class="deals-web"></div>
 </div>
 
 <!-- MODAL BON PLAN -->
@@ -3854,7 +3893,11 @@ document.getElementById('mapBtn').addEventListener('click', async ()=>{
   btn.textContent='Masquer la carte';
   if(!mapInstance){
     mapInstance = L.map('membersMap').setView([46.5, 2.3], 5);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(mapInstance);
+    // Fond sombre CARTO (les serveurs d'OpenStreetMap refusent les sites qui ne s'identifient pas)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+      attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> © <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>',
+      subdomains:'abcd', maxZoom:19
+    }).addTo(mapInstance);
   }
   // Effacer les anciens marqueurs
   mapInstance.eachLayer(l=>{ if(l instanceof L.Marker) mapInstance.removeLayer(l); });
@@ -6651,7 +6694,41 @@ sb.auth.onAuthStateChange((_,session)=>{ currentUserId=session?.user?.id||null; 
 const fmtDeal={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K'};
 
 let _dealsCache=[];
+// Filtre de la section Bons Plans : tous / de la commu / du web
+document.querySelectorAll('.deals-filtre').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.deals-filtre').forEach(x=>x.classList.toggle('actif',x===b));
+  document.getElementById('sectionDeals').dataset.filtre=b.dataset.filtre;
+}));
+// ── Bons plans repérés sur le web (Dealabs, via la fonction relais « bons-plans-web ») ──
+let bonsPlansWebCharges=0;
+async function chargerBonsPlansWeb(){
+  const box=document.getElementById('dealsWeb');
+  if(!box) return;
+  if(Date.now()-bonsPlansWebCharges<5*60*1000 && box.dataset.ok) return; // déjà à jour
+  box.innerHTML='<div class="deals-web-tete"><span class="deals-web-titre">🌐 Repérés sur le web</span><span class="deals-web-src">chargement…</span></div>';
+  let plans=null;
+  try{
+    const {data,error}=await sb.functions.invoke('bons-plans-web',{body:{}});
+    if(!error && data && Array.isArray(data.plans)) plans=data.plans;
+  }catch(e){}
+  if(!plans){ box.innerHTML=''; delete box.dataset.ok; return; } // fonction absente ou en panne : on n'affiche rien
+  bonsPlansWebCharges=Date.now(); box.dataset.ok='1';
+  if(!plans.length){ box.innerHTML=''; return; }
+  const ilYa=d=>{ const h=Math.floor((Date.now()-new Date(d).getTime())/3600000); if(isNaN(h)) return ''; if(h<1) return 'à l\'instant'; if(h<24) return 'il y a '+h+' h'; const j=Math.floor(h/24); return 'il y a '+j+' j'; };
+  box.innerHTML='<div class="deals-web-tete"><span class="deals-web-titre">🌐 Repérés sur le web</span>'
+    +'<span class="deals-web-src">Blu-ray, 4K et DVD en promo · via <a href="https://www.dealabs.com" target="_blank" rel="noopener">Dealabs</a></span></div>'
+    +'<div class="deals-web-liste">'+plans.map((p,idx)=>
+      '<a class="deal-web'+(idx>=12?' deal-web-cache':'')+'" href="'+safeUrl(p.lien)+'" target="_blank" rel="noopener" title="'+escHtml(p.titre)+'">'
+      +'<div class="deal-web-img">'+(p.image?'<img src="'+safeUrl(p.image)+'" alt="" loading="lazy">':'🎞️')
+      +'<span class="deal-web-groupe">'+escHtml(/(^|[^a-z0-9])4k([^a-z0-9]|$)|uhd/i.test(p.titre)?'4K':(p.groupe||''))+'</span></div>'
+      +'<div class="deal-web-titre">'+escHtml(p.titre)+'</div>'
+      +'<div class="deal-web-bas">'+(p.prix?'<b>'+escHtml(p.prix)+'</b>':'')+(p.magasin?'<span>'+escHtml(p.magasin)+'</span>':'')+'</div>'
+      +'<div class="deal-web-date">'+escHtml(ilYa(p.date))+'</div>'
+      +'</a>').join('')+'</div>'
+    +(plans.length>12?'<button type="button" class="deals-web-plus" onclick="this.parentNode.classList.add(\'tout\');this.remove();">Voir les '+(plans.length-12)+' autres bons plans du web</button>':'');
+}
 async function loadDeals(){
+  chargerBonsPlansWeb();
   const list=document.getElementById('dealsList');
   list.innerHTML='<p style="color:var(--muted);font-family:Space Mono,monospace;font-size:13px;padding:8px;">Chargement...</p>';
   const {data:deals,error}=await sb.from('deals').select('*').order('votes_hot',{ascending:false}).order('created_at',{ascending:false});
