@@ -199,6 +199,13 @@
   .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
   .loan-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ff8c42;color:#1a0410;}
   .loan-badge.late{background:#ff4d4d;color:#fff;}
+  .member-seen{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+  .modal-close-x{position:absolute;top:10px;right:10px;z-index:5;width:36px;height:36px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;background:rgba(13,13,20,0.75);border:1px solid var(--cyan);color:var(--cyan);}
+  .modal-close-x.sticky{position:sticky;top:10px;margin:10px 10px -46px auto;}
+  .modal-close-x:hover{background:var(--cyan);color:#0d0d14;border-color:var(--cyan);}
+  #remonterBtn{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:200002;width:46px;height:46px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;background:rgba(13,13,20,0.85);border:1px solid var(--cyan);color:var(--cyan);box-shadow:0 4px 14px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .2s,transform .2s;}
+  #remonterBtn.visible{opacity:1;pointer-events:auto;transform:none;}
+  #remonterBtn:hover{background:var(--cyan);color:#0d0d14;}
   .user-link{cursor:pointer;}
   .user-link:hover{text-decoration:underline;color:var(--cyan);}
   .series-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#9b5cff;color:#fff;}
@@ -506,7 +513,7 @@
 
 <header>
   <div>
-    <div class="neon-title">MA VIDÉOTHÈQUE</div>
+    <div class="neon-title" id="logoAccueil" title="Retour à mon rayon" style="cursor:pointer;">MA VIDÉOTHÈQUE</div>
     <div class="neon-sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
   </div>
   <div class="header-right">
@@ -1390,7 +1397,9 @@
 
 <!-- MODAL COLLECTION MEMBRE -->
 <div class="overlay" id="overlayMember">
-  <div class="modal" style="max-width:700px;padding:0;overflow:hidden;">
+  <div class="modal" id="memberModal" style="max-width:700px;padding:0;overflow-x:hidden;overflow-y:auto;position:relative;">
+    <!-- Croix collante : reste visible quand toute la fiche défile -->
+    <button class="modal-close-x sticky" title="Fermer" aria-label="Fermer" onclick="document.getElementById('memberCloseBtn').click()">✕</button>
     <!-- Bannière -->
     <div id="memberBanner" style="width:100%;height:100px;background:#1c1c26;overflow:hidden;flex-shrink:0;"></div>
     <div style="padding:16px 20px;">
@@ -1441,7 +1450,7 @@
         </select>
         <span id="memberCollCount" style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-left:4px;"></span>
       </div>
-      <div id="memberModalContent" style="max-height:55vh;overflow-y:auto;">
+      <div id="memberModalContent">
         <div class="grid" style="padding:0;" id="memberGrid"></div>
         <div id="memberLetterboxd" style="display:none;padding:12px 0;">
           <div id="memberLetterboxdContent"></div>
@@ -1527,6 +1536,7 @@
 
 </div><!-- fin #app -->
 
+<button id="remonterBtn" title="Remonter en haut" aria-label="Remonter en haut">↑</button>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1977,6 +1987,38 @@ document.getElementById('hamburgerBtn').addEventListener('click', e=>{
   document.getElementById('hamburgerMenu').classList.toggle('open');
 });
 document.addEventListener('click', ()=> document.getElementById('hamburgerMenu').classList.remove('open'));
+
+// Logo : retour à « Mon Rayon », en haut de la page, fenêtres fermées
+document.getElementById('logoAccueil').addEventListener('click', e=>{
+  e.stopPropagation();
+  if(!currentUser) return;
+  document.getElementById('hamburgerMenu').classList.remove('open');
+  document.getElementById('notifDropdown').classList.remove('open');
+  document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
+  document.body.classList.remove('modal-open');
+  showSection('sectionRayon');
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+// Flèche « remonter en haut » : apparaît dès qu'on a défilé, sur la page ou dans une fenêtre
+// (fiche membre…). Le scroll des éléments ne remonte pas jusqu'au document, d'où la phase de capture.
+(()=>{
+  const btn=document.getElementById('remonterBtn');
+  let cible=null; // window ou l'élément qui défile
+  const hauteur=c=> c===window ? window.scrollY : c.scrollTop;
+  const visible=c=> c===window || (c.isConnected && c.offsetParent!==null);
+  const majBouton=()=>{ btn.classList.toggle('visible', !!cible && visible(cible) && hauteur(cible)>400); };
+  document.addEventListener('scroll', e=>{
+    const c = (e.target===document || e.target===document.documentElement) ? window : e.target;
+    if(hauteur(c)>400 || c===cible){ cible=c; majBouton(); }
+  }, {capture:true, passive:true});
+  // Fenêtre fermée ou section changée : revérifier après chaque clic
+  document.addEventListener('click', ()=> setTimeout(majBouton, 50), true);
+  btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    if(cible) cible.scrollTo({top:0, behavior:'smooth'});
+  });
+})();
 
 // Application installable : enregistre le service worker (sw.js, sans cache)
 if('serviceWorker' in navigator && location.protocol==='https:'){
@@ -4343,7 +4385,7 @@ async function searchWantPoster(){
 async function loadMembers(){
   const grid=document.getElementById('membersGrid');
   grid.innerHTML='<div style="padding:20px;color:var(--muted);font-family:Space Mono,monospace;font-size:11px;">Chargement...</div>';
-  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position');
+  const {data:profiles}=await sb.from('profiles').select('id,username,collection_public,avatar_url,avatar_position,last_seen_at');
   if(!profiles||profiles.length===0){ grid.innerHTML='<div class="empty">Aucun membre.</div>'; return; }
   // Compter les films par membre — requêtes séparées pour contourner la RLS
   // On utilise count:'exact' + head:true : Supabase renvoie juste le nombre total de lignes
@@ -4391,6 +4433,7 @@ async function loadMembers(){
       +'<div class="member-avatar-ring"><div class="member-avatar-inner">'+av+'</div></div>'
       // Nom + badge collectionneur
       +'<div class="member-name">'+p.username+(isMe?' <span style="font-size:11px;color:var(--muted);">(moi)</span>':'')+'</div>'
+      +(p.last_seen_at?'<div class="member-seen">'+formatDerniereConnexion(p.last_seen_at,true)+'</div>':'')
       +(badge&&badge.name?'<div class="member-badge-label">'+badge.name+'</div>':'')
       // Nombre de titres (ou "Privée")
       +'<div class="member-count">'+(p.collection_public!==false?'<span>'+total+' titre'+(total>1?'s':'')+'</span>':'Collection privée')+'</div>'
@@ -4556,10 +4599,10 @@ async function marquerConnexion(force=false){
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') marquerConnexion(); });
 setInterval(()=>{ if(document.visibilityState==='visible') marquerConnexion(); }, LAST_SEEN_INTERVALLE);
 
-function formatDerniereConnexion(iso){
-  if(!iso) return '';
-  const d = new Date(iso);
-  if(isNaN(d)) return '';
+// court=true : version abrégée pour les cartes de la page Membres (« Vu hier à 21:05 »)
+function formatDerniereConnexion(iso, court=false){
+  const d = iso ? new Date(iso) : null;
+  if(!d || isNaN(d)) return court ? '' : 'Dernière connexion inconnue';
   const minutes = (Date.now()-d.getTime())/60000;
   if(minutes < 10) return '<span style="color:var(--cyan);">● En ligne</span>';
   const heure = d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
@@ -4568,8 +4611,8 @@ function formatDerniereConnexion(iso){
   let quand;
   if(jours === 0) quand = "aujourd'hui à " + heure;
   else if(jours === 1) quand = 'hier à ' + heure;
-  else quand = 'le ' + d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year: d.getFullYear()===new Date().getFullYear()?undefined:'numeric'}) + ' à ' + heure;
-  return 'Dernière connexion ' + quand;
+  else quand = 'le ' + d.toLocaleDateString('fr-FR',{day:'numeric',month:court?'short':'long',year: d.getFullYear()===new Date().getFullYear()?undefined:'numeric'}) + (court ? '' : ' à ' + heure);
+  return (court ? 'Vu ' : 'Dernière connexion ') + quand;
 }
 
 // ── BANNIÈRE dans la modal membre ──
@@ -4578,6 +4621,7 @@ async function openMemberCollection(userId, username, onClose){
   document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Chargement...</div>';
   document.getElementById('overlayMember')._onClose=onClose||null;
   document.getElementById('overlayMember').classList.add('open');
+  document.getElementById('memberModal').scrollTop = 0;
   document.body.classList.add('modal-open');
 
   // Charger le profil du membre pour la photo et le badge
