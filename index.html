@@ -360,7 +360,10 @@
   .note-comment{padding:8px 0;border-top:1px solid var(--card-border);font-size:12px;line-height:1.5;}
   .note-comment-author{font-weight:600;color:var(--cyan);margin-right:6px;}
   .note-comment-date{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);}
-  .note-comment-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;float:right;}
+  .note-comment-del,.note-comment-edit{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;float:right;padding:0 4px;}
+  .note-comment-text{white-space:pre-wrap;}
+  .feed-fil{margin-top:8px;border-left:2px solid var(--cyan);padding-left:8px;font-size:12px;line-height:1.5;}
+  .feed-fil div{margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
   .note-comment-form{display:flex;gap:6px;margin-top:10px;}
   .note-comment-form input{flex:1;}
 
@@ -1057,12 +1060,12 @@
     <div id="mfInfos" style="display:flex;flex-direction:column;gap:10px;"></div>
     <div id="mfNotes" style="display:none;margin-top:12px;padding:12px;background:#1c1c26;border-radius:6px;font-size:13px;line-height:1.6;"></div>
     <div id="mfPublicNoteBlock" class="public-note-block" style="display:none;">
-      <div class="public-note-label">💬 Note publique</div>
+      <div class="public-note-label" id="mfPublicNoteLabel">💬 Note publique</div>
       <div class="public-note-text" id="mfPublicNoteText"></div>
       <div id="mfCommentsList"></div>
       <div class="note-comment-form">
-        <input type="text" id="mfCommentInput" placeholder="Ajouter un commentaire...">
-        <button type="button" id="mfCommentBtn">Envoyer</button>
+        <input type="text" id="mfCommentInput" maxlength="500" placeholder="Écrire une note sur ce film...">
+        <button type="button" id="mfCommentBtn">Publier</button>
       </div>
     </div>
     <div class="modal-actions">
@@ -2905,11 +2908,17 @@ function openMemberFilm(it, memberUserId, memberUsername, onClose){
     notesEl.textContent=it.notes;
   }
 
-  // Note publique + commentaires : seulement si on a une vraie fiche (avec un id) et un propriétaire connu
+  // Discussion du film : ouverte sur toute vraie fiche (avec un id), même sans note publique du propriétaire.
+  // N'importe quel membre peut y écrire une note ; elle apparaît ensuite dans le fil d'accueil.
   const pubBlock = document.getElementById('mfPublicNoteBlock');
-  if(it.id && memberUserId && it.publicNote){
+  if(it.id && memberUserId){
     pubBlock.style.display='block';
-    document.getElementById('mfPublicNoteText').textContent = it.publicNote;
+    const noteEl = document.getElementById('mfPublicNoteText');
+    noteEl.textContent = it.publicNote || '';
+    noteEl.style.display = it.publicNote ? 'block' : 'none';
+    document.getElementById('mfPublicNoteLabel').textContent = it.publicNote
+      ? '💬 Avis de '+(memberUserId===currentUser.id ? 'toi' : memberUsername)
+      : '💬 Discussion sur ce film';
     loadNoteComments(it.id, memberUserId, memberUsername);
   } else {
     pubBlock.style.display='none';
@@ -2938,27 +2947,36 @@ async function loadNoteComments(collectionId, ownerId, ownerUsername){
     .select('*,profiles(username)')
     .eq('collection_id', collectionId)
     .order('created_at', {ascending:true});
+  const input = document.getElementById('mfCommentInput');
+  const aUneNote = document.getElementById('mfPublicNoteText').style.display !== 'none';
   if(!comments || !comments.length){
     listEl.innerHTML = '';
+    input.placeholder = aUneNote ? 'Réagir à cet avis...' : 'Écris la première note sur ce film...';
   } else {
+    input.placeholder = 'Participer à la discussion...';
     listEl.innerHTML = comments.map(c=>{
       const author = c.profiles ? c.profiles.username : 'Membre';
       const date = new Date(c.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-      const isOwn = c.user_id === currentUser.id || currentProfile?.is_admin;
+      const estAuteur = c.user_id === currentUser.id;
+      const peutSuppr = estAuteur || currentProfile?.is_admin;
       return '<div class="note-comment" data-cid="'+c.id+'">'
-        +(isOwn?'<button type="button" class="note-comment-del" data-cid="'+c.id+'">✕</button>':'')
+        +(peutSuppr?'<button type="button" class="note-comment-del" data-cid="'+c.id+'" title="Supprimer">✕</button>':'')
+        +(estAuteur?'<button type="button" class="note-comment-edit" data-cid="'+c.id+'" title="Modifier">✏️</button>':'')
         +'<span class="note-comment-author">'+lienMembre(c.user_id, author)+'</span>'
-        +'<span class="note-comment-date">'+date+'</span><br>'
-        +escHtml(c.content)
+        +'<span class="note-comment-date">'+date+(c.updated_at?' · modifié':'')+'</span><br>'
+        +'<span class="note-comment-text">'+escHtml(c.content)+'</span>'
         +'</div>';
     }).join('');
     listEl.querySelectorAll('.note-comment-del').forEach(btn=>{
       btn.addEventListener('click', ()=> deleteNoteComment(btn.dataset.cid, collectionId, ownerId, ownerUsername));
     });
+    listEl.querySelectorAll('.note-comment-edit').forEach(btn=>{
+      const c = comments.find(x=>String(x.id)===btn.dataset.cid);
+      btn.addEventListener('click', ()=> editerNoteComment(btn.closest('.note-comment'), c, collectionId, ownerId, ownerUsername));
+    });
   }
   const btn = document.getElementById('mfCommentBtn');
   btn.onclick = ()=> postNoteComment(collectionId, ownerId, ownerUsername);
-  const input = document.getElementById('mfCommentInput');
   input.value = '';
   input.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); postNoteComment(collectionId, ownerId, ownerUsername); } };
 }
@@ -2985,6 +3003,35 @@ async function postNoteComment(collectionId, ownerId, ownerUsername){
     if(notifError) console.warn('Notification non envoyée :', notifError.message);
   }
   loadNoteComments(collectionId, ownerId, ownerUsername);
+  rafraichirAccueilSiVisible();
+}
+
+// Modifier sa propre note : le texte devient un champ éditable sur place
+function editerNoteComment(bloc, c, collectionId, ownerId, ownerUsername){
+  if(!bloc || !c || bloc.querySelector('.note-comment-editform')) return;
+  const txt = bloc.querySelector('.note-comment-text');
+  txt.style.display = 'none';
+  const form = document.createElement('div');
+  form.className = 'note-comment-form note-comment-editform';
+  form.innerHTML = '<input type="text" maxlength="500"><button type="button" class="ok">Enregistrer</button><button type="button" class="annuler" style="background:none;border:1px solid var(--card-border);color:var(--muted);">Annuler</button>';
+  bloc.appendChild(form);
+  const champ = form.querySelector('input');
+  champ.value = c.content;
+  champ.focus();
+  const annuler = ()=>{ form.remove(); txt.style.display=''; };
+  const enregistrer = async ()=>{
+    const content = validateText(champ.value.trim(), 500);
+    if(!content){ alert('La note ne peut pas être vide (pour l\'effacer, utilise la croix ✕).'); return; }
+    if(content === c.content){ annuler(); return; }
+    let {error} = await sb.from('film_note_comments').update({content, updated_at:new Date().toISOString()}).eq('id', c.id).select('id').single();
+    if(error && /updated_at/.test(error.message||'')) ({error} = await sb.from('film_note_comments').update({content}).eq('id', c.id).select('id').single());
+    if(error){ console.warn('Modification refusée :', error.message); alert('❌ Impossible de modifier cette note pour le moment.'); return; }
+    loadNoteComments(collectionId, ownerId, ownerUsername);
+    rafraichirAccueilSiVisible();
+  };
+  form.querySelector('.ok').onclick = enregistrer;
+  form.querySelector('.annuler').onclick = annuler;
+  champ.onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); enregistrer(); } if(e.key==='Escape'){ e.stopPropagation(); annuler(); } };
 }
 
 async function deleteNoteComment(commentId, collectionId, ownerId, ownerUsername){
@@ -2992,6 +3039,12 @@ async function deleteNoteComment(commentId, collectionId, ownerId, ownerUsername
   if(!confirm(msg)) return;
   await sb.from('film_note_comments').delete().eq('id', commentId);
   loadNoteComments(collectionId, ownerId, ownerUsername);
+  rafraichirAccueilSiVisible();
+}
+
+function rafraichirAccueilSiVisible(){
+  const s = document.getElementById('sectionAccueil');
+  if(s && s.classList.contains('active')) loadAccueil();
 }
 
 document.querySelectorAll('.deals-filter-btn').forEach(btn=>{
@@ -4744,14 +4797,17 @@ async function loadAccueil(){
       .not('public_note','is',null).neq('public_note','').order('created_at',{ascending:false}).limit(20);
     return r;
   };
-  const [act, posts, notes, deals, polls, profs] = await Promise.all([
+  const [act, posts, notes, deals, polls, profs, fils] = await Promise.all([
     sb.from('public_activity').select('*').gte('created_at', depuis).order('created_at',{ascending:false}).limit(300),
     sb.from('posts').select('*,profiles(username,avatar_url,avatar_position)').gte('created_at', depuis).order('created_at',{ascending:false}).limit(20),
     notesReq(),
     sb.from('deals').select('*').gte('created_at', depuis).order('created_at',{ascending:false}).limit(15),
     sb.from('movie_polls').select('*,profiles(username,avatar_url,avatar_position)').gte('created_at', depuis).order('created_at',{ascending:false}).limit(10),
-    sb.from('profiles').select('id,username,avatar_url,avatar_position,last_seen_at')
+    sb.from('profiles').select('id,username,avatar_url,avatar_position,last_seen_at'),
+    sb.from('film_note_comments').select('id,content,created_at,user_id,collection_id,collection:collection_id(id,title,poster_url,public_note,user_id)')
+      .gte('created_at', depuis).order('created_at',{ascending:false}).limit(200)
   ]);
+  if(fils.error) console.warn('Discussions non chargées :', fils.error.message);
   const profils = new Map((profs.data||[]).map(p=>[p.id,p]));
   accueilEtat.profils = profils;
   const items = [];
@@ -4770,6 +4826,31 @@ async function loadAccueil(){
     const date = n.updated_at || n.created_at;
     if(date < depuis) return;
     items.push({type:'note', cible:n.id, date, uid:n.user_id, username:n.profiles?.username, avatar_url:n.profiles?.avatar_url, avatar_position:n.profiles?.avatar_position, data:n});
+  });
+  // 2 bis. Discussions sur les films (notes écrites par les membres sur n'importe quel film).
+  // Une carte par film ; si le film a déjà une carte « avis », la discussion s'y ajoute.
+  const parFilm = new Map();
+  (fils.data||[]).forEach(c=>{
+    if(!c.collection) return;
+    if(!parFilm.has(c.collection_id)) parFilm.set(c.collection_id, {film:c.collection, msgs:[]});
+    parFilm.get(c.collection_id).msgs.push(c); // du plus récent au plus ancien
+  });
+  parFilm.forEach(({film, msgs}, cid)=>{
+    const dernier = msgs[0];
+    const fil = {total:msgs.length, derniers:msgs.slice(0,2).reverse(), dernier};
+    const auteur = profils.get(dernier.user_id)||{};
+    const proprio = profils.get(film.user_id)||{};
+    let item = items.find(i=>i.type==='note' && String(i.cible)===String(cid));
+    if(!item){
+      item = {type:'note', cible:cid, date:dernier.created_at, uid:film.user_id, username:proprio.username, avatar_url:proprio.avatar_url, avatar_position:proprio.avatar_position, data:film};
+      items.push(item);
+    }
+    item.data = Object.assign({}, item.data, {fil});
+    if(dernier.created_at > (item.date||'')){
+      // La carte remonte et affiche la dernière personne qui a écrit
+      item.date = dernier.created_at;
+      item.aff = {uid:dernier.user_id, username:auteur.username, avatar_url:auteur.avatar_url, avatar_position:auteur.avatar_position};
+    }
   });
   // 3. Posts du Mur
   (posts.data||[]).forEach(p=>items.push({type:'post', cible:p.id, date:p.created_at, uid:p.user_id, username:p.profiles?.username, avatar_url:p.profiles?.avatar_url, avatar_position:p.profiles?.avatar_position, data:p}));
@@ -4843,10 +4924,19 @@ function renderAccueil(){
         + (n===1?'<div class="feed-film-title">'+escHtml(d.films[0].title)+'</div>':'')
         + (ventes?'<div class="feed-sub">dont '+ventes+' à vendre ou à échanger</div>':'');
     } else if(item.type==='note'){
-      action = 'a donné son avis sur <b>« '+escHtml(d.title)+' »</b>';
-      corps = '<div class="feed-note" data-film="'+escHtml(d.id)+'">'
+      const fil = d.fil;
+      if(item.aff){
+        action = 'a écrit sur <b>« '+escHtml(d.title)+' »</b>'
+          + (item.aff.uid!==item.uid ? ' de '+(item.uid===currentUser.id ? 'ta collection' : lienMembre(item.uid,item.username)) : '');
+      } else action = 'a donné son avis sur <b>« '+escHtml(d.title)+' »</b>';
+      const nomDe = uid=> escHtml(accueilEtat.profils.get(uid)?.username||'Membre');
+      corps = '<div class="feed-note" data-film="'+escHtml(String(d.id))+'">'
         + (d.poster_url?'<img src="'+escHtml(d.poster_url)+'" loading="lazy">':'')
-        + '<div><div class="feed-quote">'+escHtml(d.public_note)+'</div><div class="feed-sub" style="color:var(--cyan);">💬 Lire et commenter</div></div></div>';
+        + '<div style="min-width:0;">'
+        + (d.public_note?'<div class="feed-quote">'+escHtml(d.public_note)+'</div>':'')
+        + (fil?'<div class="feed-fil">'+fil.derniers.map(c=>'<div><b style="color:var(--cyan);">'+nomDe(c.user_id)+'</b> : '+escHtml(c.content)+'</div>').join('')+'</div>':'')
+        + '<div class="feed-sub" style="color:var(--cyan);">💬 '+(fil ? fil.total+(fil.total>1?' notes':' note')+' · Rejoindre la discussion' : 'Lire et commenter')+'</div>'
+        + '</div></div>';
     } else if(item.type==='post'){
       action = 'a publié sur Le Mur';
       const txt = escHtml(d.content||'').replace(/@(\w+)/g,'<span class="mention user-link" data-link-uid="" data-link-uname="$1">@$1</span>');
@@ -4863,9 +4953,10 @@ function renderAccueil(){
       action = 'a lancé un sondage';
       corps = '<div class="feed-note" data-sondage="1"><div><div style="font-weight:600;">📊 '+escHtml(d.question||'Sondage')+'</div><div class="feed-sub" style="color:var(--cyan);">Voter</div></div></div>';
     }
+    const qui = item.aff || item; // personne affichée en tête de carte
     return '<div class="feed-card" data-idx="'+idx+'">'
-      + '<div class="feed-head"><span class="user-link" data-link-uid="'+escHtml(item.uid||'')+'" data-link-uname="'+escHtml(item.username||'Membre')+'">'+avatarMembre(item.avatar_url,item.avatar_position,item.username)+'</span>'
-      + '<div style="min-width:0;"><div class="feed-action">'+lienMembre(item.uid,item.username)+' '+action+'</div><div class="feed-when">'+ilYa(item.date)+'</div></div></div>'
+      + '<div class="feed-head"><span class="user-link" data-link-uid="'+escHtml(qui.uid||'')+'" data-link-uname="'+escHtml(qui.username||'Membre')+'">'+avatarMembre(qui.avatar_url,qui.avatar_position,qui.username)+'</span>'
+      + '<div style="min-width:0;"><div class="feed-action">'+lienMembre(qui.uid,qui.username)+' '+action+'</div><div class="feed-when">'+ilYa(item.date)+'</div></div></div>'
       + corps + barreReactions(item) + '</div>';
   }).join('');
 }
