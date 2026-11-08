@@ -1,0 +1,43 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Vue d'ensemble
+
+« Ma Vidéothèque » : application web communautaire de collectionneurs de films physiques (VHS, DVD, Blu-ray, 4K, Laser Disc). L'interface, les messages et les commentaires du code sont en français.
+
+Le dépôt GitHub `ludovicvalls-jpg/VIDEOTHEQUE` est déployé tel quel sur **Vercel**. Il n'y a ni build, ni package.json, ni linter, ni tests automatisés.
+
+## Lancer / tester
+
+- Ouvrir `index.html` directement dans un navigateur (ou le navigateur intégré). Toutes les dépendances viennent de CDN.
+- Il n'y a pas de base de données de développement : la page parle directement à la **base Supabase de production**. Tout test une fois connecté modifie de vraies données. Utiliser un compte de test et ne jamais supprimer ou modifier des données d'autres membres.
+- Vérifier la console du navigateur après chaque changement : c'est le seul « test » disponible.
+
+## Architecture
+
+Tout tient dans **`index.html`** (~5 900 lignes), en trois blocs :
+1. `<style>` (début du fichier) : CSS global, couleurs en variables CSS (`--pink`, `--cyan`, `--muted`…).
+2. Le HTML : écran de connexion `#loginScreen`, puis `#app` qui contient des `<div class="section" id="sectionXxx">` (Rayon, Wantlist/Market, Members, Messages, Activity, Forum, Extras, Deals, Profile).
+3. Un seul `<script>` (après les `<script src>` de supabase-js v2 et Leaflet 1.9.4) avec toute la logique, en fonctions globales.
+
+Points clés du script :
+- **Navigation** : `showSection(id)` active la section et l'onglet `.nav-tab[data-section=…]` (+ entrées du menu hamburger mobile), et gère le bouton retour via l'historique.
+- **Auth** : `initAuth()` (appelé vers la fin du script) → `onLogin(user)` charge/crée la ligne `profiles`, remplit le formulaire de profil, puis charge collection, wantlist, notifications, activité. `onLogout()` réinitialise. Attention : deux variables coexistent pour l'utilisateur, `currentUser` (objet, via `onLogin`) et `currentUserId` (id, défini plus bas pour la partie Bons Plans).
+- **État global** : `collection`, `wantlist`, `currentUser`, `currentProfile`, `editingId`… ; `render()` redessine le rayon à partir de `collection`.
+- **Données** : client `sb` (Supabase). La table `collection` utilise des colonnes snake_case converties par `toRow()` / `fromRow()` vers des objets camelCase : toute nouvelle colonne doit être ajoutée aux **deux** fonctions. Autres tables : `profiles`, `wantlist`, `messages` (+ canal temps réel `sb.channel('messages…')`), `notifications`, `posts`, `post_likes`, `film_note_comments`, `movie_polls` / `movie_poll_options` / `movie_poll_votes`, `deals` / `deal_votes`, vue `public_activity`. Le schéma et les règles RLS vivent dans Supabase, pas dans ce dépôt.
+- **Sécurité côté client** : utilitaires en tête de script (`escHtml`, `safeUrl`, `validateText`, `validatePrice`, `checkLoginRateLimit`). Le HTML est construit par concaténation de chaînes / template strings : passer tout contenu venant d'utilisateurs par `escHtml()` et les URLs par `safeUrl()`.
+- **Événements** : mélange d'`addEventListener` et d'attributs `onclick="…"` inline (qui appellent des fonctions globales ; ne pas les rendre locales).
+- **Doublons** : `showExtrasSection` est définie deux fois ; c'est la seconde définition (plus bas) qui s'applique.
+
+## Services externes
+
+Clés en clair dans le script (`SUPABASE_URL`/`SUPABASE_KEY` anon, `TMDB_KEY`, `GIPHY_KEY`).
+- TMDB (`api.themoviedb.org`, `language=fr-FR`) : recherche de films, affiches, personnes.
+- Giphy : GIF du forum. Nominatim + Leaflet : carte des membres par ville. `api.allorigins.win` : proxy pour lire les flux RSS Letterboxd.
+
+**`vercel.json`** définit les en-têtes de sécurité, dont une **Content-Security-Policy** stricte : tout nouveau domaine appelé par `fetch` doit être ajouté à `connect-src`, tout nouveau script CDN à `script-src` (seuls `cdn.jsdelivr.net` et `unpkg.com` sont autorisés), sinon il sera bloqué en production alors qu'il fonctionne en local.
+
+## Images
+
+`images/jour N.jpg` alimentent le « bonbon du jour » (liste `BONBON_IMAGES`). Elles ne sont **pas** chargées en chemin relatif mais depuis `raw.githubusercontent.com/ludovicvalls-jpg/VIDEOTHEQUE/main/images/` (`BONBON_BASE`) : une nouvelle image n'apparaît qu'une fois poussée sur la branche `main` de GitHub, et doit être ajoutée à `BONBON_IMAGES` (espaces encodés en `%20`).
