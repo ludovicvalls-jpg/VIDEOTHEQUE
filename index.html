@@ -1084,13 +1084,13 @@
 
 <div class="section" id="sectionWantlist">
   <div style="display:flex;gap:8px;padding:16px 16px 0;flex-wrap:wrap;">
-    <button class="deals-filter-btn market-subtab active" data-markettab="buy">🔎 Wantlist</button>
-    <button class="deals-filter-btn market-subtab" data-markettab="sale">💰 Ventes</button>
+    <button class="deals-filter-btn market-subtab active" data-markettab="sale">💰 Ventes</button>
+    <button class="deals-filter-btn market-subtab" data-markettab="buy">🔎 Wantlist</button>
     <button class="deals-filter-btn market-subtab" data-markettab="trade">🔄 Échanger</button>
   </div>
 
   <!-- WANTLIST : ma liste d'achat -->
-  <div id="marketTabBuy">
+  <div id="marketTabBuy" style="display:none;">
     <div class="toolbar">
       <button id="addWantBtn" class="primary">+ Ajouter à ma wantlist</button>
       <button id="allWantlistsBtn">Voir toutes les wantlists</button>
@@ -1108,7 +1108,7 @@
   </div>
 
   <!-- VENTES : tous les films marqués "à la vente" chez tous les membres -->
-  <div id="marketTabSale" style="display:none;">
+  <div id="marketTabSale">
     <div class="toolbar" style="padding:12px 16px 0;">
       <select id="marketSaleSort" style="font-family:'Space Mono',monospace;font-size:12px;padding:4px 8px;background:var(--card);border:1px solid var(--card-border);color:var(--text);border-radius:4px;">
         <option value="date_added">Date d'ajout (récent)</option>
@@ -2367,6 +2367,8 @@ function showSection(section, pushHistory=true){
   if(section==='sectionActivity') loadActivity();
   if(section==='sectionMessages') loadMessages();
   if(section==='sectionDeals') loadDeals();
+  // MARKET s'ouvre toujours sur l'onglet Ventes (sauf retour arrière / retour depuis « Tous les titres »)
+  if(section==='sectionWantlist' && pushHistory){ const b=document.querySelector('.market-subtab[data-markettab="sale"]'); if(b) b.click(); }
   if(pushHistory) history.pushState({section}, '', '#'+section);
 }
 window.addEventListener('popstate', e=>{
