@@ -1820,7 +1820,9 @@ function toRow(it){
     watched:!!it.watched,shelf:it.shelf||null,notes:it.notes||null,public_note:it.publicNote||null,poster_url:it.posterUrl||null,
     custom_photo:!!it.customPhoto,tmdb_id:it.tmdbId?String(it.tmdbId):null,
     estimated_value:it.estimatedValue||null,for_trade:!!it.forTrade,for_sale:!!it.forSale,sale_price:it.salePrice||null,is_steelbook:!!it.isSteelbook,
-    cast_crew:it.castCrew||null,loaned_to:it.loanedTo||null,loaned_at:it.loanedAt||null,
+    // Les prêts sont privés : ils vivent dans la table collection_prets (voir savePret).
+    // On force ces colonnes à vide pour ne jamais les rendre visibles aux autres membres.
+    cast_crew:it.castCrew||null,loaned_to:null,loaned_at:null,
     is_series:!!it.isSeries,seasons:it.seasons||null,episodes:it.episodes||null,
     genres:it.genres||null,directors:it.directors||null};
 }
@@ -1832,9 +1834,34 @@ function fromRow(r){
     castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
     isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||'',createdAt:r.created_at||null,updatedAt:r.updated_at||null};
 }
+// Ids des films qui ont un prêt enregistré dans collection_prets (évite des suppressions inutiles)
+let pretsEnBase=new Set();
 async function loadCollection(){
-  const {data}=await sb.from('collection').select('*').eq('user_id',currentUser.id);
-  collection=(data||[]).map(fromRow); render();
+  const [{data}, {data:prets, error:pretsErr}] = await Promise.all([
+    sb.from('collection').select('*').eq('user_id',currentUser.id),
+    sb.from('collection_prets').select('collection_id,loaned_to,loaned_at')
+  ]);
+  if(pretsErr) console.warn('Prêts non chargés :', pretsErr.message);
+  const pretParId=new Map((prets||[]).map(p=>[p.collection_id,p]));
+  pretsEnBase=new Set(pretParId.keys());
+  collection=(data||[]).map(r=>{
+    const it=fromRow(r);
+    const p=pretParId.get(r.id);
+    if(p){ it.loanedTo=p.loaned_to||''; it.loanedAt=p.loaned_at||null; }
+    return it;
+  });
+  render();
+}
+async function savePret(it){
+  if(it.loanedTo){
+    const {error}=await sb.from('collection_prets').upsert({collection_id:it.id,user_id:currentUser.id,loaned_to:it.loanedTo,loaned_at:it.loanedAt||null});
+    if(error) throw new Error('Erreur sauvegarde du prêt : '+error.message);
+    pretsEnBase.add(it.id);
+  } else if(pretsEnBase.has(it.id)){
+    const {error}=await sb.from('collection_prets').delete().eq('collection_id',it.id);
+    if(error) throw new Error('Erreur suppression du prêt : '+error.message);
+    pretsEnBase.delete(it.id);
+  }
 }
 async function saveItem(it){
   let lastError;
@@ -1842,7 +1869,7 @@ async function saveItem(it){
     if(attempt>0) await new Promise(r=>setTimeout(r, 1000*attempt)); // attendre 1s, 2s
     try{
       const {error}=await sb.from('collection').upsert(toRow(it));
-      if(!error) return; // succès
+      if(!error){ await savePret(it); return; } // succès
       lastError=new Error('Erreur sauvegarde : '+error.message);
       if(!error.message.includes('NetworkError')&&!error.message.includes('fetch')) break; // erreur non-réseau, inutile de réessayer
     }catch(e){
