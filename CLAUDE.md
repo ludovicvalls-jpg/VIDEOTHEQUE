@@ -31,6 +31,8 @@ Points clés du script :
 - **Dernière connexion** : `marquerConnexion()` met à jour `profiles.last_seen_at` (à la connexion, au retour sur l'onglet, puis toutes les 5 min) ; `formatDerniereConnexion()` l'affiche dans la fiche membre (`#memberLastSeen`).
 - **Alerte wantlist** : `saveItem` → `verifierMiseEnMarche()` compare l'état vente/échange à celui en base (`etatMarche`) ; si un film passe en vente ou à l'échange, `notifierWantlists()` crée une notification `wantlist_match` pour chaque membre qui a le même `tmdb_id` dans sa wantlist.
 - **Rappel des prêts** : `PRET_RAPPEL_JOURS` (30) ; au-delà, le badge PRÊTÉ passe en rouge et la barre de stats affiche « à récupérer ».
+- **Pseudos cliquables** : afficher un pseudo avec `lienMembre(uid, pseudo)` (échappe le HTML). Un écouteur global en phase de capture sur `.user-link` ouvre `openMemberCollection` avant les clics des cartes parentes ; sans uid, l'id est retrouvé par le pseudo (utilisé pour les @mentions du Mur).
+- **Mobile (< 600 px)** : en-tête compact qui se cache en descendant (classe `header.cache`, gérée au scroll) ; `.toolbar` n'est plus collante. La barre de stats du rayon est `#stats`, juste au-dessus de `#grid`.
 - **Types de notifications** : `mention`, `note_comment`, `new_deal`, `wantlist_match` (texte dans `renderNotifDropdown`, clic dans `handleNotifClick`).
 - **Sécurité côté client** : utilitaires en tête de script (`escHtml`, `safeUrl`, `validateText`, `validatePrice`, `checkLoginRateLimit`). Le HTML est construit par concaténation de chaînes / template strings : passer tout contenu venant d'utilisateurs par `escHtml()` et les URLs par `safeUrl()`.
 - **Événements** : mélange d'`addEventListener` et d'attributs `onclick="…"` inline (qui appellent des fonctions globales ; ne pas les rendre locales).
@@ -43,6 +45,10 @@ Clés en clair dans le script (`SUPABASE_URL`/`SUPABASE_KEY` anon, `TMDB_KEY`, `
 - Giphy : GIF du forum. Nominatim + Leaflet : carte des membres par ville. `api.allorigins.win` : proxy pour lire les flux RSS Letterboxd.
 
 **`vercel.json`** définit les en-têtes de sécurité, dont une **Content-Security-Policy** stricte : tout nouveau domaine appelé par `fetch` doit être ajouté à `connect-src`, tout nouveau script CDN à `script-src` (seuls `cdn.jsdelivr.net` et `unpkg.com` sont autorisés), sinon il sera bloqué en production alors qu'il fonctionne en local.
+
+## Application installable (PWA)
+
+`manifest.webmanifest` + `icons/` + `sw.js` permettent d'installer le site sur l'écran d'accueil (plein écran, sans barre du navigateur). `sw.js` ne met volontairement rien en cache : ne pas y ajouter de cache sans prévoir la mise à jour des versions. Les icônes sont générées par script (texte « MV » néon) ; les régénérer plutôt que les retoucher à la main.
 
 ## Images
 
