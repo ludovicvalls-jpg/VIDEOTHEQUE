@@ -148,7 +148,8 @@
   button:hover{border-color:var(--pink);color:var(--pink);}
   button.primary{background:var(--pink);border-color:var(--pink);color:#1a0410;font-weight:700;}
   button.primary:hover{background:#ff5fa2;color:#1a0410;}
-  input[type=text],input[type=number],input[type=email],input[type=password],select,textarea{background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:10px 12px;border-radius:3px;font-family:'Inter',sans-serif;font-size:15px;}
+  input[type=date]{color-scheme:dark;}
+  input[type=text],input[type=number],input[type=email],input[type=password],input[type=date],select,textarea{background:#1c1c26;border:1px solid var(--card-border);color:var(--text);padding:10px 12px;border-radius:3px;font-family:'Inter',sans-serif;font-size:15px;}
   input[type=text]:focus,select:focus,textarea:focus{outline:1px solid var(--cyan);border-color:var(--cyan);}
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;}
   .filters select{min-width:140px;}
@@ -253,6 +254,8 @@
   .nouveaute-qui .feed-avatar{border-color:var(--pink);}
   .nouveaute-qui span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .nouveaute-titre{font-size:13px;font-weight:600;margin-top:6px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .nouveaute-plus .nouveaute-affiche{background:linear-gradient(160deg, rgba(255,46,136,.18), rgba(46,230,255,.12));box-shadow:0 0 0 1px var(--pink), 0 0 14px rgba(255,46,136,.35);color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:1px;line-height:1.1;}
+  .nouveaute-plus-icone{font-size:34px;color:var(--cyan);text-shadow:0 0 10px var(--cyan);margin-bottom:6px;}
   .nouveaute-quand{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);}
   @media(min-width:900px){ .feed{max-width:760px;} }
   .feed-head{display:flex;gap:10px;align-items:center;margin-bottom:10px;}
@@ -311,6 +314,70 @@
   .poster-preview{width:100px;aspect-ratio:2/3;background:#1c1c26;border-radius:4px;overflow:hidden;margin:10px 0;display:flex;align-items:center;justify-content:center;}
   .poster-preview img{width:100%;height:100%;object-fit:cover;}
   .poster-preview span{font-size:12px;color:var(--muted);text-align:center;padding:6px;}
+  /* Fiche d'ajout / de détails : blocs numérotés, affiche en haut à droite */
+  .modal-fiche{max-width:620px;}
+  .fiche-entete{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;padding-right:34px;}
+  .fiche-entete h2{margin:0;}
+  .fiche-type{display:flex;border:1px solid var(--card-border);border-radius:20px;overflow:hidden;}
+  .fiche-bloc{--neon:var(--cyan);background:#1a1a24;border:1px solid color-mix(in srgb, var(--neon) 70%, transparent);border-radius:10px;padding:12px;margin-bottom:14px;box-shadow:0 0 10px color-mix(in srgb, var(--neon) 35%, transparent), inset 0 0 14px color-mix(in srgb, var(--neon) 8%, transparent);}
+  .fiche-bloc.neon-1{--neon:var(--cyan);}
+  .fiche-bloc.neon-2{--neon:var(--pink);}
+  .fiche-bloc.neon-3{--neon:#5be37d;}
+  .fiche-bloc.neon-4{--neon:#b46bff;}
+  .fiche-bloc-titre{text-shadow:0 0 8px color-mix(in srgb, var(--neon) 70%, transparent);}
+  .fiche-bloc-titre span{background:var(--neon) !important;box-shadow:0 0 8px var(--neon);}
+  .modal-fiche{border-color:color-mix(in srgb, var(--pink) 60%, transparent);box-shadow:0 0 0 1px rgba(255,46,136,.25), 0 0 30px rgba(255,46,136,.25), 0 0 60px rgba(46,230,255,.12);}
+  .fiche-bloc .field input:focus,.fiche-bloc .field select:focus,.fiche-bloc .field textarea:focus{outline:1px solid var(--neon);border-color:var(--neon);box-shadow:0 0 8px color-mix(in srgb, var(--neon) 50%, transparent);}
+  .fiche-bloc .field input,.fiche-bloc .field select,.fiche-bloc .field textarea{background:var(--bg);}
+  .fiche-bloc-titre{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;color:var(--text);margin-bottom:10px;}
+  .fiche-bloc-titre span{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--cyan));color:#0d0d14;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;}
+  .fiche-haut{display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:14px;align-items:start;}
+  .fiche-haut .field{margin-bottom:10px;}
+  .fiche-recherche{display:flex;gap:6px;}
+  .fiche-recherche input{flex:1;min-width:0;font-size:16px;}
+  .fiche-recherche button{white-space:nowrap;padding:0 12px;}
+  .fiche-annee{max-width:90px;}
+  .fiche-haut-droite .poster-preview{width:128px;margin:0;cursor:pointer;border:1px dashed var(--card-border);box-shadow:0 4px 14px rgba(0,0,0,.5);}
+  .fiche-haut-droite .poster-preview:has(img){border-style:solid;border-color:var(--pink);}
+  .poster-preview > div{width:100%;height:100%;}
+  .poster-preview > div > img{width:100%;height:100%;object-fit:cover;}
+  .fiche-affiche-btns{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+  .fiche-affiche-btns button{padding:5px 4px;font-size:12px;text-transform:none;letter-spacing:0;white-space:nowrap;}
+  #modalHint:empty{display:none;}
+  .fiche-plus{margin-top:10px;}
+  .fiche-plus summary{cursor:pointer;font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);}
+  .fiche-plus summary:hover{color:var(--cyan);}
+  .fiche-puces{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  .puce{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--card-border);border-radius:20px;background:var(--bg);cursor:pointer;font-size:14px;color:var(--muted);user-select:none;transition:all .15s;}
+  .puce input{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+  .puce:hover{border-color:var(--cyan);color:var(--text);}
+  .puce:has(input:checked){border-color:var(--cyan);background:rgba(46,230,255,.12);color:var(--cyan);font-weight:600;}
+  .puce:has(input:focus-visible){outline:2px solid var(--cyan);outline-offset:2px;}
+  .puce-vente:has(input:checked){border-color:#2fae5e;background:rgba(47,174,94,.15);color:#5be37d;}
+  .puce-steel b{background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff,#ffd23f);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .puce-steel:has(input:checked){border-color:#9b5cff;background:rgba(155,92,255,.15);}
+  .fiche-actions{position:sticky;bottom:-20px;background:var(--card);padding:12px 0 4px;margin-top:4px;border-top:1px solid var(--card-border);z-index:2;}
+  @media(min-width:600px){.fiche-actions{bottom:-24px;}}
+  @media(max-width:420px){
+    .fiche-haut{grid-template-columns:minmax(0,1fr) 104px;gap:10px;}
+    .fiche-haut-droite .poster-preview{width:104px;}
+    .fiche-recherche{flex-direction:column;}
+    .fiche-recherche button{padding:8px 12px;}
+    .fiche-row-valeur{flex-direction:column;gap:0;}
+  }
+  body:has(#overlay.open) #remonterBtn{display:none !important;}
+  .rappel-prets{grid-column:1/-1;flex-basis:100%;width:100%;box-sizing:border-box;cursor:pointer;font-family:Space Mono,monospace;font-size:13px;color:#fff;background:rgba(255,77,77,0.15);border:1px solid #ff4d4d;border-radius:4px;padding:8px 12px;margin-bottom:8px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;}
+  .rappel-reporter{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:#ffb3b3;cursor:default;}
+  .rappel-reporter select{padding:3px 6px;font-size:13px;width:auto;}
+  .prix-estimation{margin:-4px 0 12px;padding:10px 12px;border:1px dashed color-mix(in srgb, var(--pink) 55%, transparent);border-radius:8px;background:rgba(255,46,136,.06);font-size:14px;display:flex;flex-direction:column;gap:8px;}
+  .prix-ligne{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;}
+  .prix-ligne b{color:var(--cyan);font-family:'Space Mono',monospace;font-size:16px;}
+  .prix-ligne .prix-src{color:var(--muted);}
+  .prix-ligne button{padding:3px 10px;font-size:13px;}
+  .prix-ligne a{color:var(--cyan);font-size:13px;}
+  #inputValue.prix-flash{border-color:var(--cyan);box-shadow:0 0 10px var(--cyan);}
+  .prix-comparer{font-size:13px;color:var(--muted);}
+  .prix-comparer a{color:var(--muted);text-decoration:underline;margin-right:8px;}
   .modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
   .modal-actions .danger{border-color:#793535;color:#ff8080;}
   .modal-actions .danger:hover{background:#3a1414;border-color:#ff8080;}
@@ -842,6 +909,7 @@
         <div style="padding:8px 14px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--card-border);border-top:1px solid var(--card-border);">Sélection</div>
         <button id="selectModeBtn">☑️ Sélectionner plusieurs</button>
         <button id="updateCastingBtn">🎬 Mettre à jour les castings</button>
+        <button id="estimerPrixMasseBtn">💶 Estimer les prix manquants</button>
       </div>
     </details>
     <input type="file" id="importInput" accept="application/json" style="display:none;">
@@ -877,6 +945,7 @@
         <option value="sale">À la vente</option>
         <option value="loaned">Prêtés</option>
         <option value="no_poster">Sans jaquette</option>
+        <option value="no_price">Sans prix</option>
         <option value="series_only">Séries uniquement</option>
         <option value="films_only">Films uniquement</option>
       </select>
@@ -1303,103 +1372,57 @@
 
 <!-- MODAL FICHE -->
 <div class="overlay" id="overlay">
-  <div class="modal">
-    <h2 id="modalTitle">Ajouter un titre</h2>
-    <div class="field" style="margin-bottom:10px;">
-      <div style="display:flex;gap:0;border:1px solid var(--card-border);border-radius:4px;overflow:hidden;width:fit-content;">
-        <button type="button" id="toggleFilm" onclick="setMediaType('film')" style="padding:5px 18px;font-family:'Space Mono',monospace;font-size:13px;background:var(--cyan);color:#0d0d14;border:none;cursor:pointer;font-weight:700;">🎬 Film</button>
-        <button type="button" id="toggleSerie" onclick="setMediaType('serie')" style="padding:5px 18px;font-family:'Space Mono',monospace;font-size:13px;background:transparent;color:var(--muted);border:none;cursor:pointer;">📺 Série</button>
+  <div class="modal modal-fiche">
+    <div class="fiche-entete">
+      <h2 id="modalTitle">Ajouter un titre</h2>
+      <div class="fiche-type">
+        <button type="button" id="toggleFilm" onclick="setMediaType('film')" style="padding:5px 16px;font-family:'Space Mono',monospace;font-size:13px;background:var(--cyan);color:#0d0d14;border:none;cursor:pointer;font-weight:700;">🎬 Film</button>
+        <button type="button" id="toggleSerie" onclick="setMediaType('serie')" style="padding:5px 16px;font-family:'Space Mono',monospace;font-size:13px;background:transparent;color:var(--muted);border:none;cursor:pointer;">📺 Série</button>
       </div>
-    </div>
-    <div class="field"><label id="titleLabel">Titre du film</label><input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly"></div>
-    <div class="field"><label>Titre original (VO)</label><input type="text" id="inputTitleOriginal" placeholder="Ex: Kill Bill: Vol. 1"><div class="hint">Rempli automatiquement si tu choisis le film via la recherche TMDB ci-dessous. Utile pour retrouver le film avec son titre anglais.</div></div>
-    <div class="field" id="seasonsBlock" style="display:none;">
-      <label>Saisons / Épisodes</label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="inputSeasons" placeholder="Ex: Saison 1  ou  Intégrale" style="flex:1;">
-        <input type="text" id="inputEpisodes" placeholder="Nb épisodes" style="width:110px;">
-      </div>
-      <div class="hint">Précise ce que contient le coffret.</div>
-    </div>
-    <div class="field" id="copySelectorBlock" style="display:none;">
-      <label>Exemplaire</label><select id="copySelector"></select>
-    </div>
-    <div class="field" id="tmdbInfoBlock" style="display:none;">
-      <label>Infos du film</label><div id="tmdbInfoContent" class="tmdb-info"></div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>Format</label>
-        <select id="inputFormat">
-          <option value="VHS">VHS</option><option value="DVD">DVD</option>
-          <option value="BLURAY">Blu-ray</option><option value="BLURAY4K">Blu-ray 4K</option>
-          <option value="LASERDISC">Laser Disc</option>
-        </select>
-      </div>
-      <div class="field"><label>Année</label><input type="text" id="inputYear" placeholder="Ex: 1995"></div>
-    </div>
-    <div class="field" style="margin-bottom:4px;">
-      <div style="display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="inputWatched" style="width:13px;height:13px;">
-          <span style="text-transform:none;font-size:13px;color:var(--muted);letter-spacing:normal;">J'ai déjà vu ce film</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="inputForTrade" style="width:13px;height:13px;">
-          <span style="text-transform:none;font-size:13px;color:var(--muted);letter-spacing:normal;">À l'échange</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;margin:0;">
-          <input type="checkbox" id="inputForSale" style="width:13px;height:13px;">
-          <span style="text-transform:none;font-size:13px;color:var(--muted);letter-spacing:normal;">À vendre</span>
-        </label>
-      </div>
-    </div>
-    <div class="field">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-        <input type="checkbox" id="inputSteelbook" style="width:16px;height:16px;">
-        <span style="text-transform:none;font-size:15px;letter-spacing:normal;background:linear-gradient(90deg,#ff2e88,#2ee6ff,#9b5cff,#ffd23f);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">✦ SteelBook®</span>
-      </label>
-      <div class="hint">Boîtier en métal — un effet holographique sera affiché sur l'affiche.</div>
-    </div>
-    <div class="field">
-      <label style="color:#ff8c42;">📼 Prêté à</label>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <input type="text" id="inputLoanedTo" placeholder="Nom de la personne" style="flex:1;min-width:140px;">
-        <input type="date" id="inputLoanedAt" style="width:150px;">
-      </div>
-      <div class="hint" id="loanHint">Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.</div>
-    </div>
-    <div class="field" id="saleBlock" style="display:none;">
-      <label>Prix de vente (€)</label>
-      <input type="number" id="inputSalePrice" placeholder="Ex: 12.00" min="0" step="0.50" style="width:140px;">
-    </div>
-    <div class="field">
-      <label>Valeur estimée (€)</label>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input type="number" id="inputValue" placeholder="Ex: 8.50" min="0" step="0.50" style="width:130px;">
-        <button id="searchPriceBtn" type="button">🔍 Prix en ligne</button>
-      </div>
-    </div>
-    <div class="field"><label>Emplacement</label><input type="text" id="inputShelf" placeholder="Ex: Étagère 1"></div>
-    <div class="field"><label>Notes</label><textarea id="inputNotes" rows="3" placeholder="Jaquette abîmée, édition japonaise..." style="width:100%;resize:vertical;"></textarea></div>
-    <div class="field"><label>Note publique <span style="font-size:12px;color:var(--muted);">(visible par toute la communauté, les autres peuvent la commenter)</span></label><textarea id="inputPublicNote" rows="3" placeholder="Ton avis, une anecdote sur ce film..." style="width:100%;resize:vertical;"></textarea></div>
-
-    <!-- INFOS COMMUNAUTAIRES -->
-    <div class="field" id="communityInfoBlock" style="display:none;">
-      <label>Dans la communauté</label>
-      <div id="communityInfoContent" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
     </div>
 
-    <div class="field">
-      <label>Recherche d'affiche</label>
-      <div class="poster-preview" id="posterPreview"><span>Pas encore d'affiche</span></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="searchPosterBtn" type="button">Par titre</button>
-        <button id="searchDirectorBtn" type="button">Par réalisateur</button>
-        <button id="uploadPhotoBtn" type="button">Photo</button>
-        <button id="posterUrlBtn" type="button">🔗 URL image</button>
-        <input type="file" id="photoInput" accept="image/*" style="display:none;">
+    <!-- ① LE FILM : titre à gauche, affiche à droite -->
+    <div class="fiche-bloc neon-1">
+      <div class="fiche-bloc-titre"><span>1</span> Le film</div>
+      <div class="fiche-haut">
+        <div class="fiche-haut-gauche">
+          <div class="field">
+            <label id="titleLabel">Titre du film</label>
+            <div class="fiche-recherche">
+              <input type="text" id="inputTitle" placeholder="Ex: Hard Revenge Milly" autocomplete="off">
+              <button id="searchPosterBtn" type="button" class="primary" title="Chercher le film et son affiche">🔍 Chercher</button>
+            </div>
+            <div class="hint">Tape le titre puis <b>Entrée</b> : choisis le bon film, l'affiche et les infos se remplissent toutes seules.</div>
+          </div>
+          <div class="row2">
+            <div class="field">
+              <label>Format</label>
+              <select id="inputFormat">
+                <option value="VHS">VHS</option><option value="DVD">DVD</option>
+                <option value="BLURAY">Blu-ray</option><option value="BLURAY4K">Blu-ray 4K</option>
+                <option value="LASERDISC">Laser Disc</option>
+              </select>
+            </div>
+            <div class="field fiche-annee"><label>Année</label><input type="text" id="inputYear" placeholder="1995" inputmode="numeric"></div>
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Titre original (VO)</label>
+            <input type="text" id="inputTitleOriginal" placeholder="Rempli tout seul quand tu choisis le film">
+          </div>
+        </div>
+        <div class="fiche-haut-droite">
+          <div class="poster-preview" id="posterPreview" title="Clique pour chercher l'affiche"><span>Pas encore d'affiche</span></div>
+          <div class="fiche-affiche-btns">
+            <button id="uploadPhotoBtn" type="button" title="Prendre ou choisir une photo">📷 Photo</button>
+            <button id="posterUrlBtn" type="button" title="Coller le lien d'une image">🔗 URL img</button>
+            <button id="searchDirectorBtn" type="button" title="Retrouver le film par son réalisateur">🎬 Réal.</button>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" style="display:none;">
+        </div>
       </div>
+
+      <div class="hint" id="modalHint"></div>
+      <div id="searchResults" class="search-results"></div>
       <div id="directorSearchWrap" style="display:none;margin-top:10px;">
         <div style="display:flex;gap:8px;">
           <input type="text" id="inputDirector" placeholder="Nom du réalisateur..." style="flex:1;">
@@ -1413,10 +1436,78 @@
           <button id="posterUrlGoBtn" type="button">Valider</button>
         </div>
       </div>
-      <div id="searchResults" class="search-results"></div>
-      <div class="hint" id="modalHint"></div>
+
+      <div class="field" id="seasonsBlock" style="display:none;margin-top:12px;">
+        <label>Saisons / Épisodes</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="inputSeasons" placeholder="Ex: Saison 1  ou  Intégrale" style="flex:1;">
+          <input type="text" id="inputEpisodes" placeholder="Nb épisodes" style="width:110px;">
+        </div>
+        <div class="hint">Précise ce que contient le coffret.</div>
+      </div>
+      <div class="field" id="copySelectorBlock" style="display:none;margin-top:12px;">
+        <label>Exemplaire</label><select id="copySelector"></select>
+      </div>
+      <div class="field" id="tmdbInfoBlock" style="display:none;margin-top:12px;">
+        <label>Infos du film</label><div id="tmdbInfoContent" class="tmdb-info"></div>
+      </div>
+      <div class="field" id="communityInfoBlock" style="display:none;margin-top:12px;">
+        <label>Dans la communauté</label>
+        <div id="communityInfoContent" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;"></div>
+      </div>
     </div>
-    <div class="modal-actions">
+
+    <!-- ② MON EXEMPLAIRE -->
+    <div class="fiche-bloc neon-2">
+      <div class="fiche-bloc-titre"><span>2</span> Mon exemplaire</div>
+      <div class="fiche-puces">
+        <label class="puce"><input type="checkbox" id="inputWatched"> 👁️ Déjà vu</label>
+        <label class="puce puce-steel"><input type="checkbox" id="inputSteelbook"> <b>✦ SteelBook®</b></label>
+      </div>
+      <div class="row2 fiche-row-valeur">
+        <div class="field"><label>Emplacement</label><input type="text" id="inputShelf" placeholder="Ex: Étagère 1"></div>
+        <div class="field">
+          <label>Valeur estimée (€)</label>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="number" id="inputValue" placeholder="8.50" min="0" step="0.01" style="min-width:0;">
+            <button id="searchPriceBtn" type="button" title="Estimer le prix d'occasion (eBay + communauté)" style="white-space:nowrap;">🔍 Prix</button>
+          </div>
+        </div>
+      </div>
+      <div id="prixEstimation" class="prix-estimation" style="display:none;"></div>
+      <div class="field" style="margin-bottom:0;"><label>Notes perso</label><textarea id="inputNotes" rows="2" placeholder="Jaquette abîmée, édition japonaise..." style="width:100%;resize:vertical;"></textarea></div>
+    </div>
+
+    <!-- ③ VENTE, ÉCHANGE, PRÊT -->
+    <div class="fiche-bloc neon-3">
+      <div class="fiche-bloc-titre"><span>3</span> Vente, échange &amp; prêt</div>
+      <div class="fiche-puces">
+        <label class="puce puce-vente"><input type="checkbox" id="inputForSale"> 💶 À vendre</label>
+        <label class="puce puce-vente"><input type="checkbox" id="inputForTrade"> 🔄 À l'échange</label>
+      </div>
+      <div class="field" id="saleBlock" style="display:none;">
+        <label>Prix de vente (€)</label>
+        <input type="number" id="inputSalePrice" placeholder="Ex: 12.00" min="0" step="0.50" style="width:140px;">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label style="color:#ff8c42;">📼 Prêté à</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="inputLoanedTo" placeholder="Nom de la personne" style="flex:1;min-width:140px;">
+          <input type="date" id="inputLoanedAt" style="width:150px;">
+        </div>
+        <div class="hint" id="loanHint">Laisse vide si le film n'est pas prêté. Efface le nom quand on te le rend.</div>
+      </div>
+    </div>
+
+    <!-- ④ PARTAGER -->
+    <div class="fiche-bloc neon-4">
+      <div class="fiche-bloc-titre"><span>4</span> Mon avis public</div>
+      <div class="field" style="margin-bottom:0;">
+        <textarea id="inputPublicNote" rows="3" placeholder="Ton avis, une anecdote sur ce film... (visible par toute la communauté, qui peut y répondre)" style="width:100%;resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions fiche-actions">
       <button id="deleteBtn" class="danger" style="display:none;">Supprimer</button>
       <button id="cancelBtn">Annuler</button>
       <button class="primary" id="saveBtn">Enregistrer</button>
@@ -1979,6 +2070,21 @@ const PRET_RAPPEL_JOURS=30;
 function joursDePret(it){
   if(!it.loanedAt) return null;
   return Math.max(0,Math.floor((Date.now()-new Date(it.loanedAt).getTime())/86400000));
+}
+// « Me le rappeler dans … jours » : cache le bandeau des prêts en retard jusqu'à une date.
+// Mémorisé sur cet appareil. Un NOUVEAU prêt en retard fait réapparaître le bandeau.
+function rappelPretsReporte(filmsEnRetard){
+  try{
+    const r=JSON.parse(localStorage.getItem('rappelPretsReporte')||'null');
+    if(!r||Date.now()>r.jusqua) return false;
+    return filmsEnRetard.every(i=>(r.ids||[]).includes(i.id));
+  }catch(e){ return false; }
+}
+function reporterRappelPrets(jours){
+  const n=parseInt(jours,10); if(!n) return;
+  const ids=collection.filter(i=>i.loanedTo&&joursDePret(i)>=PRET_RAPPEL_JOURS).map(i=>i.id);
+  try{ localStorage.setItem('rappelPretsReporte',JSON.stringify({jusqua:Date.now()+n*86400000,ids})); }catch(e){}
+  render();
 }
 // Ids des films qui ont un prêt enregistré dans collection_prets (évite des suppressions inutiles)
 let pretsEnBase=new Set();
@@ -4313,16 +4419,17 @@ function render(){
     const matchSale=filterSort!=='sale'||it.forSale;
     const matchLoaned=filterSort!=='loaned'||it.loanedTo;
     const matchNoPoster=filterSort!=='no_poster'||!it.posterUrl;
+    const matchNoPrice=filterSort!=='no_price'||!it.estimatedValue;
     const matchSeriesOnly=filterSort!=='series_only'||it.isSeries;
     const matchFilmsOnly=filterSort!=='films_only'||!it.isSeries;
-    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned&&matchNoPoster&&matchSeriesOnly&&matchFilmsOnly;
+    return matchSearch&&matchFormat&&matchWatched&&matchTrade&&matchSale&&matchLoaned&&matchNoPoster&&matchNoPrice&&matchSeriesOnly&&matchFilmsOnly;
   });
 
   lastGroups=new Map();
   items.forEach(it=>{ const k=it.id; if(!lastGroups.has(k)) lastGroups.set(k,[]); lastGroups.get(k).push(it); });
   let groups=Array.from(lastGroups.entries()).map(([key,gi])=>({key,items:gi,primary:gi.find(i=>i.posterUrl)||gi[0]}));
 
-  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'||filterSort==='series_only'||filterSort==='films_only'){
+  if(filterSort==='alpha'||filterSort==='trade'||filterSort==='sale'||filterSort==='loaned'||filterSort==='no_poster'||filterSort==='no_price'||filterSort==='series_only'||filterSort==='films_only'){
     groups.sort((a,b)=>a.primary.title.localeCompare(b.primary.title));
   } else if(filterSort==='date_modified'){
     groups.sort((a,b)=>(b.primary.updatedAt||b.primary.createdAt||'').localeCompare(a.primary.updatedAt||a.primary.createdAt||''));
@@ -4336,20 +4443,34 @@ function render(){
     groups.sort((a,b)=>(b.primary.estimatedValue||0)-(a.primary.estimatedValue||0));
   }
   lastRenderedGroups=groups;
-  const totalValue=collection.reduce((s,i)=>s+(i.estimatedValue||0),0);
-  const pretsEnRetard=collection.filter(i=>i.loanedTo&&joursDePret(i)>=PRET_RAPPEL_JOURS).length;
-  const valuedCount=collection.filter(i=>i.estimatedValue).length;
+  const filmsEnRetard=collection.filter(i=>i.loanedTo&&joursDePret(i)>=PRET_RAPPEL_JOURS);
+  const pretsEnRetard=filmsEnRetard.length;
+  const rappelMasque=rappelPretsReporte(filmsEnRetard);
+  // Barre de stats : suit le format choisi dans le filtre (sinon, le détail de chaque format possédé)
+  const NOMS_FORMATS={VHS:'vhs',DVD:'dvd',BLURAY:'blu-ray',BLURAY4K:'4k',LASERDISC:'laser disc'};
+  const base=!filterFormat?collection:collection.filter(i=>filterFormat==='steelbook_flag'?i.isSteelbook:i.format===filterFormat);
+  const baseValeur=base.reduce((s,i)=>s+(i.estimatedValue||0),0);
+  const baseEvalues=base.filter(i=>i.estimatedValue).length;
+  const stat=(n,label,style)=>'<div><span class="stat-num"'+(style?' style="'+style+'"':'')+'>'+n+'</span><span class="stat-label">'+label+'</span></div>';
+  let statsFormats='';
+  if(filterFormat){
+    statsFormats=stat(base.length, filterFormat==='steelbook_flag'?'steelbook':(NOMS_FORMATS[filterFormat]||filterFormat));
+  } else {
+    statsFormats=stat(collection.length,'titres')
+      +Object.keys(NOMS_FORMATS).map(f=>{ const n=collection.filter(i=>i.format===f).length; return n?stat(n,NOMS_FORMATS[f]):''; }).join('');
+  }
   const statsEl = document.getElementById('stats');
   if(statsEl) statsEl.innerHTML=
-    '<div><span class="stat-num">'+collection.length+'</span><span class="stat-label">titres</span></div>'+
-    '<div><span class="stat-num">'+collection.filter(i=>i.format==='VHS').length+'</span><span class="stat-label">vhs</span></div>'+
-    '<div><span class="stat-num">'+collection.filter(i=>!i.watched).length+'</span><span class="stat-label">à voir</span></div>'+
-    (totalValue>0?'<div title="'+valuedCount+' titres évalués"><span class="stat-num">'+totalValue.toFixed(0)+' €</span><span class="stat-label">valeur</span></div>':'')+
-    (collection.some(i=>i.loanedTo)?'<div><span class="stat-num" style="color:#ff8c42;">'+collection.filter(i=>i.loanedTo).length+'</span><span class="stat-label">prêtés</span></div>':'');
+    statsFormats+
+    stat(base.filter(i=>!i.watched).length,'à voir')+
+    (baseValeur>0?'<div title="'+baseEvalues+' titres évalués"><span class="stat-num">'+baseValeur.toFixed(0)+' €</span><span class="stat-label">valeur</span></div>':'')+
+    (base.some(i=>i.loanedTo)?(n=>stat(n,n>1?'prêtés':'prêté','color:#ff8c42;'))(base.filter(i=>i.loanedTo).length):'');
   const grid=document.getElementById('grid');
   if(groups.length===0){ grid.innerHTML='<div class="empty"><div class="logo">RAYON VIDE</div><div>Ajoute ton premier titre.</div></div>'; return; }
-  const rappelPrets=(pretsEnRetard>0&&filterSort!=='loaned')
-    ?'<div style="grid-column:1/-1;flex-basis:100%;width:100%;box-sizing:border-box;cursor:pointer;font-family:Space Mono,monospace;font-size:13px;color:#fff;background:rgba(255,77,77,0.15);border:1px solid #ff4d4d;border-radius:4px;padding:8px 12px;margin-bottom:8px;" onclick="document.getElementById(\'filterSort\').value=\'loaned\';render();">⏰ '+pretsEnRetard+' film'+(pretsEnRetard>1?'s prêtés':' prêté')+' depuis plus de '+PRET_RAPPEL_JOURS+' jours — <u>voir les prêts</u></div>'
+  const rappelPrets=(pretsEnRetard>0&&filterSort!=='loaned'&&!rappelMasque)
+    ?'<div class="rappel-prets" onclick="document.getElementById(\'filterSort\').value=\'loaned\';render();">⏰ '+pretsEnRetard+' film'+(pretsEnRetard>1?'s prêtés':' prêté')+' depuis plus de '+PRET_RAPPEL_JOURS+' jours — <u>voir les prêts</u>'
+      +'<label class="rappel-reporter" onclick="event.stopPropagation()">Me le rappeler dans '
+      +'<select onchange="reporterRappelPrets(this.value)"><option value="">…</option><option value="5">5 jours</option><option value="10">10 jours</option><option value="20">20 jours</option><option value="30">30 jours</option></select></label></div>'
     :'';
   grid.innerHTML=rappelPrets+groups.map(g=>{
     const it=g.primary, allWatched=g.items.every(i=>i.watched), isSelected=selectedKeys.has(g.key);
@@ -4956,7 +5077,9 @@ function renderNouveautes(ajouts){
       + '<div class="nouveaute-titre">'+escHtml(f.title||'')+'</div>'
       + '<div class="nouveaute-quand">'+ilYa(f.created_at)+'</div>'
       + '</div>';
-  }).join('');
+  }).join('')
+    + '<div class="nouveaute nouveaute-plus" data-aller="sectionActivity" title="Voir tous les derniers ajouts des membres">'
+    + '<div class="nouveaute-affiche"><div><div class="nouveaute-plus-icone">＋</div>Voir plus<br>d\'ajouts</div></div></div>';
 }
 
 function barreReactions(item){
@@ -5515,6 +5638,7 @@ function resetModal(){
   document.getElementById('directorSearchWrap').style.display='none';
   document.getElementById('directorResults').innerHTML='';
   document.getElementById('posterUrlWrap').style.display='none';
+  const prixBox=document.getElementById('prixEstimation'); prixBox.style.display='none'; prixBox.innerHTML=''; prixRequete++;
 }
 document.getElementById('inputForSale').addEventListener('change',()=>{
   document.getElementById('saleBlock').style.display=document.getElementById('inputForSale').checked?'block':'none';
@@ -5538,7 +5662,7 @@ function setMediaType(type){
 document.getElementById('addBtn').addEventListener('click', openAdd);
 function fillFormFromItem(it){
   editingId=it.id;
-  document.getElementById('modalTitle').textContent='Fiche de details';
+  document.getElementById('modalTitle').textContent='Fiche de détails';
   document.getElementById('inputTitle').value=it.title;
   document.getElementById('inputTitleOriginal').value=it.titleOriginal||'';
   document.getElementById('inputFormat').value=it.format;
@@ -5623,13 +5747,71 @@ async function loadTmdbInfo(tmdbId){
       +(editingId&&collection.find(i=>i.id===editingId)?.createdAt?'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);font-family:Space Mono,monospace;font-size:12px;color:var(--muted);">📅 Ajouté le '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' à '+new Date(collection.find(i=>i.id===editingId).createdAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div>':'');
   }catch(e){ content.innerHTML='<span>Erreur TMDB.</span>'; }
 }
-function searchPriceOnline(){
+// ── Estimation du prix d'occasion ──
+// eBay France (via la fonction relais Supabase « prix-ebay », qui garde la clé secrète)
+// + médiane des valeurs saisies par les membres pour le même film dans le même format.
+let prixRequete=0;
+function prixFr(n){ return Number(n).toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2})+' €'; }
+function appliquerPrix(v){
+  document.getElementById('inputValue').value=v;
+  const inp=document.getElementById('inputValue');
+  inp.classList.add('prix-flash'); setTimeout(()=>inp.classList.remove('prix-flash'),700);
+}
+async function prixCommunaute(tmdbId, format){
+  if(!tmdbId) return null;
+  try{
+    const {data,error}=await sb.from('collection').select('id,estimated_value').eq('tmdb_id',String(tmdbId)).eq('format',format).not('estimated_value','is',null).limit(200);
+    if(error) return null;
+    const vals=(data||[]).filter(r=>r.id!==editingId).map(r=>Number(r.estimated_value)).filter(v=>v>0).sort((a,b)=>a-b);
+    if(!vals.length) return null;
+    const m=Math.floor(vals.length/2);
+    const med=vals.length%2?vals[m]:(vals[m-1]+vals[m])/2;
+    return {nb:vals.length, mediane:Math.round(med*2)/2};
+  }catch(e){ return null; }
+}
+async function estimerPrix(){
   const title=document.getElementById('inputTitle').value.trim();
-  if(!title){ alert('Remplis le titre.'); return; }
-  const flt={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K UHD',LASERDISC:'Laser Disc'}[document.getElementById('inputFormat').value]||'';
-  const q=encodeURIComponent(title+' '+flt);
-  ['https://fr.shopping.rakuten.com/search/'+q,'https://www.vinted.fr/catalog?search_text='+q,'https://www.leboncoin.fr/recherche?text='+q+'&category=32','https://www.gibert.com/recherche?q='+q]
-    .forEach((url,i)=>setTimeout(()=>window.open(url,'_blank'),i*150));
+  const box=document.getElementById('prixEstimation');
+  if(!title){ box.style.display='flex'; box.innerHTML='<div class="prix-ligne">Écris d\'abord le titre du film.</div>'; return; }
+  const format=document.getElementById('inputFormat').value;
+  const vo=document.getElementById('inputTitleOriginal').value.trim();
+  const nomFormat={VHS:'VHS',DVD:'DVD',BLURAY:'Blu-ray',BLURAY4K:'Blu-ray 4K',LASERDISC:'Laser Disc'}[format]||format;
+  const q=encodeURIComponent(title+' '+nomFormat);
+  const comparer='<div class="prix-comparer">Comparer : '
+    +'<a href="https://www.vinted.fr/catalog?search_text='+q+'" target="_blank" rel="noopener">Vinted</a>'
+    +'<a href="https://www.leboncoin.fr/recherche?category=25&text='+q+'" target="_blank" rel="noopener">Leboncoin</a>'
+    +'<a href="https://www.gibert.com/catalogsearch/result/?q='+q+'" target="_blank" rel="noopener">Gibert</a></div>';
+  const num=++prixRequete;
+  box.style.display='flex';
+  box.innerHTML='<div class="prix-ligne"><span class="prix-src">⏳ Recherche du prix d\'occasion ('+escHtml(nomFormat)+')…</span></div>'+comparer;
+  const [ebay, commu]=await Promise.all([
+    sb.functions.invoke('prix-ebay',{body:{titre:title,titreVo:vo,format}}).then(r=>r.error?{erreur:true}:r.data).catch(()=>({erreur:true})),
+    prixCommunaute(pendingTmdbId, format)
+  ]);
+  if(num!==prixRequete) return; // une recherche plus récente a été lancée
+  let html='';
+  if(ebay && !ebay.erreur && ebay.nb>0){
+    html+='<div class="prix-ligne"><span class="prix-src">🛒 eBay · '+ebay.nb+' annonce'+(ebay.nb>1?'s':'')+(ebay.occasion?' d\'occasion':'')+' :</span>'
+      +'<span>le plus bas <b>'+prixFr(ebay.min)+'</b></span>'
+      +(ebay.nb>1?'<span class="prix-src">(médiane '+prixFr(ebay.mediane)+', jusqu\x27à '+prixFr(ebay.max)+')</span>':'')
+      +'<button type="button" onclick="appliquerPrix('+Number(ebay.min)+')">Appliquer</button>'
+      +'<a href="'+safeUrl(ebay.lien)+'" target="_blank" rel="noopener">Voir les annonces ↗</a></div>';
+  } else if(ebay && !ebay.erreur){
+    html+='<div class="prix-ligne"><span class="prix-src">🛒 eBay : aucune annonce trouvée en '+escHtml(nomFormat)+'.</span>'
+      +(ebay.lien?'<a href="'+safeUrl(ebay.lien)+'" target="_blank" rel="noopener">Chercher sur eBay ↗</a>':'')+'</div>';
+  } else {
+    html+='<div class="prix-ligne"><span class="prix-src">🛒 eBay : estimation indisponible pour le moment.</span></div>';
+  }
+  if(commu){
+    html+='<div class="prix-ligne"><span class="prix-src">👥 Communauté · '+commu.nb+' exemplaire'+(commu.nb>1?'s':'')+' '+escHtml(nomFormat)+' :</span>'
+      +'<span>médiane <b>'+prixFr(commu.mediane)+'</b></span>'
+      +'<button type="button" onclick="appliquerPrix('+Number(commu.mediane)+')">Appliquer</button></div>';
+  }
+  box.innerHTML=html+comparer;
+}
+// Lancement automatique quand on vient de choisir le film et que la valeur est vide
+function estimerPrixSiVide(){
+  if(!document.getElementById('inputValue').value) estimerPrix();
 }
 async function loadAltPosters(tmdbId){
   const hint=document.getElementById('modalHint'),resultsDiv=document.getElementById('searchResults');
@@ -5692,6 +5874,7 @@ async function loadDirectorFilms(personId,personName){
         if(img.dataset.year&&!document.getElementById('inputYear').value) document.getElementById('inputYear').value=img.dataset.year;
         if(img.dataset.original) document.getElementById('inputTitleOriginal').value=img.dataset.original;
         loadTmdbInfo(pendingTmdbId);
+        estimerPrixSiVide();
       });
     });
   }catch(e){ hint.textContent='Erreur.'; }
@@ -5730,6 +5913,7 @@ async function searchPoster(){
         if(img.title) document.getElementById('inputTitle').value=img.title;
         if(img.dataset.original) document.getElementById('inputTitleOriginal').value=img.dataset.original;
         loadTmdbInfo(pendingTmdbId);
+        estimerPrixSiVide();
       });
     });
   }catch(e){ hint.textContent='Erreur.'; }
@@ -5989,11 +6173,53 @@ document.getElementById('updateCastingBtn').addEventListener('click', async ()=>
   }
   alert(`✓ ${done} film(s) mis à jour ! Tu peux maintenant rechercher par réalisateur ou acteur, et voir tes stats par genre.`);
 });
+// Remplit la valeur estimée de MES films qui n'en ont pas, avec le prix eBay le plus bas.
+// Ne touche jamais aux valeurs déjà saisies, ni aux films des autres membres.
+let prixMasseEnCours=false;
+document.getElementById('estimerPrixMasseBtn').addEventListener('click', async ()=>{
+  document.querySelectorAll('.dd').forEach(d=>d.removeAttribute('open'));
+  if(prixMasseEnCours){ alert('L\'estimation est déjà en cours.'); return; }
+  const films = collection.filter(i=>!i.estimatedValue && i.title);
+  if(films.length === 0){ alert('Tous tes films ont déjà une valeur estimée !'); return; }
+  const minutes = Math.max(1, Math.round(films.length*1.5/60));
+  if(!confirm(`${films.length} film(s) sans valeur estimée.\n\nOn va chercher sur eBay le prix d'occasion le plus bas de chacun et le mettre comme valeur. Les valeurs que tu as déjà saisies ne seront pas touchées.\n\nDurée : environ ${minutes} min. Tu peux continuer à utiliser le site pendant ce temps. On y va ?`)) return;
+
+  prixMasseEnCours=true;
+  const barre=document.createElement('div');
+  barre.id='prixMasseBarre';
+  barre.style.cssText='position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:3000;background:#1a1a24;border:1px solid var(--pink);box-shadow:0 0 14px rgba(255,46,136,.45);border-radius:10px;padding:10px 16px;font-size:14px;max-width:calc(100% - 32px);';
+  document.body.appendChild(barre);
+  let fait=0, trouves=0;
+  for(const it of films){
+    barre.textContent=`💶 Estimation des prix… ${fait}/${films.length} (${trouves} trouvé${trouves>1?'s':''})`;
+    try{
+      const {data,error}=await sb.functions.invoke('prix-ebay',{body:{titre:it.title,titreVo:it.titleOriginal||'',format:it.format}});
+      if(!error && data && data.nb>0 && data.min>0 && !it.estimatedValue){
+        const v=Math.round(data.min*100)/100;
+        const {error:e2}=await sb.from('collection').update({estimated_value:v}).eq('id',it.id).eq('user_id',currentUser.id);
+        if(!e2){ it.estimatedValue=v; trouves++; }
+      }
+    }catch(e){ /* on passe au film suivant */ }
+    fait++;
+    await new Promise(r=>setTimeout(r,300)); // petite pause pour ménager eBay
+  }
+  barre.remove();
+  prixMasseEnCours=false;
+  render();
+  alert(`✓ Terminé : ${trouves} film(s) estimé(s) sur ${films.length}.`+(trouves<films.length?`\n\n${films.length-trouves} film(s) n'ont pas été trouvés sur eBay (souvent des éditions rares) : tu peux les estimer à la main.`:''));
+});
 document.getElementById('cancelBtn').addEventListener('click',closeModal);
 document.getElementById('saveBtn').addEventListener('click',saveItemModal);
 document.getElementById('deleteBtn').addEventListener('click',deleteItemModal);
-document.getElementById('searchPriceBtn').addEventListener('click',searchPriceOnline);
+document.getElementById('searchPriceBtn').addEventListener('click',estimerPrix);
+document.getElementById('inputFormat').addEventListener('change',()=>{ if(document.getElementById('prixEstimation').style.display!=='none') estimerPrix(); });
 document.getElementById('searchPosterBtn').addEventListener('click',()=>{ document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; searchPoster(); });
+// Clic sur l'emplacement vide de l'affiche : lance la recherche (ou invite à taper le titre)
+document.getElementById('posterPreview').addEventListener('click',e=>{
+  if(e.target.closest('button') || document.querySelector('#posterPreview img')) return;
+  if(document.getElementById('inputTitle').value.trim()) document.getElementById('searchPosterBtn').click();
+  else { document.getElementById('inputTitle').focus(); document.getElementById('modalHint').textContent="Écris d'abord le titre, puis appuie sur Entrée."; }
+});
 document.getElementById('inputTitle').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; searchPoster(); } });
 document.getElementById('inputTitleOriginal').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('directorSearchWrap').style.display='none'; document.getElementById('posterUrlWrap').style.display='none'; searchPoster(); } });
 document.getElementById('searchDirectorBtn').addEventListener('click',()=>{ document.getElementById('posterUrlWrap').style.display='none'; const w=document.getElementById('directorSearchWrap'); w.style.display=w.style.display==='none'?'block':'none'; if(w.style.display==='block') document.getElementById('inputDirector').focus(); });
