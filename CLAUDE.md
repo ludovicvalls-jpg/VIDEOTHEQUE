@@ -29,6 +29,9 @@ Points clés du script :
 - **Règles d'accès** : toutes les lectures sont réservées aux membres connectés (rien n'est lisible en anonyme). Les « Notes » d'un film sont volontairement visibles par les autres membres ; la « Note publique » est en plus commentable.
 - **Prêts privés** : le nom de l'emprunteur et la date ne sont plus stockés dans `collection` (colonnes `loaned_to`/`loaned_at` forcées à null par `toRow`) mais dans `collection_prets`, lisible uniquement par le propriétaire. `loadCollection()` fusionne les deux tables, `savePret()` (appelé par `saveItem`) écrit ou supprime le prêt.
 - **Dernière connexion** : `marquerConnexion()` met à jour `profiles.last_seen_at` (à la connexion, au retour sur l'onglet, puis toutes les 5 min) ; `formatDerniereConnexion()` l'affiche dans la fiche membre (`#memberLastSeen`).
+- **Alerte wantlist** : `saveItem` → `verifierMiseEnMarche()` compare l'état vente/échange à celui en base (`etatMarche`) ; si un film passe en vente ou à l'échange, `notifierWantlists()` crée une notification `wantlist_match` pour chaque membre qui a le même `tmdb_id` dans sa wantlist.
+- **Rappel des prêts** : `PRET_RAPPEL_JOURS` (30) ; au-delà, le badge PRÊTÉ passe en rouge et la barre de stats affiche « à récupérer ».
+- **Types de notifications** : `mention`, `note_comment`, `new_deal`, `wantlist_match` (texte dans `renderNotifDropdown`, clic dans `handleNotifClick`).
 - **Sécurité côté client** : utilitaires en tête de script (`escHtml`, `safeUrl`, `validateText`, `validatePrice`, `checkLoginRateLimit`). Le HTML est construit par concaténation de chaînes / template strings : passer tout contenu venant d'utilisateurs par `escHtml()` et les URLs par `safeUrl()`.
 - **Événements** : mélange d'`addEventListener` et d'attributs `onclick="…"` inline (qui appellent des fonctions globales ; ne pas les rendre locales).
 - **Doublons** : `showExtrasSection` est définie deux fois ; c'est la seconde définition (plus bas) qui s'applique.

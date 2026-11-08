@@ -171,6 +171,7 @@
   .trade-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ffd23f;color:#1a0410;}
   .sale-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#2fae5e;color:#fff;}
   .loan-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#ff8c42;color:#1a0410;}
+  .loan-badge.late{background:#ff4d4d;color:#fff;}
   .series-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#9b5cff;color:#fff;}
   .empty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--muted);}
   .empty .logo{font-size:28px;margin-bottom:10px;opacity:.6;}
@@ -1836,6 +1837,12 @@ function fromRow(r){
     castCrew:r.cast_crew||'',loanedTo:r.loaned_to||'',loanedAt:r.loaned_at||null,
     isSeries:r.is_series||false,seasons:r.seasons||'',episodes:r.episodes||'',createdAt:r.created_at||null,updatedAt:r.updated_at||null};
 }
+// Rappel des prêts : au-delà de ce nombre de jours, le badge PRÊTÉ passe en rouge
+const PRET_RAPPEL_JOURS=30;
+function joursDePret(it){
+  if(!it.loanedAt) return null;
+  return Math.max(0,Math.floor((Date.now()-new Date(it.loanedAt).getTime())/86400000));
+}
 // Ids des films qui ont un prêt enregistré dans collection_prets (évite des suppressions inutiles)
 let pretsEnBase=new Set();
 async function loadCollection(){
@@ -1846,6 +1853,7 @@ async function loadCollection(){
   if(pretsErr) console.warn('Prêts non chargés :', pretsErr.message);
   const pretParId=new Map((prets||[]).map(p=>[p.collection_id,p]));
   pretsEnBase=new Set(pretParId.keys());
+  etatMarche=new Map((data||[]).map(r=>[r.id,{sale:!!r.for_sale,trade:!!r.for_trade}]));
   collection=(data||[]).map(r=>{
     const it=fromRow(r);
     const p=pretParId.get(r.id);
@@ -1865,13 +1873,33 @@ async function savePret(it){
     pretsEnBase.delete(it.id);
   }
 }
+// Alerte wantlist : quand un film passe en vente ou à l'échange, on prévient
+// les membres qui l'ont dans leur wantlist (même tmdb_id).
+let etatMarche=new Map(); // id -> {sale, trade} tel qu'enregistré en base
+function verifierMiseEnMarche(it){
+  const avant=etatMarche.get(it.id)||{sale:false,trade:false};
+  const apres={sale:!!it.forSale,trade:!!it.forTrade};
+  etatMarche.set(it.id,apres);
+  const nouveau=(apres.sale&&!avant.sale)||(apres.trade&&!avant.trade);
+  if(nouveau&&it.tmdbId) notifierWantlists(it).catch(e=>console.warn('Alerte wantlist non envoyée :',e.message));
+}
+async function notifierWantlists(it){
+  const {data,error}=await sb.from('wantlist').select('user_id').eq('tmdb_id',String(it.tmdbId)).neq('user_id',currentUser.id);
+  if(error) throw error;
+  const destinataires=[...new Set((data||[]).map(w=>w.user_id))];
+  if(!destinataires.length) return;
+  const {error:insErr}=await sb.from('notifications').insert(destinataires.map(uid=>({
+    user_id:uid, from_user_id:currentUser.id, type:'wantlist_match', collection_id:it.id
+  })));
+  if(insErr) throw insErr;
+}
 async function saveItem(it){
   let lastError;
   for(let attempt=0; attempt<3; attempt++){
     if(attempt>0) await new Promise(r=>setTimeout(r, 1000*attempt)); // attendre 1s, 2s
     try{
       const {error}=await sb.from('collection').upsert(toRow(it));
-      if(!error){ await savePret(it); return; } // succès
+      if(!error){ await savePret(it); verifierMiseEnMarche(it); return; } // succès
       lastError=new Error('Erreur sauvegarde : '+error.message);
       if(!error.message.includes('NetworkError')&&!error.message.includes('fetch')) break; // erreur non-réseau, inutile de réessayer
     }catch(e){
@@ -2415,6 +2443,11 @@ async function openConversation(userId, username){
         updateMsgIconBadge();
       }
     })
+    // Le destinataire vient de lire mes messages : rafraîchir pour afficher « ✓✓ Vu »
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'messages'}, async payload=>{
+      const msg = payload.new;
+      if(msg.from_user_id===currentUser.id && msg.to_user_id===userId && msg.seen) await fetchMessages();
+    })
     .subscribe();
 }
 
@@ -2436,7 +2469,7 @@ async function fetchMessages(){
     const time = new Date(msg.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
     return `<div>
       <div class="msg-bubble ${isMine?'mine':'theirs'}">${escHtml(msg.content)}</div>
-      <div class="msg-time ${isMine?'mine':''}">${time}${isMine&&msg.seen?' ✓✓':''}${isMine?` · <span class="msg-del" data-mid="${msg.id}" style="cursor:pointer;text-decoration:underline;">supprimer</span>`:''}</div>
+      <div class="msg-time ${isMine?'mine':''}">${time}${isMine?(msg.seen?' · <span style="color:var(--cyan);" title="Lu par le destinataire">✓✓ Vu</span>':' · <span title="Envoyé, pas encore lu">✓</span>'):''}${isMine?` · <span class="msg-del" data-mid="${msg.id}" style="cursor:pointer;text-decoration:underline;">supprimer</span>`:''}</div>
     </div>`;
   }).join('');
   container.querySelectorAll('.msg-del').forEach(el=>{
@@ -3631,7 +3664,7 @@ async function loadForum(){
 
 async function loadNotifications(){
   const {data:raw} = await sb.from('notifications')
-    .select('*,from_user:from_user_id(username),post:post_id(content),film:collection_id(title)')
+    .select('*,from_user:from_user_id(username),post:post_id(content),film:collection_id(title,for_sale,for_trade)')
     .eq('user_id', currentUser.id)
     .order('created_at', {ascending:false})
     .limit(30);
@@ -3676,6 +3709,9 @@ function renderNotifDropdown(notifs){
       text = '<b>'+escHtml(from)+'</b> a commenté ta note sur « '+escHtml(n.film ? n.film.title : 'un film')+' »';
     } else if(n.type==='new_deal'){
       text = '🔥 <b>'+escHtml(from)+'</b> a signalé un nouveau bon plan'+(n.deal_title?' : « '+escHtml(n.deal_title)+' »':'');
+    } else if(n.type==='wantlist_match'){
+      const quoi = n.film ? (n.film.for_sale ? 'met en vente' : (n.film.for_trade ? 'propose à l\'échange' : 'proposait')) : 'propose';
+      text = '🎯 <b>'+escHtml(from)+'</b> '+quoi+' « '+escHtml(n.film ? n.film.title : 'un film')+' », qui est dans ta wantlist';
     } else {
       text = '<b>'+escHtml(from)+'</b> t\'a mentionné dans Le Mur';
     }
@@ -3694,6 +3730,8 @@ async function handleNotifClick(notifId, type, collectionId){
   document.getElementById('notifDropdown').classList.remove('open');
   if(type==='new_deal'){
     showSection('sectionDeals');
+  } else if(type==='wantlist_match'){
+    showSection('sectionWantlist'); // onglet MARKET
   } else {
     showSection('sectionForum');
   }
@@ -3979,6 +4017,7 @@ function render(){
   }
   lastRenderedGroups=groups;
   const totalValue=collection.reduce((s,i)=>s+(i.estimatedValue||0),0);
+  const pretsEnRetard=collection.filter(i=>i.loanedTo&&joursDePret(i)>=PRET_RAPPEL_JOURS).length;
   const valuedCount=collection.filter(i=>i.estimatedValue).length;
   const statsEl = document.getElementById('stats');
   if(statsEl) statsEl.innerHTML=
@@ -3989,20 +4028,24 @@ function render(){
     (collection.some(i=>i.loanedTo)?'<div><span class="stat-num" style="color:#ff8c42;">'+collection.filter(i=>i.loanedTo).length+'</span><span class="stat-label">pretes</span></div>':'');
   const grid=document.getElementById('grid');
   if(groups.length===0){ grid.innerHTML='<div class="empty"><div class="logo">RAYON VIDE</div><div>Ajoute ton premier titre.</div></div>'; return; }
-  grid.innerHTML=groups.map(g=>{
+  const rappelPrets=(pretsEnRetard>0&&filterSort!=='loaned')
+    ?'<div style="grid-column:1/-1;flex-basis:100%;width:100%;box-sizing:border-box;cursor:pointer;font-family:Space Mono,monospace;font-size:11px;color:#fff;background:rgba(255,77,77,0.15);border:1px solid #ff4d4d;border-radius:4px;padding:8px 12px;margin-bottom:8px;" onclick="document.getElementById(\'filterSort\').value=\'loaned\';render();">⏰ '+pretsEnRetard+' film'+(pretsEnRetard>1?'s prêtés':' prêté')+' depuis plus de '+PRET_RAPPEL_JOURS+' jours — <u>voir les prêts</u></div>'
+    :'';
+  grid.innerHTML=rappelPrets+groups.map(g=>{
     const it=g.primary, allWatched=g.items.every(i=>i.watched), isSelected=selectedKeys.has(g.key);
     const hasTrade=g.items.some(i=>i.forTrade), hasSale=g.items.some(i=>i.forSale);
     const isSteelbook=g.items.some(i=>i.isSteelbook);
     const loanedItem=g.items.find(i=>i.loanedTo);
-    let loanTitle='';
+    let loanTitle='', loanLate=false, d=null;
     if(loanedItem){
-      const d=loanedItem.loanedAt?Math.max(0,Math.floor((Date.now()-new Date(loanedItem.loanedAt).getTime())/86400000)):null;
+      d=joursDePret(loanedItem);
+      loanLate=d!==null&&d>=PRET_RAPPEL_JOURS;
       loanTitle='Prêté à '+loanedItem.loanedTo+(d!==null?' depuis '+(d===0?"aujourd'hui":d+' jour'+(d>1?'s':'')):'');
     }
     const badgesHtml=[
       isSteelbook?'<span style="font-family:Space Mono,monospace;font-size:9px;font-weight:700;padding:2px 6px;border-radius:2px;background:linear-gradient(90deg,#ff2e88,#2ee6ff);color:#0d0d14;">STEELBOOK®</span>':'',
       hasSale?'<span class="sale-badge">VENTE</span>':(hasTrade?'<span class="trade-badge">ÉCHANGE</span>':''),
-      loanedItem?'<span class="loan-badge" title="'+loanTitle.replace(/"/g,'&quot;')+'">PRÊTÉ</span>':'',
+      loanedItem?'<span class="loan-badge'+(loanLate?' late':'')+'" title="'+escHtml(loanTitle)+'">PRÊTÉ'+(loanLate?' · '+d+' J':'')+'</span>':'',
       it.isSeries?'<span class="series-badge">SÉRIE</span>':''
     ].filter(Boolean).join('');
     const seasonsHtml=(it.isSeries&&it.seasons)?'<div style="font-family:Space Mono,monospace;font-size:9px;color:var(--muted);padding:0 0 4px;">'+it.seasons+(it.episodes?' · '+it.episodes+' ép.':'')+'</div>':'';
