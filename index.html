@@ -202,6 +202,7 @@
   .member-seen{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
   .modal-close-x{position:absolute;top:10px;right:10px;z-index:5;width:36px;height:36px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;background:rgba(13,13,20,0.75);border:1px solid var(--cyan);color:var(--cyan);}
   .modal-close-x.sticky{position:sticky;top:10px;margin:10px 10px -46px auto;}
+  .modal-close-x.sticky.padded{top:0;margin:-10px -6px -36px auto;}
   .modal-close-x:hover{background:var(--cyan);color:#0d0d14;border-color:var(--cyan);}
   #remonterBtn{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:200002;width:46px;height:46px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;background:rgba(13,13,20,0.85);border:1px solid var(--cyan);color:var(--cyan);box-shadow:0 4px 14px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .2s,transform .2s;}
   #remonterBtn.visible{opacity:1;pointer-events:auto;transform:none;}
@@ -548,6 +549,7 @@
         <div class="hamburger-item nav-mobile-item" data-section="sectionDeals">🔥 Bons Plans</div>
         <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
         <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
+        <div class="hamburger-item" id="menuPleinEcran">⛶ Plein écran</div>
         <div class="hamburger-item hamburger-danger" id="menuLogout">⏻ Déconnexion</div>
       </div>
     </div>
@@ -2000,14 +2002,45 @@ document.getElementById('logoAccueil').addEventListener('click', e=>{
   window.scrollTo({top:0, behavior:'smooth'});
 });
 
+// Croix ✕ collante sur toutes les fenêtres : elle déclenche le bouton de fermeture
+// déjà existant de chaque fenêtre (qui gère ses propres nettoyages).
+[
+  ['overlaySondage','#sondageCancelBtn'], ['dealOverlay','#cancelDealBtn'], ['overlayMemberFilm','#mfCloseBtn'],
+  ['overlayCDC','#cdcCancelBtn'], ['overlayStats','#statsCloseBtn'], ['overlay','#cancelBtn'],
+  ['overlayWant','#wantCancelBtn'], ['overlayWantBulk','#wantBulkCancelBtn'], ['cguOverlay', null]
+].forEach(([overlayId, boutonFermer])=>{
+  const modal=document.querySelector('#'+overlayId+' > .modal');
+  if(!modal) return;
+  const x=document.createElement('button');
+  x.className='modal-close-x sticky padded'; x.title='Fermer'; x.setAttribute('aria-label','Fermer'); x.textContent='✕';
+  x.addEventListener('click', e=>{
+    e.stopPropagation();
+    if(boutonFermer) document.querySelector(boutonFermer)?.click(); else closeCGU();
+  });
+  modal.prepend(x);
+});
+
 // Flèche « remonter en haut » : apparaît dès qu'on a défilé, sur la page ou dans une fenêtre
 // (fiche membre…). Le scroll des éléments ne remonte pas jusqu'au document, d'où la phase de capture.
+// Dans une fenêtre, elle se place contre la barre de défilement de cette fenêtre.
 (()=>{
   const btn=document.getElementById('remonterBtn');
   let cible=null; // window ou l'élément qui défile
   const hauteur=c=> c===window ? window.scrollY : c.scrollTop;
   const visible=c=> c===window || (c.isConnected && c.offsetParent!==null);
-  const majBouton=()=>{ btn.classList.toggle('visible', !!cible && visible(cible) && hauteur(cible)>400); };
+  const placer=()=>{
+    if(!cible || cible===window){ btn.style.right=''; btn.style.bottom=''; return; }
+    const r=cible.getBoundingClientRect();
+    const barre=cible.offsetWidth-cible.clientWidth; // largeur de la barre de défilement
+    btn.style.right=Math.max(8, window.innerWidth-r.right+barre+8)+'px';
+    btn.style.bottom=Math.max(12, window.innerHeight-Math.min(r.bottom, window.innerHeight)+12)+'px';
+  };
+  const majBouton=()=>{
+    const montrer=!!cible && visible(cible) && hauteur(cible)>400;
+    if(montrer) placer();
+    btn.classList.toggle('visible', montrer);
+  };
+  window.addEventListener('resize', majBouton);
   document.addEventListener('scroll', e=>{
     const c = (e.target===document || e.target===document.documentElement) ? window : e.target;
     if(hauteur(c)>400 || c===cible){ cible=c; majBouton(); }
@@ -2018,6 +2051,36 @@ document.getElementById('logoAccueil').addEventListener('click', e=>{
     e.stopPropagation();
     if(cible) cible.scrollTo({top:0, behavior:'smooth'});
   });
+})();
+
+// ── PLEIN ÉCRAN ──
+// Les navigateurs interdisent le plein écran sans geste de l'utilisateur : sur smartphone,
+// on le demande donc au premier appui. Si le membre le quitte, on ne le redemande plus
+// pendant la session. Une entrée « Plein écran » du menu permet de l'activer/désactiver.
+(()=>{
+  const el=document.documentElement;
+  const demander=el.requestFullscreen||el.webkitRequestFullscreen;
+  const quitter=document.exitFullscreen||document.webkitExitFullscreen;
+  const enPleinEcran=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const menuItem=document.getElementById('menuPleinEcran');
+  if(!demander){ if(menuItem) menuItem.style.display='none'; return; } // ex. iPhone : non pris en charge
+  const activer=()=>{ const p=demander.call(el,{navigationUI:'hide'}); if(p&&p.catch) p.catch(()=>{}); };
+  const majMenu=()=>{ if(menuItem) menuItem.textContent=enPleinEcran()?'⛶ Quitter le plein écran':'⛶ Plein écran'; };
+  menuItem?.addEventListener('click', ()=>{ enPleinEcran() ? quitter.call(document) : activer(); });
+  document.addEventListener('fullscreenchange', ()=>{
+    majMenu();
+    if(!enPleinEcran()){ try{ sessionStorage.setItem('pleinEcranQuitte','1'); }catch(e){} }
+  });
+
+  const mobile=matchMedia('(max-width:599px)').matches && matchMedia('(pointer:coarse)').matches;
+  const dejaApp=matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
+  let quitte=false; try{ quitte=sessionStorage.getItem('pleinEcranQuitte')==='1'; }catch(e){}
+  if(mobile && !dejaApp && !quitte){
+    document.addEventListener('click', e=>{
+      if(e.target.closest && e.target.closest('#menuPleinEcran')) return;
+      if(!enPleinEcran()) activer();
+    }, {once:true, capture:true});
+  }
 })();
 
 // Application installable : enregistre le service worker (sw.js, sans cache)
