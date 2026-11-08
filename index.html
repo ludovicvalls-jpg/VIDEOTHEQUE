@@ -207,6 +207,8 @@
   #remonterBtn{position:fixed;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:200002;width:46px;height:46px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;background:rgba(13,13,20,0.85);border:1px solid var(--cyan);color:var(--cyan);box-shadow:0 4px 14px rgba(0,0,0,0.5);opacity:0;pointer-events:none;transform:translateY(10px);transition:opacity .2s,transform .2s;}
   #remonterBtn.visible{opacity:1;pointer-events:auto;transform:none;}
   #remonterBtn:hover{background:var(--cyan);color:#0d0d14;}
+  #pleinEcranBtn{font-size:20px;color:var(--cyan);}
+  #pleinEcranBtn.actif{color:var(--pink);}
   .user-link{cursor:pointer;}
   .user-link:hover{text-decoration:underline;color:var(--cyan);}
   .series-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;padding:3px 6px;border-radius:2px;background:#9b5cff;color:#fff;}
@@ -518,6 +520,9 @@
     <div class="neon-sub">VHS · DVD · BLU-RAY · 4K UHD · LASER DISC</div>
   </div>
   <div class="header-right">
+    <div class="notif-wrap">
+      <button id="pleinEcranBtn" class="notif-bell-btn" title="Plein écran" aria-label="Plein écran">⛶</button>
+    </div>
     <div class="notif-wrap">
       <button id="msgIconBtn" class="notif-bell-btn" title="Messages">✉️<span id="msgIconBadge" class="notif-bell-badge" style="display:none;"></span></button>
     </div>
@@ -2063,10 +2068,21 @@ document.getElementById('logoAccueil').addEventListener('click', e=>{
   const quitter=document.exitFullscreen||document.webkitExitFullscreen;
   const enPleinEcran=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
   const menuItem=document.getElementById('menuPleinEcran');
-  if(!demander){ if(menuItem) menuItem.style.display='none'; return; } // ex. iPhone : non pris en charge
+  const headerBtn=document.getElementById('pleinEcranBtn'); // à côté de l'enveloppe des messages
+  if(!demander){ // ex. iPhone : non pris en charge
+    if(menuItem) menuItem.style.display='none';
+    if(headerBtn) headerBtn.parentElement.style.display='none';
+    return;
+  }
   const activer=()=>{ const p=demander.call(el,{navigationUI:'hide'}); if(p&&p.catch) p.catch(()=>{}); };
-  const majMenu=()=>{ if(menuItem) menuItem.textContent=enPleinEcran()?'⛶ Quitter le plein écran':'⛶ Plein écran'; };
-  menuItem?.addEventListener('click', ()=>{ enPleinEcran() ? quitter.call(document) : activer(); });
+  const basculer=()=>{ enPleinEcran() ? quitter.call(document) : activer(); };
+  const majMenu=()=>{
+    const on=enPleinEcran();
+    if(menuItem) menuItem.textContent=on?'⛶ Quitter le plein écran':'⛶ Plein écran';
+    if(headerBtn){ headerBtn.title=on?'Quitter le plein écran':'Plein écran'; headerBtn.classList.toggle('actif',on); }
+  };
+  menuItem?.addEventListener('click', basculer);
+  headerBtn?.addEventListener('click', basculer);
   document.addEventListener('fullscreenchange', ()=>{
     majMenu();
     if(!enPleinEcran()){ try{ sessionStorage.setItem('pleinEcranQuitte','1'); }catch(e){} }
@@ -2077,7 +2093,7 @@ document.getElementById('logoAccueil').addEventListener('click', e=>{
   let quitte=false; try{ quitte=sessionStorage.getItem('pleinEcranQuitte')==='1'; }catch(e){}
   if(mobile && !dejaApp && !quitte){
     document.addEventListener('click', e=>{
-      if(e.target.closest && e.target.closest('#menuPleinEcran')) return;
+      if(e.target.closest && e.target.closest('#menuPleinEcran, #pleinEcranBtn')) return;
       if(!enPleinEcran()) activer();
     }, {once:true, capture:true});
   }
