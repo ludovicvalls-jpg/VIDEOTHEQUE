@@ -309,6 +309,60 @@
   .feed-note img{width:56px;height:84px;object-fit:cover;border-radius:4px;flex-shrink:0;}
   .feed-quote{font-size:15px;line-height:1.5;color:var(--text);font-style:italic;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;}
   .feed-image{max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;display:block;}
+  /* Fiche film d'un membre : affiche agrandie, synopsis */
+  .mf-poster{width:min(140px,36vw);flex-shrink:0;}
+  .mf-poster img{width:100%;display:block;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.6);}
+  .mf-poster-vide{width:100%;aspect-ratio:2/3;background:#1c1c26;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);}
+  .mf-cliquable{cursor:pointer;}
+  h2.mf-cliquable:hover{color:var(--cyan);}
+  .mf-poster.mf-cliquable:hover img{box-shadow:0 0 0 2px var(--cyan),0 4px 14px rgba(0,0,0,.6);}
+  .mf-fiche-btn{margin-top:12px;font-size:13px;padding:7px 12px;}
+  .mf-synopsis{margin:-6px 0 16px;cursor:pointer;}
+  .mf-synopsis-meta{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .mf-synopsis-texte{font-size:15px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;}
+  .mf-synopsis-plus{display:inline-block;margin-top:6px;font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);}
+  .mf-synopsis:hover .mf-synopsis-plus{text-decoration:underline;}
+  /* Fiche détaillée d'un film */
+  .fiche-fond{height:170px;margin:-20px -16px 0;background-size:cover;background-position:center 20%;border-radius:14px 14px 0 0;-webkit-mask-image:linear-gradient(#000 35%,transparent);mask-image:linear-gradient(#000 35%,transparent);}
+  .fiche-tete{display:flex;gap:16px;align-items:flex-end;margin-bottom:14px;position:relative;}
+  .fiche-tete.avec-fond{margin-top:-80px;}
+  .fiche-affiche{width:min(130px,32vw);border-radius:6px;flex-shrink:0;box-shadow:0 4px 16px rgba(0,0,0,.7);}
+  .fiche-titre{margin:0 0 6px;font-size:26px;line-height:1.1;}
+  .fiche-meta{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);}
+  .fiche-note{margin-top:6px;font-size:17px;font-weight:700;color:#ffd23f;}
+  .fiche-note span{font-family:'Space Mono',monospace;font-size:12px;font-weight:400;color:var(--muted);margin-left:2px;}
+  .fiche-genres{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .fiche-genres span{font-size:12px;padding:2px 9px;border-radius:10px;border:1px solid var(--card-border);color:var(--muted);}
+  .fiche-accroche{font-style:italic;color:var(--muted);margin-bottom:6px;}
+  .fiche-section{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:1px;color:var(--pink);margin:18px 0 8px;}
+  .fiche-synopsis{font-size:15px;line-height:1.6;}
+  .fiche-video{display:inline-block;margin-top:12px;padding:8px 14px;border:1px solid var(--cyan);border-radius:4px;color:var(--cyan);font-family:'Space Mono',monospace;font-size:13px;text-decoration:none;}
+  .fiche-video:hover{background:var(--cyan);color:#0d0d14;}
+  .fiche-lignes > div{display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--card-border);font-size:14px;}
+  .fiche-lignes span:first-child{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);flex-shrink:0;}
+  .fiche-lignes span:last-child{text-align:right;}
+  .fiche-casting{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;}
+  .fiche-acteur{width:86px;flex-shrink:0;font-size:12px;line-height:1.3;}
+  .fiche-acteur img,.fiche-acteur-vide{width:86px;height:129px;object-fit:cover;border-radius:6px;background:#1c1c26;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--muted);margin-bottom:4px;}
+  .fiche-acteur b{display:block;}
+  .fiche-acteur span{color:var(--muted);}
+  .fiche-membres > div{padding:6px 0;border-bottom:1px solid var(--card-border);font-size:15px;}
+  .fiche-membres .user-link{font-weight:700;}
+  .fiche-formats{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);margin-left:4px;}
+  .fiche-source{display:block;margin-top:16px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);}
+  .feed-coms{margin-top:10px;padding-top:10px;border-top:1px solid var(--card-border);display:flex;flex-direction:column;gap:8px;}
+  .feed-coms-plus{margin:0;cursor:pointer;color:var(--accent);}
+  .feed-coms-plus:hover{text-decoration:underline;}
+  .feed-com{display:flex;gap:8px;align-items:flex-start;}
+  .feed-com-bulle{flex:1;min-width:0;background:rgba(255,255,255,0.04);border-radius:10px;padding:6px 10px;font-size:14px;line-height:1.45;position:relative;}
+  .feed-com-bulle .feed-when{margin-left:4px;}
+  .feed-com-texte{white-space:pre-wrap;overflow-wrap:anywhere;}
+  .feed-com-suppr{position:absolute;top:2px;right:4px;background:none;border:none;color:var(--muted);font-size:13px;padding:2px 6px;cursor:pointer;}
+  .feed-com-suppr:hover{color:#ff8080;background:none;}
+  .feed-com-saisie{display:flex;gap:8px;align-items:flex-end;}
+  .feed-com-saisie textarea{flex:1;min-width:0;resize:none;background:#1c1c26;border:1px solid var(--card-border);color:var(--text);border-radius:16px;padding:8px 12px;font-family:'Inter',sans-serif;font-size:15px;line-height:1.4;}
+  .feed-com-saisie textarea:focus{outline:none;border-color:var(--accent);}
+  .feed-com-saisie button{font-size:13px;padding:8px 12px;flex-shrink:0;}
   .reac-bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
   .reac{font-family:'Inter',sans-serif;font-size:14px;text-transform:none;letter-spacing:0;padding:5px 10px;border-radius:16px;}
   .reac-label{font-size:13px;color:var(--muted);margin-left:2px;}
@@ -1195,17 +1249,28 @@
   </div>
   <div id="forumPosts" class="forum-posts"></div>
 </div>
+<!-- MODAL FICHE DÉTAILLÉE D'UN FILM (infos TMDB + membres qui le possèdent) -->
+<div class="overlay" id="overlayFicheFilm" style="z-index:100002;">
+  <div class="modal" style="max-width:640px;">
+    <div id="ficheFilmContenu"></div>
+    <div class="modal-actions">
+      <button id="ficheFilmCloseBtn">Fermer</button>
+    </div>
+  </div>
+</div>
 <!-- MODAL FICHE FILM MEMBRE -->
 <div class="overlay" id="overlayMemberFilm" style="z-index:100001;">
   <div class="modal" style="max-width:480px;">
     <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;">
-      <div id="mfPoster" style="width:80px;flex-shrink:0;"></div>
-      <div style="flex:1;">
+      <div id="mfPoster" class="mf-poster"></div>
+      <div style="flex:1;min-width:0;">
         <h2 id="mfTitle" style="margin:0 0 6px;font-size:22px;"></h2>
         <div id="mfMeta" style="font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);margin-bottom:8px;"></div>
         <div id="mfTags" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        <button type="button" id="mfFicheBtn" class="mf-fiche-btn" style="display:none;">🎬 Fiche détaillée</button>
       </div>
     </div>
+    <div id="mfSynopsis" class="mf-synopsis" style="display:none;"></div>
     <div id="mfInfos" style="display:flex;flex-direction:column;gap:10px;"></div>
     <div id="mfNotes" style="display:none;margin-top:12px;padding:12px;background:#1c1c26;border-radius:6px;font-size:15px;line-height:1.6;"></div>
     <div id="mfPublicNoteBlock" class="public-note-block" style="display:none;">
@@ -2266,7 +2331,7 @@ document.getElementById('logoAccueil').addEventListener('click', e=>{
 // Croix ✕ collante sur toutes les fenêtres : elle déclenche le bouton de fermeture
 // déjà existant de chaque fenêtre (qui gère ses propres nettoyages).
 [
-  ['overlaySondage','#sondageCancelBtn'], ['dealOverlay','#cancelDealBtn'], ['overlayMemberFilm','#mfCloseBtn'],
+  ['overlaySondage','#sondageCancelBtn'], ['dealOverlay','#cancelDealBtn'], ['overlayMemberFilm','#mfCloseBtn'], ['overlayFicheFilm','#ficheFilmCloseBtn'],
   ['overlayCDC','#cdcCancelBtn'], ['overlayStats','#statsCloseBtn'], ['overlay','#cancelBtn'],
   ['overlayWant','#wantCancelBtn'], ['overlayWantBulk','#wantBulkCancelBtn'], ['cguOverlay', null]
 ].forEach(([overlayId, boutonFermer])=>{
@@ -3063,8 +3128,17 @@ function openMemberFilm(it, memberUserId, memberUsername, onClose){
 
   const posterEl = document.getElementById('mfPoster');
   posterEl.innerHTML = it.posterUrl
-    ? `<img src="${it.posterUrl}" style="width:80px;border-radius:4px;">`
-    : `<div style="width:80px;height:110px;background:#1c1c26;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);">Pas d'affiche</div>`;
+    ? `<img src="${escHtml(it.posterUrl)}" alt="">`
+    : `<div class="mf-poster-vide">Pas d'affiche</div>`;
+
+  // Affiche et titre ouvrent la fiche détaillée (si le film est relié à TMDB) ; le synopsis s'affiche dessous
+  currentMemberFilm = it;
+  const cliquable = !!it.tmdbId;
+  posterEl.classList.toggle('mf-cliquable', cliquable);
+  document.getElementById('mfTitle').classList.toggle('mf-cliquable', cliquable);
+  posterEl.title = document.getElementById('mfTitle').title = cliquable ? 'Voir la fiche détaillée' : '';
+  document.getElementById('mfFicheBtn').style.display = cliquable ? '' : 'none';
+  chargerSynopsisMembre(it);
 
   document.getElementById('mfTitle').textContent = it.title;
   document.getElementById('mfMeta').textContent = [it.year||'', fmtLabel(it.format)].filter(Boolean).join(' · ');
@@ -3140,6 +3214,134 @@ function closeMemberFilm(){
   if(cb) cb();
 }
 document.getElementById('mfCloseBtn').addEventListener('click', closeMemberFilm);
+
+// ── FICHE DÉTAILLÉE D'UN FILM (TMDB) ──
+// Une seule requête TMDB par film (infos + équipe + vidéos), gardée en mémoire :
+// elle sert au synopsis de la fiche membre puis à la fiche détaillée.
+let currentMemberFilm = null;
+const ficheTmdbCache = new Map();
+function ficheTmdb(tmdbId, serie){
+  const cle = (serie?'tv':'movie')+'/'+tmdbId;
+  if(!ficheTmdbCache.has(cle)){
+    const p = fetch('https://api.themoviedb.org/3/'+cle+'?api_key='+TMDB_KEY+'&language=fr-FR&append_to_response=credits,videos&include_video_language=fr,en')
+      .then(r=>r.json()).then(d=>{ if(d.success===false) throw new Error('Film introuvable sur TMDB'); return d; });
+    p.catch(()=>ficheTmdbCache.delete(cle)); // on réessaiera la prochaine fois
+    ficheTmdbCache.set(cle, p);
+  }
+  return ficheTmdbCache.get(cle);
+}
+async function chargerSynopsisMembre(it){
+  const el = document.getElementById('mfSynopsis');
+  el.style.display = 'none'; el.innerHTML = '';
+  if(!it.tmdbId) return;
+  try{
+    const d = await ficheTmdb(it.tmdbId, it.isSeries);
+    if(currentMemberFilm !== it || !d.overview) return; // une autre fiche a été ouverte entre-temps
+    const real = (d.credits?.crew||[]).filter(c=>c.job==='Director').map(c=>c.name).join(', ');
+    const duree = d.runtime ? d.runtime+' min' : '';
+    const genres = (d.genres||[]).slice(0,3).map(g=>g.name).join(', ');
+    el.innerHTML = '<div class="mf-synopsis-meta">'+escHtml([real?'De '+real:'', duree, genres].filter(Boolean).join(' · '))+'</div>'
+      + '<div class="mf-synopsis-texte">'+escHtml(d.overview)+'</div>'
+      + '<span class="mf-synopsis-plus">Voir la fiche détaillée →</span>';
+    el.style.display = 'block';
+  }catch(e){ console.warn('Synopsis non chargé :', e.message); }
+}
+['mfPoster','mfTitle','mfFicheBtn','mfSynopsis'].forEach(id=>document.getElementById(id).addEventListener('click', ()=>{
+  if(currentMemberFilm && currentMemberFilm.tmdbId) ouvrirFicheFilm(currentMemberFilm);
+}));
+
+const dollars = n=> Number(n).toLocaleString('fr-FR')+' $';
+async function ouvrirFicheFilm(it){
+  const box = document.getElementById('ficheFilmContenu');
+  const overlay = document.getElementById('overlayFicheFilm');
+  box.innerHTML = '<div class="activity-empty">Chargement de la fiche…</div>';
+  overlay.classList.add('open');
+  overlay.querySelector('.modal').scrollTop = 0;
+  overlay._film = it;
+  let d, proprios;
+  try{
+    [d, proprios] = await Promise.all([
+      ficheTmdb(it.tmdbId, it.isSeries),
+      sb.from('collection').select('user_id,format,for_sale,for_trade,profiles(username)').eq('tmdb_id', it.tmdbId).then(r=>r.data||[])
+    ]);
+  }catch(e){
+    box.innerHTML = '<div class="activity-empty">La fiche de ce film n\'a pas pu être chargée.<br>Réessaie dans un instant.</div>';
+    return;
+  }
+  if(overlay._film !== it) return; // une autre fiche a été demandée entre-temps
+
+  const serie = !!it.isSeries;
+  const titre = d.title || d.name || it.title;
+  const titreVo = d.original_title || d.original_name || '';
+  const date = d.release_date || d.first_air_date || '';
+  const equipe = d.credits?.crew || [];
+  const noms = job=> [...new Set(equipe.filter(c=>job.includes(c.job)).map(c=>c.name))].join(', ');
+  const real = serie ? (d.created_by||[]).map(c=>c.name).join(', ') : noms(['Director']);
+  const duree = d.runtime ? Math.floor(d.runtime/60)+' h '+String(d.runtime%60).padStart(2,'0') : '';
+  // TMDB donne les pays en anglais : on les nomme en français à partir de leur code
+  let nomPays = p=>p.name;
+  try{ const noms = new Intl.DisplayNames(['fr'],{type:'region'}); nomPays = p=>noms.of(p.iso_3166_1)||p.name; }catch(e){}
+  const pays = (d.production_countries||[]).slice(0,3).map(nomPays).join(', ');
+  const video = (d.videos?.results||[]).filter(v=>v.site==='YouTube' && ['Trailer','Teaser'].includes(v.type))
+    .sort((a,b)=> (b.iso_639_1==='fr')-(a.iso_639_1==='fr') || (b.type==='Trailer')-(a.type==='Trailer'))[0];
+
+  const lignes = [
+    [serie?'Création':'Réalisation', real],
+    ['Scénario', noms(['Screenplay','Writer','Story'])],
+    ['Musique', noms(['Original Music Composer'])],
+    ['Photographie', noms(['Director of Photography'])],
+    [serie?'Première diffusion':'Sortie', date ? new Date(date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : ''],
+    ['Durée', duree],
+    ['Saisons', serie && d.number_of_seasons ? d.number_of_seasons+' ('+(d.number_of_episodes||'?')+' épisodes)' : ''],
+    ['Titre original', titreVo && titreVo!==titre ? titreVo : ''],
+    ['Pays', pays],
+    ['Production', (d.production_companies||[]).slice(0,3).map(p=>p.name).join(', ')],
+    ['Budget', d.budget ? dollars(d.budget) : ''],
+    ['Recettes', d.revenue ? dollars(d.revenue) : ''],
+    ['Saga', d.belongs_to_collection?.name || '']
+  ].filter(l=>l[1]);
+
+  // Membres qui possèdent le film, avec leurs formats
+  const parMembre = new Map();
+  proprios.forEach(r=>{
+    if(!parMembre.has(r.user_id)) parMembre.set(r.user_id, {nom:r.profiles?.username||'Membre', formats:new Set(), vente:false, echange:false});
+    const m = parMembre.get(r.user_id);
+    if(r.format) m.formats.add(fmtLabel(r.format));
+    m.vente = m.vente || !!r.for_sale; m.echange = m.echange || !!r.for_trade;
+  });
+
+  const img = (chemin, taille)=> 'https://image.tmdb.org/t/p/'+taille+escHtml(chemin);
+  box.innerHTML =
+    (d.backdrop_path ? '<div class="fiche-fond" style="background-image:url(\''+img(d.backdrop_path,'w780')+'\');"></div>' : '')
+    + '<div class="fiche-tete'+(d.backdrop_path?' avec-fond':'')+'">'
+    +   (d.poster_path||it.posterUrl ? '<img class="fiche-affiche" src="'+(d.poster_path?img(d.poster_path,'w342'):escHtml(it.posterUrl))+'" alt="">' : '')
+    +   '<div style="min-width:0;">'
+    +     '<h2 class="fiche-titre">'+escHtml(titre)+'</h2>'
+    +     '<div class="fiche-meta">'+escHtml([date.slice(0,4), duree, pays].filter(Boolean).join(' · '))+'</div>'
+    +     (d.vote_count ? '<div class="fiche-note">★ '+d.vote_average.toFixed(1)+'<span>/10 · '+d.vote_count.toLocaleString('fr-FR')+' votes TMDB</span></div>' : '')
+    +     '<div class="fiche-genres">'+(d.genres||[]).map(g=>'<span>'+escHtml(g.name)+'</span>').join('')+'</div>'
+    +   '</div>'
+    + '</div>'
+    + (d.tagline ? '<div class="fiche-accroche">« '+escHtml(d.tagline)+' »</div>' : '')
+    + '<div class="fiche-section">Synopsis</div>'
+    + '<div class="fiche-synopsis">'+escHtml(d.overview||'Pas de synopsis en français pour ce film.')+'</div>'
+    + (video ? '<a class="fiche-video" href="https://www.youtube.com/watch?v='+encodeURIComponent(video.key)+'" target="_blank" rel="noopener noreferrer">▶ Voir la bande-annonce</a>' : '')
+    + (lignes.length ? '<div class="fiche-section">Fiche technique</div><div class="fiche-lignes">'
+        + lignes.map(l=>'<div><span>'+l[0]+'</span><span>'+escHtml(l[1])+'</span></div>').join('')+'</div>' : '')
+    + ((d.credits?.cast||[]).length ? '<div class="fiche-section">Casting</div><div class="fiche-casting">'
+        + d.credits.cast.slice(0,12).map(c=>'<div class="fiche-acteur">'
+            + (c.profile_path ? '<img src="'+img(c.profile_path,'w185')+'" loading="lazy" alt="">' : '<div class="fiche-acteur-vide">'+escHtml((c.name||'?').slice(0,1))+'</div>')
+            + '<b>'+escHtml(c.name||'')+'</b><span>'+escHtml(c.character||'')+'</span></div>').join('')+'</div>' : '')
+    + '<div class="fiche-section">Dans les rayons des membres</div>'
+    + (parMembre.size ? '<div class="fiche-membres">'+[...parMembre].map(([uid,m])=>'<div>'+lienMembre(uid,m.nom)
+          + ' <span class="fiche-formats">'+escHtml([...m.formats].join(', '))+'</span>'
+          + (m.vente?' <span class="sale-badge">VENTE</span>':'')+(m.echange?' <span class="trade-badge">ÉCHANGE</span>':'')+'</div>').join('')+'</div>'
+        : '<div class="fiche-synopsis" style="color:var(--muted);">Aucun membre ne possède ce film pour le moment.</div>')
+    + '<a class="fiche-source" href="https://www.themoviedb.org/'+(serie?'tv':'movie')+'/'+encodeURIComponent(it.tmdbId)+'" target="_blank" rel="noopener noreferrer">Informations fournies par TMDB ↗</a>';
+}
+function fermerFicheFilm(){ document.getElementById('overlayFicheFilm').classList.remove('open'); }
+document.getElementById('ficheFilmCloseBtn').addEventListener('click', fermerFicheFilm);
+document.getElementById('overlayFicheFilm').addEventListener('click', e=>{ if(e.target.id==='overlayFicheFilm') fermerFicheFilm(); });
 document.getElementById('overlayMemberFilm').addEventListener('click',e=>{ if(e.target===document.getElementById('overlayMemberFilm')) closeMemberFilm(); });
 
 // ── COMMENTAIRES SUR UNE NOTE PUBLIQUE ──
@@ -4217,7 +4419,9 @@ async function loadNotifications(){
   updateMsgIconBadge();
 }
 
+let notifsAffichees = []; // gardées pour retrouver les détails (meta) au clic
 function renderNotifDropdown(notifs){
+  notifsAffichees = notifs;
   const list = document.getElementById('notifList');
   if(!notifs.length){
     list.innerHTML = '<div class="notif-empty">Pas de notification pour le moment.</div>';
@@ -4237,6 +4441,14 @@ function renderNotifDropdown(notifs){
       const t = m.titre ? ' « '+escHtml(m.titre)+' »' : '';
       const quoi = m.cible_type==='ajouts' ? (/^\d+ films$/.test(m.titre||'') ? 'à tes '+escHtml(m.titre)+' ajoutés' : 'à ton ajout'+t) : m.cible_type==='note' ? 'à ton avis sur'+t : m.cible_type==='deal' ? 'à ton bon plan'+t : 'à ton sondage'+t;
       text = emo+' <b>'+lienMembre(n.from_user_id, from)+'</b> a réagi '+quoi;
+    } else if(n.type==='commentaire'){
+      // meta.auteur : je suis l'auteur de l'actualité ; sinon j'avais commenté avant lui
+      const m = n.meta || {};
+      const t = m.titre ? ' « '+escHtml(m.titre)+' »' : '';
+      const plusieurs = m.cible_type==='ajouts' && /^\d+ films$/.test(m.titre||'');
+      const quoi = !m.auteur ? (m.cible_type==='flashback' ? 'le Flashback'+t : plusieurs ? 'un ajout de '+escHtml(m.titre) : m.cible_type==='ajouts' ? "l'ajout"+t : m.cible_type==='post' ? 'la publication'+t : m.cible_type==='deal' ? 'le bon plan'+t : 'le sondage'+t)
+        : plusieurs ? 'tes '+escHtml(m.titre)+' ajoutés' : m.cible_type==='ajouts' ? 'ton ajout'+t : m.cible_type==='post' ? 'ta publication'+t : m.cible_type==='deal' ? 'ton bon plan'+t : 'ton sondage'+t;
+      text = '💬 <b>'+lienMembre(n.from_user_id, from)+'</b> a '+(m.auteur?'':'aussi ')+'commenté '+quoi;
     } else if(n.type==='wantlist_match'){
       const quoi = n.film ? (n.film.for_sale ? 'met en vente' : (n.film.for_trade ? 'propose à l\'échange' : 'proposait')) : 'propose';
       text = '🎯 <b>'+lienMembre(n.from_user_id, from)+'</b> '+quoi+' « '+escHtml(n.film ? n.film.title : 'un film')+' », qui est dans ta wantlist';
@@ -4259,6 +4471,14 @@ async function handleNotifClick(notifId, type, collectionId){
   if(type==='new_deal'){
     showSection('sectionDeals');
   } else if(type==='reaction'){
+    showSection('sectionAccueil');
+  } else if(type==='commentaire'){
+    // Ouvre le fil d'accueil sur la carte commentée, commentaires dépliés
+    const m = (notifsAffichees.find(n=>String(n.id)===String(notifId))||{}).meta || {};
+    if(m.cible_type && m.cible_id){
+      accueilEtat.focus = m.cible_type+'|'+m.cible_id;
+      accueilEtat.ouverts.add(accueilEtat.focus);
+    }
     showSection('sectionAccueil');
   } else if(type==='wantlist_match'){
     showSection('sectionWantlist'); // onglet MARKET
@@ -5020,7 +5240,22 @@ const REACTIONS = [
   {code:'feu',   emoji:'🔥', label:'Pépite'},
   {code:'aussi', emoji:'🤝', label:"Je l'ai aussi"}
 ];
-let accueilEtat = {reactions:[], profils:new Map(), items:[]};
+// Cartes que l'on peut commenter directement dans le fil (table commentaires).
+// Les cartes « note » ont déjà leur discussion sur la fiche du film (film_note_comments).
+const COMMENTABLES = ['ajouts','post','deal','sondage','flashback'];
+// ouverts : cartes dont la zone de commentaire est dépliée ; brouillons : texte en cours de saisie par carte
+let accueilEtat = {reactions:[], profils:new Map(), items:[], commentaires:[], commentairesOk:false, ouverts:new Set(), brouillons:new Map(), focus:null};
+function cleItem(item){ return item.type+'|'+item.cible; }
+function commentairesDe(item){ return accueilEtat.commentaires.filter(c=>c.cible_type===item.type && c.cible_id===String(item.cible)); }
+// Titre court d'une carte, pour les notifications
+function titreItem(item){
+  const d = item.data;
+  if(item.type==='ajouts') return d.films.length===1 ? d.films[0].title : d.films.length+' films';
+  if(item.type==='sondage') return d.question||'';
+  if(item.type==='post') return (d.content||'').length>40 ? d.content.slice(0,40)+'…' : (d.content||'');
+  if(item.type==='flashback') return d.titre||'';
+  return d.title||'';
+}
 
 function ilYa(iso){
   const min = Math.max(0, Math.round((Date.now()-new Date(iso).getTime())/60000));
@@ -5135,11 +5370,17 @@ async function loadAccueil(){
   // Réactions et likes des éléments affichés
   const cibles = accueilEtat.items.filter(i=>i.type!=='post').map(i=>String(i.cible));
   const postIds = accueilEtat.items.filter(i=>i.type==='post').map(i=>i.cible);
-  const [reacs, likes, fbFilms] = await Promise.all([
+  const [reacs, likes, fbFilms, coms] = await Promise.all([
     cibles.length ? sb.from('reactions').select('cible_type,cible_id,emoji,user_id').in('cible_id', cibles) : {data:[]},
     postIds.length ? sb.from('post_likes').select('post_id,user_id').in('post_id', postIds) : {data:[]},
-    fb.tmdb ? sb.from('collection').select('user_id').eq('tmdb_id', fb.tmdb) : {data:[]}
+    fb.tmdb ? sb.from('collection').select('user_id').eq('tmdb_id', fb.tmdb) : {data:[]},
+    sb.from('commentaires').select('id,cible_type,cible_id,user_id,content,created_at')
+      .in('cible_id', accueilEtat.items.filter(i=>COMMENTABLES.includes(i.type)).map(i=>String(i.cible))).order('created_at')
   ]);
+  // Commentaires sous les cartes ; si la table n'existe pas encore, le bouton « Commenter » reste masqué
+  if(coms.error) console.warn('Commentaires non chargés :', coms.error.message);
+  accueilEtat.commentairesOk = !coms.error;
+  accueilEtat.commentaires = coms.data||[];
   // Membres qui possèdent le film dont parle le Flashback
   fbItem.data.proprios = [...new Set((fbFilms.data||[]).map(r=>r.user_id))];
   if(reacs.error) console.warn('Réactions non chargées :', reacs.error.message);
@@ -5197,12 +5438,19 @@ function renderNouveautes(ajouts){
     + '<div class="nouveaute-affiche"><div><div class="nouveaute-plus-icone">＋</div>Voir plus<br>d\'ajouts</div></div></div>';
 }
 
+// Bouton « 💬 Commenter » de la barre de réactions (déplie la zone de commentaires de la carte)
+function boutonCommenter(item){
+  if(!accueilEtat.commentairesOk || !COMMENTABLES.includes(item.type)) return '';
+  const n = commentairesDe(item).length, cle = cleItem(item);
+  return '<button class="reac'+(accueilEtat.ouverts.has(cle)?' mine':'')+'" data-com-ouvrir="'+escHtml(cle)+'" title="Commenter">💬 '+(n||'')+(n?'':'<span class="reac-label">Commenter</span>')+'</button>';
+}
 function barreReactions(item){
   if(item.type==='post'){
     const likes = (accueilEtat.likes||[]).filter(l=>l.post_id===item.cible);
     const mien = likes.some(l=>l.user_id===currentUser.id);
     return '<div class="reac-bar"><button class="reac'+(mien?' mine':'')+'" data-like-post="'+escHtml(item.cible)+'" title="J\'aime">❤️ '+(likes.length||'')+'</button>'
-      + '<button class="reac" data-aller="sectionForum">💬 Voir sur Le Mur</button></div>';
+      + boutonCommenter(item)
+      + '<button class="reac" data-aller="sectionForum">📝 Voir sur Le Mur</button></div>';
   }
   const choix = REACTIONS.filter(r=> r.code!=='aussi' || item.type==='note' || (item.type==='ajouts' && item.data.films.length===1));
   return '<div class="reac-bar">'+choix.map(r=>{
@@ -5210,7 +5458,28 @@ function barreReactions(item){
     const mien = liste.some(x=>x.user_id===currentUser.id);
     const noms = liste.map(x=>accueilEtat.profils.get(x.user_id)?.username).filter(Boolean).join(', ');
     return '<button class="reac'+(mien?' mine':'')+'" data-reac="'+r.code+'" data-type="'+item.type+'" data-cible="'+escHtml(String(item.cible))+'" title="'+escHtml(r.label+(noms?' — '+noms:''))+'">'+r.emoji+' '+(liste.length||'')+(liste.length?'':'<span class="reac-label">'+r.label+'</span>')+'</button>';
-  }).join('')+'</div>';
+  }).join('')+boutonCommenter(item)+'</div>';
+}
+// Commentaires d'une carte : les 2 derniers en aperçu ; carte dépliée = tous + champ de saisie.
+function zoneCommentaires(item){
+  if(!accueilEtat.commentairesOk || !COMMENTABLES.includes(item.type)) return '';
+  const cle = cleItem(item), ouvert = accueilEtat.ouverts.has(cle), tous = commentairesDe(item);
+  if(!tous.length && !ouvert) return '';
+  const attr = escHtml(cle);
+  let h = '<div class="feed-coms">';
+  if(!ouvert && tous.length>2) h += '<div class="feed-sub feed-coms-plus" data-com-ouvrir="'+attr+'">Voir les '+tous.length+' commentaires</div>';
+  h += (ouvert ? tous : tous.slice(-2)).map(c=>{
+    const p = accueilEtat.profils.get(c.user_id)||{};
+    const peutSuppr = c.user_id===currentUser.id || currentProfile?.is_admin;
+    return '<div class="feed-com">'
+      + '<span class="user-link" data-link-uid="'+escHtml(c.user_id)+'" data-link-uname="'+escHtml(p.username||'Membre')+'">'+avatarMembre(p.avatar_url,p.avatar_position,p.username,26)+'</span>'
+      + '<div class="feed-com-bulle"><b>'+lienMembre(c.user_id,p.username||'Membre')+'</b> <span class="feed-when">'+ilYa(c.created_at)+'</span>'
+      + (peutSuppr?'<button class="feed-com-suppr" data-com-suppr="'+escHtml(String(c.id))+'" title="Supprimer ce commentaire">✕</button>':'')
+      + '<div class="feed-com-texte">'+escHtml(c.content)+'</div></div></div>';
+  }).join('');
+  if(ouvert) h += '<div class="feed-com-saisie"><textarea data-com-texte="'+attr+'" maxlength="500" rows="1" placeholder="Écrire un commentaire…">'+escHtml(accueilEtat.brouillons.get(cle)||'')+'</textarea>'
+    + '<button class="primary" data-com-envoyer="'+attr+'">Envoyer</button></div>';
+  return h+'</div>';
 }
 
 function renderAccueil(){
@@ -5283,15 +5552,37 @@ function renderAccueil(){
         + '<div style="min-width:0;"><div class="feed-action"><b>Le Flashback de la semaine</b></div><div class="feed-when">'+escHtml(getFlashbackDateStr())+'</div></div></div>'
       : '<div class="feed-head"><span class="user-link" data-link-uid="'+escHtml(qui.uid||'')+'" data-link-uname="'+escHtml(qui.username||'Membre')+'">'+avatarMembre(qui.avatar_url,qui.avatar_position,qui.username)+'</span>'
         + '<div style="min-width:0;"><div class="feed-action">'+lienMembre(qui.uid,qui.username)+' '+action+'</div><div class="feed-when">'+ilYa(item.date)+'</div></div></div>';
-    return '<div class="feed-card t-'+item.type+'" data-idx="'+idx+'"><span class="feed-type">'+etiquette+'</span>'
-      + tete + corps + barreReactions(item) + '</div>';
+    return '<div class="feed-card t-'+item.type+'" data-idx="'+idx+'" data-cle="'+escHtml(cleItem(item))+'"><span class="feed-type">'+etiquette+'</span>'
+      + tete + corps + barreReactions(item) + zoneCommentaires(item) + '</div>';
   }).join('');
+  // Carte à montrer après un clic sur une notification de commentaire
+  if(accueilEtat.focus){
+    const carte = [...feed.querySelectorAll('.feed-card')].find(el=>el.dataset.cle===accueilEtat.focus);
+    accueilEtat.focus = null;
+    if(carte) carte.scrollIntoView({block:'center'});
+  }
 }
 
 // Clics dans le fil (un seul écouteur pour toutes les cartes)
 document.addEventListener('click', async e=>{
   const feed = e.target.closest && e.target.closest('#accueilFeed, #accueilNouveautes');
   if(!feed) return;
+  // Commentaires sous les cartes
+  const comSuppr = e.target.closest('[data-com-suppr]');
+  if(comSuppr){ await supprimerCommentaire(comSuppr.dataset.comSuppr); return; }
+  const comEnvoi = e.target.closest('[data-com-envoyer]');
+  if(comEnvoi){ await envoyerCommentaire(comEnvoi.dataset.comEnvoyer, comEnvoi.parentElement.querySelector('textarea').value); return; }
+  const comOuvrir = e.target.closest('[data-com-ouvrir]');
+  if(comOuvrir){
+    const cle = comOuvrir.dataset.comOuvrir;
+    // Le bouton 💬 replie la zone si elle est déjà ouverte ; « Voir les N commentaires » l'ouvre seulement
+    if(accueilEtat.ouverts.has(cle) && comOuvrir.classList.contains('reac')) accueilEtat.ouverts.delete(cle);
+    else accueilEtat.ouverts.add(cle);
+    renderAccueil();
+    if(accueilEtat.ouverts.has(cle)) saisieCommentaire(cle)?.focus();
+    return;
+  }
+  if(e.target.closest('.feed-coms')) return; // un clic dans les commentaires n'ouvre pas la carte
   const reac = e.target.closest('[data-reac]');
   if(reac){ await basculerReaction(reac.dataset.type, reac.dataset.cible, reac.dataset.reac); return; }
   const like = e.target.closest('[data-like-post]');
@@ -5307,6 +5598,61 @@ document.addEventListener('click', async e=>{
   }
 });
 
+// ── Commentaires sous les cartes du fil ──
+function saisieCommentaire(cle){
+  return [...document.querySelectorAll('#accueilFeed [data-com-texte]')].find(t=>t.dataset.comTexte===cle);
+}
+// Le texte en cours est gardé de côté : le fil est entièrement redessiné à chaque changement
+document.addEventListener('input', e=>{
+  const t = e.target.closest && e.target.closest('#accueilFeed [data-com-texte]');
+  if(!t) return;
+  accueilEtat.brouillons.set(t.dataset.comTexte, t.value);
+  t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 140)+'px';
+});
+// Entrée envoie, Maj+Entrée va à la ligne
+document.addEventListener('keydown', e=>{
+  const t = e.target.closest && e.target.closest('#accueilFeed [data-com-texte]');
+  if(!t || e.key!=='Enter' || e.shiftKey || e.isComposing) return;
+  e.preventDefault();
+  envoyerCommentaire(t.dataset.comTexte, t.value);
+});
+async function envoyerCommentaire(cle, texte){
+  const item = accueilEtat.items.find(i=>cleItem(i)===cle);
+  const content = validateText(texte, 500);
+  if(!item || !content || accueilEtat.envoiCom) return;
+  accueilEtat.envoiCom = true;
+  const dejaLa = commentairesDe(item).map(c=>c.user_id); // participants avant ce commentaire
+  const {data, error} = await sb.from('commentaires')
+    .insert({user_id:currentUser.id, cible_type:item.type, cible_id:String(item.cible), content})
+    .select('id,cible_type,cible_id,user_id,content,created_at').single();
+  accueilEtat.envoiCom = false;
+  if(error){ console.warn('Commentaire non envoyé :', error.message); alert("Le commentaire n'a pas pu être envoyé. Réessaie dans un instant."); return; }
+  accueilEtat.commentaires.push(data);
+  accueilEtat.brouillons.delete(cle);
+  renderAccueil();
+  saisieCommentaire(cle)?.focus();
+  // Prévenir l'auteur de l'actualité et les membres qui ont déjà commenté (sauf moi)
+  const dest = new Set(dejaLa); if(item.uid) dest.add(item.uid); dest.delete(currentUser.id);
+  if(dest.size){
+    const titre = titreItem(item);
+    const {error:nErr} = await sb.from('notifications').insert([...dest].map(uid=>({
+      user_id:uid, from_user_id:currentUser.id, type:'commentaire',
+      meta:{cible_type:item.type, cible_id:String(item.cible), titre, auteur:uid===item.uid}
+    })));
+    if(nErr) console.warn('Notification de commentaire non envoyée :', nErr.message);
+  }
+}
+async function supprimerCommentaire(id){
+  const com = accueilEtat.commentaires.find(c=>String(c.id)===String(id));
+  if(!com) return;
+  const admin = com.user_id!==currentUser.id;
+  if(!confirm(admin ? 'Supprimer ce commentaire (action admin) ?' : 'Supprimer ce commentaire ?')) return;
+  const {error} = await sb.from('commentaires').delete().eq('id', com.id);
+  if(error){ console.warn('Commentaire non supprimé :', error.message); return; }
+  accueilEtat.commentaires = accueilEtat.commentaires.filter(c=>c!==com);
+  renderAccueil();
+}
+
 async function basculerReaction(type, cible, code){
   const item = accueilEtat.items.find(i=>i.type===type && String(i.cible)===cible);
   const mien = accueilEtat.reactions.find(x=>x.cible_type===type && x.cible_id===cible && x.emoji===code && x.user_id===currentUser.id);
@@ -5321,8 +5667,7 @@ async function basculerReaction(type, cible, code){
   if(error){ console.warn('Réaction non enregistrée :', error.message); loadAccueil(); return; }
   // Prévenir l'auteur (sauf si c'est moi)
   if(item && item.uid && item.uid!==currentUser.id){
-    const d = item.data;
-    const titre = type==='ajouts' ? (d.films.length===1 ? d.films[0].title : d.films.length+' films') : type==='sondage' ? (d.question||'') : (d.title||'');
+    const titre = titreItem(item);
     const {error:nErr} = await sb.from('notifications').insert({user_id:item.uid, from_user_id:currentUser.id, type:'reaction', meta:{emoji:code, cible_type:type, titre}});
     if(nErr) console.warn('Notification de réaction non envoyée :', nErr.message);
   }
