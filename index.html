@@ -2133,11 +2133,26 @@ function reporterRappelPrets(jours){
 }
 // Ids des films qui ont un prêt enregistré dans collection_prets (évite des suppressions inutiles)
 let pretsEnBase=new Set();
+// Supabase renvoie au plus 1000 lignes par requête. Pour lire une liste entière (un rayon de
+// plus de 1000 films…), on la demande page par page jusqu'au bout.
+// « requete » est une fonction qui reconstruit la requête à chaque page : lireTout(()=>sb.from(…).select(…))
+// « cle » est la colonne unique qui fixe l'ordre des pages (id par défaut).
+async function lireTout(requete, cle='id'){
+  const PAGE=1000; let tout=[];
+  for(let debut=0;;debut+=PAGE){
+    const {data,error}=await requete().order(cle).range(debut,debut+PAGE-1);
+    if(error) return {data:null,error};
+    tout=tout.concat(data||[]);
+    if(!data||data.length<PAGE) break;
+  }
+  return {data:tout,error:null};
+}
 async function loadCollection(){
-  const [{data}, {data:prets, error:pretsErr}] = await Promise.all([
-    sb.from('collection').select('*').eq('user_id',currentUser.id),
-    sb.from('collection_prets').select('collection_id,loaned_to,loaned_at')
+  const [{data, error:colErr}, {data:prets, error:pretsErr}] = await Promise.all([
+    lireTout(()=>sb.from('collection').select('*').eq('user_id',currentUser.id)),
+    lireTout(()=>sb.from('collection_prets').select('collection_id,loaned_to,loaned_at'), 'collection_id')
   ]);
+  if(colErr) console.warn('Collection non chargée :', colErr.message);
   if(pretsErr) console.warn('Prêts non chargés :', pretsErr.message);
   const pretParId=new Map((prets||[]).map(p=>[p.collection_id,p]));
   pretsEnBase=new Set(pretParId.keys());
@@ -2200,7 +2215,7 @@ async function deleteItemFromDb(id){ await sb.from('collection').delete().eq('id
 async function deleteItemsFromDb(ids){ if(ids.length) await sb.from('collection').delete().in('id',ids); }
 
 async function loadWantlist(){
-  const {data}=await sb.from('wantlist').select('*').eq('user_id',currentUser.id);
+  const {data}=await lireTout(()=>sb.from('wantlist').select('*').eq('user_id',currentUser.id));
   wantlist=(data||[]).map(r=>({id:r.id,title:r.title,tmdbId:r.tmdb_id||null,posterUrl:r.poster_url||null,year:r.year||'',format:r.format||'',createdAt:r.created_at||null}));
   renderWantlist();
 }
@@ -5481,7 +5496,7 @@ async function openMemberCollection(userId, username, onClose){
   critiquesBtn.style.display = 'none';
   lbBlock.style.display = 'none';
 
-  const {data} = await sb.from('collection').select('*').eq('user_id',userId);
+  const {data} = await lireTout(()=>sb.from('collection').select('*').eq('user_id',userId));
   const allItems=(data||[]).map(fromRow).sort((a,b)=>a.title.localeCompare(b.title));
   if(allItems.length===0){ document.getElementById('memberGrid').innerHTML='<div style="padding:20px;color:var(--muted);">Collection vide.</div>'; return; }
 
@@ -6394,14 +6409,14 @@ document.getElementById('allTitlesBtn').addEventListener('click', async function
   panel.innerHTML='<p style="padding:16px;font-family:Space Mono,monospace;font-size:13px;color:var(--muted);">Chargement...</p>';
   panel.style.display='block';
   this.textContent='✕ Fermer';
-  const {data}=await sb.from('collection').select('title,format,poster_url,tmdb_id,year,is_steelbook').order('title');
+  const {data}=await lireTout(()=>sb.from('collection').select('title,format,poster_url,tmdb_id,year,is_steelbook').order('title'));
   if(!data||!data.length){ panel.innerHTML='<p style="padding:16px;font-family:Space Mono,monospace;font-size:13px;color:var(--muted);">Aucun titre.</p>'; return; }
   // Dédoublonner par tmdb_id ou par titre
   const seen=new Set(); const uniq=[];
   data.forEach(r=>{ const k=r.tmdb_id||r.title; if(!seen.has(k)){ seen.add(k); uniq.push(r); }});
   // Récupérer les owners par tmdb_id
   const tmdbIds=[...new Set(uniq.filter(r=>r.tmdb_id).map(r=>r.tmdb_id))];
-  const {data:ownersData}=await sb.from('collection').select('tmdb_id,title,profiles(id,username)');
+  const {data:ownersData}=await lireTout(()=>sb.from('collection').select('tmdb_id,title,profiles(id,username)'));
   const ownerMap={};
   (ownersData||[]).forEach(r=>{
     const k=r.tmdb_id||r.title;
