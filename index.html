@@ -673,6 +673,166 @@
   .import-progress-text{font-family:'Space Mono',monospace;font-size:13px;color:var(--muted);text-align:center;}
   ::-webkit-scrollbar{width:8px;}
   ::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:4px;}
+
+  /* ════════ ALBUM DE CARTES ════════ */
+  .album-wrap{padding:20px 16px 40px;max-width:720px;margin:0 auto;}
+  .album-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px;}
+  .album-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px;margin:0;line-height:1;}
+  .album-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;}
+  .album-progress{height:6px;background:#1c1c26;border-radius:6px;overflow:hidden;margin-bottom:12px;}
+  .album-progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--pink),#9b5cff,var(--cyan));border-radius:6px;transition:width .6s ease;}
+  .album-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+  .album-filters .deals-filter-btn.active{border-color:var(--pink);color:var(--pink);}
+  .album-book{background:linear-gradient(180deg,#1a1424,#120f1a);border:1px solid #2e2540;border-radius:10px;padding:14px 12px;box-shadow:inset 0 0 40px rgba(0,0,0,.5),0 10px 30px rgba(0,0,0,.4);position:relative;overflow:hidden;}
+  .album-book::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.012) 0 8px,transparent 8px 16px);pointer-events:none;}
+  .album-page{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;position:relative;}
+  @media(min-width:600px){.album-page{gap:16px;}}
+  .album-page.turn-next{animation:albumTurnNext .35s ease;}
+  .album-page.turn-prev{animation:albumTurnPrev .35s ease;}
+  @keyframes albumTurnNext{from{opacity:0;transform:translateX(30px) rotateY(-12deg);}to{opacity:1;transform:none;}}
+  @keyframes albumTurnPrev{from{opacity:0;transform:translateX(-30px) rotateY(12deg);}to{opacity:1;transform:none;}}
+  .album-pager{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;}
+  .album-pager button{font-size:18px;padding:4px 16px;}
+  .album-pager button:disabled{opacity:.3;cursor:default;}
+  .album-pager span{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);min-width:90px;text-align:center;}
+  .album-empty{grid-column:1/-1;text-align:center;padding:40px 10px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;line-height:1.7;}
+  .album-slot{aspect-ratio:63/88;border-radius:6px;position:relative;}
+  .album-slot.slot-owned{cursor:pointer;transition:transform .15s;}
+  .album-slot.slot-owned:active{transform:scale(.96);}
+  .album-slot.slot-empty{border:2px dashed #3a3150;background:rgba(0,0,0,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;box-sizing:border-box;}
+  .album-slot.slot-empty.hint-rare{border-color:rgba(46,230,255,.35);}
+  .album-slot.slot-empty.hint-legendaire{border-color:rgba(255,210,63,.45);}
+  .slot-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#4a4060;letter-spacing:1px;}
+  .slot-title{font-family:'Space Mono',monospace;font-size:9px;color:#6d6585;line-height:1.3;margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
+  .slot-stars{font-size:9px;margin-top:4px;color:#4a4060;}
+  .hint-rare .slot-stars{color:rgba(46,230,255,.6);}
+  .hint-legendaire .slot-stars{color:rgba(255,210,63,.7);}
+
+  /* La carte façon TCG */
+  .tcg-card{width:100%;aspect-ratio:63/88;border-radius:6%/4.3%;padding:4.5%;box-sizing:border-box;position:relative;overflow:hidden;container-type:inline-size;
+    background:linear-gradient(145deg,#e6e6ef,#8d8d9c 45%,#d9d9e3 70%,#6b6b7a);box-shadow:0 4px 14px rgba(0,0,0,.45);
+    --mx:50%;--my:50%;}
+  .tcg-card.r-rare{background:linear-gradient(145deg,#2ee6ff,#9b5cff 50%,#2ee6ff);}
+  .tcg-card.r-legendaire{background:linear-gradient(145deg,#fff3b0,#ffd23f 25%,#ff9f1c 50%,#ffd23f 75%,#fff3b0);box-shadow:0 0 18px rgba(255,190,40,.45),0 4px 14px rgba(0,0,0,.45);}
+  .tcg-card.full-art{padding:0;background:#101018;}
+  .tcg-card.full-art img{width:100%;height:100%;object-fit:cover;display:block;}
+  .tcg-inner{width:100%;height:100%;background:#101018;border-radius:4%/3%;display:flex;flex-direction:column;overflow:hidden;}
+  .tcg-top{display:flex;justify-content:space-between;align-items:center;padding:3% 5%;background:#0b0b12;}
+  .tcg-num{font-family:'Bebas Neue',sans-serif;font-size:11cqw;letter-spacing:.5px;color:var(--text);line-height:1;}
+  .tcg-stars{font-size:8cqw;color:#c9c9d6;line-height:1;}
+  .r-rare .tcg-stars{color:var(--cyan);}
+  .r-legendaire .tcg-stars{color:#ffd23f;}
+  .tcg-art{flex:1;overflow:hidden;background:#1c1c26;min-height:0;}
+  .tcg-art img{width:100%;height:100%;object-fit:cover;display:block;}
+  .tcg-bottom{padding:4% 5% 5%;background:#0b0b12;border-top:1px solid rgba(255,255,255,.08);}
+  .tcg-title{font-family:'Bebas Neue',sans-serif;font-size:11cqw;letter-spacing:.5px;line-height:1.05;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tcg-meta{font-family:'Space Mono',monospace;font-size:5.5cqw;color:var(--muted);margin-top:1%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tcg-holo{position:absolute;inset:0;pointer-events:none;border-radius:inherit;opacity:0;mix-blend-mode:color-dodge;
+    background:linear-gradient(115deg,transparent 20%,rgba(255,46,136,.5) 35%,rgba(46,230,255,.5) 48%,rgba(255,210,63,.5) 60%,transparent 75%);
+    background-size:250% 250%;background-position:var(--mx) var(--my);}
+  .r-rare .tcg-holo{opacity:.35;animation:tcgHolo 6s ease-in-out infinite;}
+  .r-legendaire .tcg-holo{opacity:.6;animation:tcgHolo 4s ease-in-out infinite;}
+  .tcg-card.tilting .tcg-holo{animation:none;}
+  @keyframes tcgHolo{0%,100%{background-position:0% 0%;}50%{background-position:100% 100%;}}
+
+  /* Dos de carte */
+  .tcg-back{width:100%;aspect-ratio:63/88;border-radius:6%/4.3%;box-sizing:border-box;padding:4.5%;background:linear-gradient(145deg,#ff2e88,#9b5cff,#2ee6ff);container-type:inline-size;}
+  .tcg-back-inner{width:100%;height:100%;border-radius:4%/3%;background:radial-gradient(circle at 50% 50%,#2a1640,#0d0d14 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background-image:radial-gradient(circle at 50% 50%,rgba(255,46,136,.25),transparent 55%),repeating-linear-gradient(45deg,rgba(46,230,255,.06) 0 6px,transparent 6px 12px);background-color:#0d0d14;}
+  .tcg-back-logo{font-family:'Bebas Neue',sans-serif;font-size:22cqw;letter-spacing:2px;color:var(--pink);text-shadow:0 0 12px rgba(255,46,136,.6);line-height:1;}
+  .tcg-back-sub{font-family:'Space Mono',monospace;font-size:5cqw;color:var(--cyan);letter-spacing:2px;margin-top:3%;}
+
+  /* Ouverture de booster (plein écran) */
+  .booster-overlay{position:fixed;inset:0;z-index:2000000;display:none;align-items:center;justify-content:center;flex-direction:column;
+    background:radial-gradient(circle at 50% 45%,#2a1640 0%,#0d0d14 65%);overflow:hidden;touch-action:manipulation;}
+  .booster-overlay.open{display:flex;animation:boosterFadeIn .3s ease;}
+  @keyframes boosterFadeIn{from{opacity:0;}to{opacity:1;}}
+  .booster-count{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:34px;min-height:16px;}
+  .booster-scene{position:relative;width:min(62vw,250px);aspect-ratio:63/88;display:flex;align-items:center;justify-content:center;}
+  .booster-rays{position:absolute;left:50%;top:50%;width:260%;aspect-ratio:1;margin-left:-130%;margin-top:-130%;transform:scale(.2);opacity:0;pointer-events:none;border-radius:50%;
+    background:repeating-conic-gradient(rgba(255,255,255,.18) 0 8deg,transparent 8deg 20deg);
+    -webkit-mask:radial-gradient(circle,#000 20%,transparent 65%);mask:radial-gradient(circle,#000 20%,transparent 65%);}
+  .booster-rays.r-rare{background:repeating-conic-gradient(rgba(46,230,255,.3) 0 8deg,transparent 8deg 20deg);}
+  .booster-rays.r-legendaire{background:repeating-conic-gradient(rgba(255,210,63,.45) 0 7deg,transparent 7deg 16deg);}
+  .booster-scene.revealed .booster-rays{opacity:1;transform:scale(1);transition:opacity .5s,transform .6s ease-out;animation:boosterSpin 14s linear infinite;}
+  .booster-scene.revealed .booster-rays.r-commune{opacity:.5;}
+  @keyframes boosterSpin{from{rotate:0deg;}to{rotate:360deg;}}
+  .booster-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:3;}
+  .booster-flash.go{animation:boosterFlash .6s ease-out;}
+  @keyframes boosterFlash{0%{opacity:0;}15%{opacity:.85;}100%{opacity:0;}}
+  .booster-pack{position:absolute;inset:-4% -2%;cursor:pointer;z-index:2;animation:packIdle 2.4s ease-in-out infinite;filter:drop-shadow(0 12px 30px rgba(255,46,136,.35));}
+  @keyframes packIdle{0%,100%{transform:rotate(-2deg) translateY(0);}50%{transform:rotate(2deg) translateY(-6px);}}
+  .booster-pack.shake{animation:packShake .45s ease-in-out;}
+  @keyframes packShake{0%,100%{transform:rotate(0);}20%{transform:rotate(-6deg) scale(1.03);}40%{transform:rotate(6deg) scale(1.05);}60%{transform:rotate(-4deg) scale(1.05);}80%{transform:rotate(3deg) scale(1.03);}}
+  .pack-half{position:absolute;left:0;right:0;overflow:hidden;
+    background:linear-gradient(160deg,#ff2e88 0%,#9b5cff 38%,#2ee6ff 70%,#ffd23f 100%);}
+  .pack-half::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 45%,transparent 60%);background-size:300% 100%;animation:packShine 2.8s linear infinite;}
+  @keyframes packShine{from{background-position:150% 0;}to{background-position:-150% 0;}}
+  .pack-top{top:0;height:18%;border-radius:8px 8px 0 0;background-size:100% 555%;background-position:0 0;
+    -webkit-mask:linear-gradient(#000,#000) top/100% 80% no-repeat,conic-gradient(from -45deg at bottom,#000 90deg,transparent 0) bottom/10px 20% repeat-x;
+    mask:linear-gradient(#000,#000) top/100% 80% no-repeat,conic-gradient(from -45deg at bottom,#000 90deg,transparent 0) bottom/10px 20% repeat-x;}
+  .pack-bottom{top:18%;bottom:0;border-radius:0 0 8px 8px;background-size:100% 122%;background-position:0 100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .pack-top::before{content:'';position:absolute;left:0;right:0;top:20%;height:30%;background:repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 2px,transparent 2px 6px);}
+  .pack-logo{position:relative;z-index:1;font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,11vw,44px);letter-spacing:2px;line-height:.95;text-align:center;color:#0d0d14;text-shadow:0 2px 0 rgba(255,255,255,.35);}
+  .pack-sub{position:relative;z-index:1;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:3px;color:#0d0d14;margin-top:10px;padding:3px 8px;border:2px solid #0d0d14;border-radius:3px;}
+  .pack-tear{position:absolute;left:0;right:0;top:calc(18% - 1px);height:2px;background:rgba(255,255,255,.7);box-shadow:0 0 10px #fff;opacity:0;z-index:3;}
+  .booster-pack.open .pack-tear{animation:packTearLine .25s ease forwards;}
+  @keyframes packTearLine{0%{opacity:0;transform:scaleX(0);}100%{opacity:1;transform:scaleX(1);}}
+  .booster-pack.open .pack-top{animation:packTopOff .6s .2s cubic-bezier(.5,0,.8,.4) forwards;}
+  @keyframes packTopOff{to{transform:translate(40px,-160px) rotate(28deg);opacity:0;}}
+  .booster-pack.open .pack-bottom{animation:packBottomOff .7s .55s ease-in forwards;}
+  @keyframes packBottomOff{to{transform:translateY(120%) rotate(-4deg);opacity:0;}}
+  .booster-pack.open{animation:none;cursor:default;pointer-events:none;}
+  .booster-scene.revealed .booster-pack{display:none;}
+  .booster-card-wrap{position:absolute;inset:0;z-index:1;opacity:0;transform:translateY(25%) scale(.85);perspective:1200px;}
+  .booster-scene.rising .booster-card-wrap{opacity:1;transform:translateY(0) scale(1);transition:transform .6s cubic-bezier(.2,1.4,.4,1),opacity .3s;z-index:4;}
+  .flip-card{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .8s cubic-bezier(.3,1.3,.5,1);}
+  .booster-scene.revealed .flip-card{transform:rotateY(180deg);}
+  .flip-face{position:absolute;inset:0;-webkit-backface-visibility:hidden;backface-visibility:hidden;}
+  .flip-front{transform:rotateY(180deg);}
+  .booster-scene.revealed.rar-legendaire .flip-front .tcg-card{animation:legendPulse 1.8s ease-in-out infinite;}
+  @keyframes legendPulse{0%,100%{box-shadow:0 0 24px rgba(255,190,40,.55);}50%{box-shadow:0 0 50px rgba(255,210,63,.9);}}
+  .booster-sparks{position:absolute;inset:0;pointer-events:none;z-index:5;}
+  .booster-spark{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;background:#fff;opacity:0;}
+  .booster-scene.revealed .booster-spark{animation:sparkFly 1.1s ease-out forwards;}
+  @keyframes sparkFly{0%{opacity:1;transform:translate(-50%,-50%) scale(1);}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.3);}}
+  .booster-hint{font-family:'Space Mono',monospace;font-size:12px;color:var(--text);margin-top:26px;min-height:18px;animation:hintBlink 1.4s ease-in-out infinite;text-align:center;}
+  @keyframes hintBlink{0%,100%{opacity:.4;}50%{opacity:1;}}
+  .booster-info{text-align:center;margin-top:22px;opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s;min-height:56px;padding:0 16px;}
+  .booster-info.show{opacity:1;transform:none;}
+  .booster-info-new{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:3px;color:var(--pink);line-height:1;}
+  .booster-info-rar{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-top:6px;color:#c9c9d6;}
+  .booster-info-rar.r-rare{color:var(--cyan);}
+  .booster-info-rar.r-legendaire{color:#ffd23f;text-shadow:0 0 10px rgba(255,210,63,.6);}
+  .booster-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px;opacity:0;pointer-events:none;transition:opacity .4s;padding:0 16px;}
+  .booster-actions.show{opacity:1;pointer-events:auto;}
+  .booster-skip{position:absolute;top:16px;right:16px;font-family:'Space Mono',monospace;font-size:11px;background:transparent;border:1px solid var(--card-border);color:var(--muted);padding:6px 10px;border-radius:4px;cursor:pointer;z-index:6;}
+  .booster-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:min(92vw,420px);max-height:60vh;overflow-y:auto;padding:4px;}
+  .booster-summary .tcg-card{opacity:0;animation:summaryPop .45s ease forwards;}
+  @keyframes summaryPop{from{opacity:0;transform:scale(.6) rotateY(90deg);}to{opacity:1;transform:none;}}
+
+  /* Carte en grand */
+  .card-viewer{position:fixed;inset:0;z-index:1900000;background:rgba(5,5,10,.94);display:none;flex-direction:column;align-items:center;justify-content:center;touch-action:none;}
+  .card-viewer.open{display:flex;animation:boosterFadeIn .25s ease;}
+  .card-viewer-inner{width:min(78vw,340px);perspective:1000px;}
+  .card-viewer-inner .tcg-card{transition:transform .15s ease-out;}
+  .card-viewer-close{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);margin-top:20px;}
+
+  /* Admin cartes */
+  .album-admin{margin-top:28px;border-top:1px solid var(--card-border);padding-top:18px;}
+  .album-admin h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;color:var(--pink);margin:18px 0 10px;}
+  .card-admin-results{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .card-admin-result{display:flex;align-items:center;gap:10px;padding:6px;border:1px solid var(--card-border);border-radius:6px;cursor:pointer;background:var(--card);}
+  .card-admin-result:hover,.card-admin-result.chosen{border-color:var(--pink);}
+  .card-admin-result img,.card-admin-result .ph{width:32px;height:48px;object-fit:cover;border-radius:3px;background:#1c1c26;flex-shrink:0;}
+  .card-admin-result .t{font-size:13px;color:var(--text);}
+  .card-admin-result .y{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+  .card-admin-preview{width:150px;margin:6px 0 12px;}
+  .card-admin-msg{font-family:'Space Mono',monospace;font-size:11px;min-height:16px;margin:8px 0;}
+  .card-admin-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px;}
+  .card-admin-item{display:flex;flex-direction:column;gap:6px;}
+  .card-admin-item button{font-size:10px;padding:4px 6px;}
+  .card-admin-item button.confirm{border-color:#ff8080;color:#ff8080;}
 </style>
 </head>
 <body>
@@ -778,6 +938,7 @@
         <div class="hamburger-item nav-mobile-item" data-section="sectionForum">Le Mur</div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionExtras">Les Extras<span class="flashback-point" title="Nouveau Flashback de la semaine"></span></div>
         <div class="hamburger-item nav-mobile-item" data-section="sectionDeals">🔥 Bons Plans</div>
+        <div class="hamburger-item nav-mobile-item" data-section="sectionAlbum">🃏 Album</div>
         <div class="hamburger-item" id="menuProfil">👤 Mon Profil</div>
         <div class="hamburger-item" id="menuStats">📊 Mes Stats</div>
         <div class="hamburger-item" id="menuPleinEcran">⛶ Plein écran</div>
@@ -798,6 +959,69 @@
   <button class="nav-tab" data-section="sectionForum">Le Mur <span id="notifBadge" style="display:none;background:#0d0d14;color:var(--pink);font-size:12px;padding:1px 6px;border-radius:10px;margin-left:4px;"></span></button>
   <button class="nav-tab" data-section="sectionExtras">Les Extras<span class="flashback-point" title="Nouveau Flashback de la semaine"></span></button>
   <button class="nav-tab" data-section="sectionDeals">🔥 Bons Plans</button>
+  <button class="nav-tab" data-section="sectionAlbum">🃏 Album</button>
+</div>
+
+<!-- SECTION ALBUM DE CARTES -->
+<div class="section" id="sectionAlbum">
+  <div class="album-wrap">
+    <div class="album-head">
+      <div>
+        <h2 class="album-title" id="albumTitle">🃏 Mon Album</h2>
+        <div class="album-sub" id="albumSub"></div>
+      </div>
+      <button id="albumBackBtn" type="button" style="display:none;font-size:11px;">← Mon album</button>
+    </div>
+    <div class="album-progress"><div class="album-progress-bar" id="albumProgressBar"></div></div>
+    <div class="album-filters" id="albumFilters">
+      <button type="button" class="deals-filter-btn active" data-afilter="all">Toutes</button>
+      <button type="button" class="deals-filter-btn" data-afilter="owned">Gagnées</button>
+      <button type="button" class="deals-filter-btn" data-afilter="missing">Manquantes</button>
+    </div>
+    <div class="album-book" id="albumBook"><div class="album-page" id="albumPage"></div></div>
+    <div class="album-pager">
+      <button type="button" id="albumPrevBtn">‹</button>
+      <span id="albumPageLabel"></span>
+      <button type="button" id="albumNextBtn">›</button>
+    </div>
+
+    <!-- Admin : créer / supprimer des cartes -->
+    <div class="album-admin" id="albumAdminWrap" style="display:none;">
+      <button type="button" id="albumAdminToggle">⚙️ Gérer les cartes (admin)</button>
+      <div id="albumAdminPanel" style="display:none;">
+        <h3>Nouvelle carte</h3>
+        <div class="field">
+          <label>1. Le film ou la série</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="cardAdminSearch" placeholder="Titre..." style="flex:1;">
+            <button type="button" id="cardAdminSearchBtn">Chercher</button>
+          </div>
+          <div id="cardAdminResults" class="card-admin-results"></div>
+        </div>
+        <div class="field">
+          <label>2. L'image de la carte</label>
+          <input type="file" id="cardAdminFile" accept="image/*">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:10px;text-transform:none;letter-spacing:normal;font-family:Inter,sans-serif;font-size:13px;color:var(--text);">
+            <input type="checkbox" id="cardAdminFullArt" style="width:16px;height:16px;"> Mon image est déjà une carte complète (pas de cadre ajouté)
+          </label>
+        </div>
+        <div class="field">
+          <label>3. Rareté</label>
+          <select id="cardAdminRarity">
+            <option value="commune">★ Commune</option>
+            <option value="rare">★★ Rare</option>
+            <option value="legendaire">★★★ Légendaire</option>
+          </select>
+        </div>
+        <div class="card-admin-preview" id="cardAdminPreview"></div>
+        <div class="card-admin-msg" id="cardAdminMsg"></div>
+        <button type="button" class="primary" id="cardAdminCreateBtn">Créer la carte</button>
+
+        <h3>Cartes existantes (<span id="cardAdminCount">0</span>)</h3>
+        <div class="card-admin-list" id="cardAdminList"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- SECTION LES EXTRAS -->
@@ -1709,7 +1933,7 @@
         <div id="memberExternalLinks" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;"></div>
         <div id="memberAdminToggle" style="margin-top:8px;"></div>
         </div>
-        <div style="margin-left:auto;" id="memberMsgBtn"></div>
+        <div style="margin-left:auto;display:flex;flex-direction:column;gap:6px;align-items:flex-end;"><div id="memberMsgBtn"></div><div id="memberAlbumBtn"></div></div>
       </div>
       <!-- Recherche dans la collection -->
       <div style="display:flex;gap:8px;margin-bottom:8px;">
@@ -1834,6 +2058,14 @@
 </div><!-- fin #app -->
 
 <button id="remonterBtn" title="Remonter en haut" aria-label="Remonter en haut">↑</button>
+
+<!-- OUVERTURE DE BOOSTER (plein écran, indépendant des autres fenêtres) -->
+<div id="boosterOverlay" class="booster-overlay"></div>
+<!-- CARTE EN GRAND -->
+<div id="cardViewer" class="card-viewer">
+  <div class="card-viewer-inner" id="cardViewerInner"></div>
+  <div class="card-viewer-close">Touche en dehors de la carte pour fermer</div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1976,6 +2208,7 @@ async function onLogin(user){
   await loadNotifications();
   loadActivity();
   loadAccueil();
+  checkNewCards(); // cartes à collectionner
   // Vérifier les messages non lus
   const {data:unread} = await sb.from('messages').select('id').eq('to_user_id',user.id).eq('seen',false);
   updateMsgBadge((unread||[]).length);
@@ -2453,6 +2686,7 @@ function showSection(section, pushHistory=true){
   if(section==='sectionActivity') loadActivity();
   if(section==='sectionMessages') loadMessages();
   if(section==='sectionDeals') loadDeals();
+  if(section==='sectionAlbum') loadAlbum();
   // MARKET s'ouvre toujours sur l'onglet Ventes (sauf retour arrière / retour depuis « Tous les titres »)
   if(section==='sectionWantlist' && pushHistory){ const b=document.querySelector('.market-subtab[data-markettab="sale"]'); if(b) b.click(); }
   if(pushHistory) history.pushState({section}, '', '#'+section);
@@ -5800,6 +6034,7 @@ async function openMemberCollection(userId, username, onClose){
   } else {
     msgBtnEl.innerHTML = '';
   }
+  renderMemberAlbumBtn(userId, username);
 
   // Critiques Letterboxd
   const lbBlock = document.getElementById('memberLetterboxd');
@@ -6464,6 +6699,7 @@ async function saveItemModal(){
     }
     closeModal();
     await loadCollection();
+    checkNewCards();
   } else {
     const newIt={id:uid(),...it};
     try{
@@ -6475,6 +6711,7 @@ async function saveItemModal(){
     localStorage.setItem('lastUsedFormat', newIt.format); // se souvenir du format pour le prochain ajout
     closeModal();
     await loadCollection(); // recharger depuis Supabase pour avoir le vrai created_at
+    checkNewCards(); // une carte à gagner ?
   }
 }
 async function deleteItemModal(){
@@ -7414,6 +7651,556 @@ document.getElementById('saveDealBtn').addEventListener('click', async()=>{
   loadDeals();
 });
 
+
+// ════════════════════════════════════════════════════════════
+// ALBUM DE CARTES À COLLECTIONNER
+// Une carte est liée à un film (numéro TMDB). Quand un membre a ce film
+// dans sa collection, il gagne la carte et ouvre un booster.
+// ════════════════════════════════════════════════════════════
+const CARD_RARITIES = {
+  commune:    {label:'Commune',    stars:'★',   cls:'r-commune'},
+  rare:       {label:'Rare',       stars:'★★',  cls:'r-rare'},
+  legendaire: {label:'Légendaire', stars:'★★★', cls:'r-legendaire'}
+};
+const ALBUM_PER_PAGE = 9;
+let albumAllCards = [];
+let albumOwnedIds = new Set();
+let albumPageIdx = 0;
+let albumFilterMode = 'all';
+let albumViewUser = null;     // null = mon album ; sinon {id, username}
+let albumPendingUser = null;  // album à ouvrir au prochain affichage de la section
+let cardsCheckRunning = false;
+let boosterList = [];
+let boosterIdx = 0;
+let cardAdminChosen = null;   // film choisi dans le panneau admin
+let cardAdminBlob = null;     // image réduite prête à envoyer
+
+function cardAttr(v){ return escHtml(v).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function cardRarity(c){ return CARD_RARITIES[c.rarity] || CARD_RARITIES.commune; }
+function cardNumLabel(c){ return '#' + String(c.num || 0).padStart(3, '0'); }
+function cardFilmKey(tmdbId, isSeries){ return (isSeries ? 'tv:' : 'movie:') + String(tmdbId); }
+
+function cardHtml(c){
+  const r = cardRarity(c);
+  if(c.full_art){
+    return '<div class="tcg-card full-art ' + r.cls + '"><img src="' + cardAttr(c.image_url) + '" alt="' + cardAttr(c.title) + '" loading="lazy" draggable="false"><div class="tcg-holo"></div></div>';
+  }
+  return '<div class="tcg-card ' + r.cls + '">'
+    + '<div class="tcg-inner">'
+    +   '<div class="tcg-top"><span class="tcg-num">' + cardNumLabel(c) + '</span><span class="tcg-stars">' + r.stars + '</span></div>'
+    +   '<div class="tcg-art"><img src="' + cardAttr(c.image_url) + '" alt="" loading="lazy" draggable="false"></div>'
+    +   '<div class="tcg-bottom"><div class="tcg-title">' + escHtml(c.title) + '</div>'
+    +   '<div class="tcg-meta">' + (c.year ? escHtml(c.year) + ' · ' : '') + r.label + '</div></div>'
+    + '</div>'
+    + '<div class="tcg-holo"></div>'
+    + '</div>';
+}
+function cardBackHtml(){
+  return '<div class="tcg-back"><div class="tcg-back-inner"><div class="tcg-back-logo">MV</div><div class="tcg-back-sub">MA VIDÉOTHÈQUE</div></div></div>';
+}
+
+async function fetchAllCards(){
+  const {data, error} = await sb.from('cards').select('*').order('num', {ascending:true});
+  if(error){ console.warn('Cartes non chargées :', error.message); return []; }
+  return data || [];
+}
+
+// Donne les cartes gagnées et ouvre les boosters pas encore vus
+async function checkNewCards(){
+  if(!currentUser || cardsCheckRunning) return;
+  cardsCheckRunning = true;
+  try{
+    const cards = await fetchAllCards();
+    if(!cards.length) return;
+    const myFilms = new Set(collection.filter(i => i.tmdbId).map(i => cardFilmKey(i.tmdbId, i.isSeries)));
+    const {data:owned} = await sb.from('user_cards').select('card_id').eq('user_id', currentUser.id);
+    const ownedIds = new Set((owned || []).map(o => o.card_id));
+    const toAdd = cards.filter(c => !ownedIds.has(c.id) && myFilms.has(cardFilmKey(c.tmdb_id, c.is_series)));
+    if(toAdd.length){
+      const {error} = await sb.from('user_cards').upsert(
+        toAdd.map(c => ({user_id: currentUser.id, card_id: c.id})),
+        {onConflict: 'user_id,card_id', ignoreDuplicates: true}
+      );
+      if(error) console.warn('Cartes non attribuées :', error.message);
+    }
+    const {data:unseen} = await sb.from('user_cards').select('card_id').eq('user_id', currentUser.id).eq('seen', false);
+    const byId = {};
+    cards.forEach(c => { byId[c.id] = c; });
+    const list = (unseen || []).map(u => byId[u.card_id]).filter(Boolean);
+    if(list.length && !document.getElementById('boosterOverlay').classList.contains('open')) openBoosters(list);
+  }catch(e){
+    console.warn('Vérification des cartes impossible :', e);
+  }finally{
+    cardsCheckRunning = false;
+  }
+}
+
+// ── BOOSTERS ──
+function openBoosters(list){
+  boosterList = list.slice().sort((a, b) => (a.num || 0) - (b.num || 0));
+  boosterIdx = 0;
+  boosterList.forEach(c => { const im = new Image(); im.src = c.image_url; }); // préchargement
+  document.getElementById('boosterOverlay').classList.add('open');
+  showBoosterStep();
+}
+
+function showBoosterStep(){
+  const ov = document.getElementById('boosterOverlay');
+  const c = boosterList[boosterIdx];
+  const r = cardRarity(c);
+  const total = boosterList.length;
+  const remaining = total - boosterIdx;
+  let sparks = '';
+  const sparkCount = c.rarity === 'legendaire' ? 22 : (c.rarity === 'rare' ? 14 : 8);
+  const sparkColor = c.rarity === 'legendaire' ? '#ffd23f' : (c.rarity === 'rare' ? '#2ee6ff' : '#ffffff');
+  for(let i = 0; i < sparkCount; i++){
+    const a = (Math.PI * 2 * i) / sparkCount;
+    const d = 120 + Math.random() * 90;
+    sparks += '<span class="booster-spark" style="--dx:' + Math.round(Math.cos(a) * d) + 'px;--dy:' + Math.round(Math.sin(a) * d) + 'px;background:' + sparkColor + ';animation-delay:' + (Math.random() * 0.15).toFixed(2) + 's;"></span>';
+  }
+  ov.innerHTML =
+    (remaining > 1 ? '<button type="button" class="booster-skip" id="boosterSkipBtn">⚡ Tout révéler (' + remaining + ')</button>' : '')
+    + '<div class="booster-flash" id="boosterFlash"></div>'
+    + '<div class="booster-count">' + (total > 1 ? 'Booster ' + (boosterIdx + 1) + ' / ' + total : 'Nouvelle carte !') + '</div>'
+    + '<div class="booster-scene rar-' + (c.rarity || 'commune') + '" id="boosterScene">'
+    +   '<div class="booster-rays ' + r.cls + '"></div>'
+    +   '<div class="booster-card-wrap"><div class="flip-card">'
+    +     '<div class="flip-face flip-back">' + cardBackHtml() + '</div>'
+    +     '<div class="flip-face flip-front">' + cardHtml(c) + '</div>'
+    +   '</div></div>'
+    +   '<div class="booster-sparks">' + sparks + '</div>'
+    +   '<div class="booster-pack" id="boosterPack">'
+    +     '<div class="pack-half pack-top"></div>'
+    +     '<div class="pack-tear"></div>'
+    +     '<div class="pack-half pack-bottom"><div class="pack-logo">MA<br>VIDÉO<br>THÈQUE</div><div class="pack-sub">BOOSTER CINÉ</div></div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="booster-hint" id="boosterHint">Touche le booster pour l\'ouvrir</div>'
+    + '<div class="booster-info" id="boosterInfo">'
+    +   '<div class="booster-info-new">' + (c.rarity === 'legendaire' ? 'CARTE LÉGENDAIRE !' : 'NOUVELLE CARTE !') + '</div>'
+    +   '<div class="booster-info-rar ' + r.cls + '">' + cardNumLabel(c) + ' · ' + r.stars + ' ' + r.label + '</div>'
+    + '</div>'
+    + '<div class="booster-actions" id="boosterActions">'
+    +   (boosterIdx < total - 1
+          ? '<button type="button" class="primary" id="boosterNextBtn">Booster suivant →</button>'
+          : '<button type="button" class="primary" id="boosterDoneBtn">Ranger dans l\'album</button><button type="button" id="boosterAlbumBtn">Voir l\'album</button>')
+    + '</div>';
+
+  const pack = document.getElementById('boosterPack');
+  pack.addEventListener('click', () => openBoosterPack(c), {once:true});
+  const skip = document.getElementById('boosterSkipBtn');
+  if(skip) skip.addEventListener('click', revealAllBoosters);
+  const nextBtn = document.getElementById('boosterNextBtn');
+  if(nextBtn) nextBtn.addEventListener('click', () => { boosterIdx++; showBoosterStep(); });
+  const doneBtn = document.getElementById('boosterDoneBtn');
+  if(doneBtn) doneBtn.addEventListener('click', () => closeBoosters(false));
+  const albBtn = document.getElementById('boosterAlbumBtn');
+  if(albBtn) albBtn.addEventListener('click', () => closeBoosters(true));
+}
+
+function openBoosterPack(c){
+  const pack = document.getElementById('boosterPack');
+  const scene = document.getElementById('boosterScene');
+  const hint = document.getElementById('boosterHint');
+  if(hint){ hint.style.animation = 'none'; hint.style.opacity = '0'; }
+  pack.classList.add('shake');
+  setTimeout(() => { pack.classList.remove('shake'); pack.classList.add('open'); }, 450);
+  setTimeout(() => { scene.classList.add('rising'); }, 1000);
+  setTimeout(() => {
+    const flash = document.getElementById('boosterFlash');
+    if(flash) flash.classList.add('go');
+    scene.classList.add('revealed');
+    if(navigator.vibrate){ try{ navigator.vibrate(c.rarity === 'legendaire' ? [60, 40, 120] : 40); }catch(e){} }
+  }, 1650);
+  setTimeout(() => {
+    const info = document.getElementById('boosterInfo');
+    const act = document.getElementById('boosterActions');
+    if(info) info.classList.add('show');
+    if(act) act.classList.add('show');
+  }, 2300);
+  markCardsSeen([c.id]);
+}
+
+async function markCardsSeen(ids){
+  if(!currentUser || !ids.length) return;
+  const {error} = await sb.from('user_cards').update({seen:true}).eq('user_id', currentUser.id).in('card_id', ids);
+  if(error) console.warn('Booster non marqué comme ouvert :', error.message);
+}
+
+function revealAllBoosters(){
+  const rest = boosterList.slice(boosterIdx);
+  markCardsSeen(rest.map(c => c.id));
+  const ov = document.getElementById('boosterOverlay');
+  ov.innerHTML =
+    '<div class="booster-count">' + rest.length + ' nouvelles cartes !</div>'
+    + '<div class="booster-summary">' + rest.map((c, i) => cardHtml(c).replace('class="tcg-card', 'style="animation-delay:' + (i * 0.08).toFixed(2) + 's" class="tcg-card')).join('') + '</div>'
+    + '<div class="booster-actions show">'
+    +   '<button type="button" class="primary" id="boosterDoneBtn">Ranger dans l\'album</button>'
+    +   '<button type="button" id="boosterAlbumBtn">Voir l\'album</button>'
+    + '</div>';
+  document.getElementById('boosterDoneBtn').addEventListener('click', () => closeBoosters(false));
+  document.getElementById('boosterAlbumBtn').addEventListener('click', () => closeBoosters(true));
+}
+
+function closeBoosters(goToAlbum){
+  const ov = document.getElementById('boosterOverlay');
+  ov.classList.remove('open');
+  ov.innerHTML = '';
+  boosterList = [];
+  boosterIdx = 0;
+  if(goToAlbum) showSection('sectionAlbum');
+  else if(document.getElementById('sectionAlbum').classList.contains('active') && !albumViewUser) loadAlbum();
+}
+
+// ── ALBUM ──
+function openAlbumOf(userId, username){
+  albumPendingUser = (userId && userId !== currentUser.id) ? {id:userId, username:username || 'Membre'} : null;
+  showSection('sectionAlbum');
+}
+
+async function loadAlbum(){
+  if(!currentUser) return;
+  albumViewUser = albumPendingUser;
+  albumPendingUser = null;
+  const viewingOther = !!albumViewUser;
+  const targetId = viewingOther ? albumViewUser.id : currentUser.id;
+  document.getElementById('albumTitle').textContent = viewingOther ? '🃏 Album de ' + albumViewUser.username : '🃏 Mon Album';
+  document.getElementById('albumBackBtn').style.display = viewingOther ? 'inline-block' : 'none';
+  document.getElementById('albumAdminWrap').style.display = (!viewingOther && currentProfile?.is_admin) ? 'block' : 'none';
+  document.getElementById('albumPage').innerHTML = '<div class="album-empty">Chargement de l\'album...</div>';
+  document.getElementById('albumSub').textContent = '';
+
+  if(!viewingOther) await checkNewCards();
+  albumAllCards = await fetchAllCards();
+
+  if(viewingOther){
+    const {data:p} = await sb.from('profiles').select('collection_public').eq('id', targetId).single();
+    if(p && p.collection_public === false){
+      albumOwnedIds = new Set();
+      document.getElementById('albumPage').innerHTML = '<div class="album-empty">🔒 Cet album est privé.</div>';
+      document.getElementById('albumPageLabel').textContent = '';
+      document.getElementById('albumPrevBtn').disabled = true;
+      document.getElementById('albumNextBtn').disabled = true;
+      document.getElementById('albumProgressBar').style.width = '0';
+      return;
+    }
+  }
+  const {data:owned} = await sb.from('user_cards').select('card_id').eq('user_id', targetId);
+  albumOwnedIds = new Set((owned || []).map(o => o.card_id));
+  albumPageIdx = 0;
+  renderAlbum('');
+  if(!viewingOther && currentProfile?.is_admin && document.getElementById('albumAdminPanel').style.display !== 'none') renderCardAdminList();
+}
+
+function albumFilteredCards(){
+  if(albumFilterMode === 'owned') return albumAllCards.filter(c => albumOwnedIds.has(c.id));
+  if(albumFilterMode === 'missing') return albumAllCards.filter(c => !albumOwnedIds.has(c.id));
+  return albumAllCards;
+}
+
+function renderAlbum(turn){
+  const pageEl = document.getElementById('albumPage');
+  const total = albumAllCards.length;
+  const ownedCount = albumAllCards.filter(c => albumOwnedIds.has(c.id)).length;
+  document.getElementById('albumSub').textContent = total ? ownedCount + ' / ' + total + ' cartes' : '';
+  document.getElementById('albumProgressBar').style.width = total ? Math.round(ownedCount / total * 100) + '%' : '0';
+
+  const list = albumFilteredCards();
+  const pages = Math.max(1, Math.ceil(list.length / ALBUM_PER_PAGE));
+  if(albumPageIdx > pages - 1) albumPageIdx = pages - 1;
+  if(albumPageIdx < 0) albumPageIdx = 0;
+  const slice = list.slice(albumPageIdx * ALBUM_PER_PAGE, (albumPageIdx + 1) * ALBUM_PER_PAGE);
+  const viewingOther = !!albumViewUser;
+
+  if(!total){
+    pageEl.innerHTML = '<div class="album-empty">L\'album est encore vide.<br>Les premières cartes arrivent bientôt !</div>';
+  } else if(!slice.length){
+    pageEl.innerHTML = '<div class="album-empty">' + (albumFilterMode === 'owned' ? 'Aucune carte gagnée pour l\'instant.<br>Ajoute des films à ta collection !' : 'Bravo, tout est complet ! 🏆') + '</div>';
+  } else {
+    pageEl.innerHTML = slice.map(c => {
+      if(albumOwnedIds.has(c.id)){
+        return '<div class="album-slot slot-owned" data-cid="' + c.id + '">' + cardHtml(c) + '</div>';
+      }
+      const r = cardRarity(c);
+      return '<div class="album-slot slot-empty hint-' + (c.rarity || 'commune') + '" title="' + (viewingOther ? 'Pas encore trouvée' : 'Ajoute ce titre à ta collection pour gagner la carte') + '">'
+        + '<div class="slot-num">' + cardNumLabel(c) + '</div>'
+        + '<div class="slot-title">' + escHtml(c.title) + '</div>'
+        + '<div class="slot-stars">' + r.stars + '</div>'
+        + '</div>';
+    }).join('');
+    pageEl.querySelectorAll('.album-slot.slot-owned').forEach(el => {
+      el.addEventListener('click', () => {
+        const card = albumAllCards.find(x => x.id === el.dataset.cid);
+        if(card) openCardViewer(card);
+      });
+    });
+  }
+  pageEl.classList.remove('turn-next', 'turn-prev');
+  if(turn){ void pageEl.offsetWidth; pageEl.classList.add(turn); }
+  document.getElementById('albumPageLabel').textContent = 'Page ' + (albumPageIdx + 1) + ' / ' + pages;
+  document.getElementById('albumPrevBtn').disabled = albumPageIdx <= 0;
+  document.getElementById('albumNextBtn').disabled = albumPageIdx >= pages - 1;
+}
+
+function albumGoPage(delta){
+  const pages = Math.max(1, Math.ceil(albumFilteredCards().length / ALBUM_PER_PAGE));
+  const next = albumPageIdx + delta;
+  if(next < 0 || next > pages - 1) return;
+  albumPageIdx = next;
+  renderAlbum(delta > 0 ? 'turn-next' : 'turn-prev');
+}
+
+document.getElementById('albumPrevBtn').addEventListener('click', () => albumGoPage(-1));
+document.getElementById('albumNextBtn').addEventListener('click', () => albumGoPage(1));
+document.getElementById('albumBackBtn').addEventListener('click', () => { albumPendingUser = null; loadAlbum(); });
+document.querySelectorAll('#albumFilters [data-afilter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#albumFilters [data-afilter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    albumFilterMode = btn.dataset.afilter;
+    albumPageIdx = 0;
+    renderAlbum('');
+  });
+});
+// Glisser le doigt pour tourner les pages
+(function(){
+  const book = document.getElementById('albumBook');
+  let sx = 0, sy = 0;
+  book.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive:true});
+  book.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) albumGoPage(dx < 0 ? 1 : -1);
+  }, {passive:true});
+})();
+
+// ── CARTE EN GRAND (avec effet brillant qui suit le doigt) ──
+function openCardViewer(c){
+  const v = document.getElementById('cardViewer');
+  document.getElementById('cardViewerInner').innerHTML = cardHtml(c);
+  v.classList.add('open');
+}
+(function(){
+  const v = document.getElementById('cardViewer');
+  const inner = document.getElementById('cardViewerInner');
+  function tilt(x, y){
+    const card = inner.querySelector('.tcg-card');
+    if(!card) return;
+    const rect = card.getBoundingClientRect();
+    const px = Math.min(1, Math.max(0, (x - rect.left) / rect.width));
+    const py = Math.min(1, Math.max(0, (y - rect.top) / rect.height));
+    card.classList.add('tilting');
+    card.style.transform = 'rotateY(' + ((px - 0.5) * 24).toFixed(1) + 'deg) rotateX(' + ((0.5 - py) * 24).toFixed(1) + 'deg)';
+    card.style.setProperty('--mx', (px * 100).toFixed(0) + '%');
+    card.style.setProperty('--my', (py * 100).toFixed(0) + '%');
+  }
+  function untilt(){
+    const card = inner.querySelector('.tcg-card');
+    if(!card) return;
+    card.classList.remove('tilting');
+    card.style.transform = '';
+  }
+  inner.addEventListener('pointermove', e => tilt(e.clientX, e.clientY));
+  inner.addEventListener('pointerleave', untilt);
+  inner.addEventListener('touchmove', e => { if(e.touches[0]) tilt(e.touches[0].clientX, e.touches[0].clientY); }, {passive:true});
+  inner.addEventListener('touchend', untilt);
+  v.addEventListener('click', e => {
+    if(e.target.closest('.tcg-card')) return;
+    v.classList.remove('open');
+    inner.innerHTML = '';
+  });
+})();
+
+// Bouton "Album" sur la fiche d'un membre
+function renderMemberAlbumBtn(userId, username){
+  const el = document.getElementById('memberAlbumBtn');
+  if(!el) return;
+  el.innerHTML = '<button type="button" id="modalAlbumBtn" style="font-size:11px;padding:8px 12px;">🃏 Album</button>';
+  document.getElementById('modalAlbumBtn').addEventListener('click', () => {
+    document.getElementById('overlayMember').classList.remove('open');
+    document.body.classList.remove('modal-open');
+    openAlbumOf(userId, username);
+  });
+}
+
+// ── ADMIN : créer et supprimer des cartes ──
+document.getElementById('albumAdminToggle').addEventListener('click', () => {
+  const p = document.getElementById('albumAdminPanel');
+  const opening = p.style.display === 'none';
+  p.style.display = opening ? 'block' : 'none';
+  if(opening) renderCardAdminList();
+});
+
+async function cardAdminSearch(){
+  const q = document.getElementById('cardAdminSearch').value.trim();
+  const box = document.getElementById('cardAdminResults');
+  if(!q){ box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="hint">Recherche...</div>';
+  try{
+    const res = await fetch('https://api.themoviedb.org/3/search/multi?api_key=' + TMDB_KEY + '&query=' + encodeURIComponent(q) + '&language=fr-FR');
+    const data = await res.json();
+    const results = (data.results || []).filter(r => r.media_type === 'movie' || r.media_type === 'tv').slice(0, 8);
+    if(!results.length){ box.innerHTML = '<div class="hint">Aucun résultat.</div>'; return; }
+    box.innerHTML = results.map((r, i) => {
+      const t = r.title || r.name || '';
+      const y = (r.release_date || r.first_air_date || '').slice(0, 4);
+      return '<div class="card-admin-result" data-i="' + i + '">'
+        + (r.poster_path ? '<img src="https://image.tmdb.org/t/p/w92' + r.poster_path + '" alt="">' : '<div class="ph"></div>')
+        + '<div><div class="t">' + escHtml(t) + '</div><div class="y">' + (y || '—') + ' · ' + (r.media_type === 'tv' ? 'Série' : 'Film') + '</div></div>'
+        + '</div>';
+    }).join('');
+    box.querySelectorAll('.card-admin-result').forEach(el => {
+      el.addEventListener('click', () => {
+        const r = results[parseInt(el.dataset.i, 10)];
+        cardAdminChosen = {
+          tmdb_id: String(r.id),
+          is_series: r.media_type === 'tv',
+          title: r.title || r.name || '',
+          year: (r.release_date || r.first_air_date || '').slice(0, 4) || null
+        };
+        box.querySelectorAll('.card-admin-result').forEach(x => x.classList.remove('chosen'));
+        el.classList.add('chosen');
+        const exists = albumAllCards.find(c => c.tmdb_id === cardAdminChosen.tmdb_id && !!c.is_series === cardAdminChosen.is_series);
+        cardAdminSetMsg(exists ? '⚠️ Une carte existe déjà pour ce titre (' + cardNumLabel(exists) + ').' : '✓ ' + cardAdminChosen.title + ' sélectionné.', exists ? '#ff8080' : 'var(--cyan)');
+        cardAdminUpdatePreview();
+      });
+    });
+  }catch(e){
+    box.innerHTML = '<div class="hint">Erreur de recherche.</div>';
+  }
+}
+document.getElementById('cardAdminSearchBtn').addEventListener('click', cardAdminSearch);
+document.getElementById('cardAdminSearch').addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); cardAdminSearch(); } });
+
+function cardAdminSetMsg(text, color){
+  const m = document.getElementById('cardAdminMsg');
+  m.style.color = color || 'var(--muted)';
+  m.textContent = text || '';
+}
+
+// Réduit l'image (900 px max) pour économiser la place de stockage
+function cardShrinkImage(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 900;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      cv.toBlob(b => b ? resolve(b) : reject(new Error('Image illisible')), 'image/webp', 0.9);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image illisible')); };
+    img.src = url;
+  });
+}
+
+document.getElementById('cardAdminFile').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0];
+  cardAdminBlob = null;
+  if(!f){ cardAdminUpdatePreview(); return; }
+  cardAdminSetMsg('Préparation de l\'image...');
+  try{
+    cardAdminBlob = await cardShrinkImage(f);
+    cardAdminSetMsg('');
+  }catch(err){
+    cardAdminSetMsg('❌ ' + err.message, '#ff8080');
+  }
+  cardAdminUpdatePreview();
+});
+document.getElementById('cardAdminRarity').addEventListener('change', cardAdminUpdatePreview);
+document.getElementById('cardAdminFullArt').addEventListener('change', cardAdminUpdatePreview);
+
+let cardAdminPreviewUrl = null;
+function cardAdminUpdatePreview(){
+  const box = document.getElementById('cardAdminPreview');
+  if(cardAdminPreviewUrl){ URL.revokeObjectURL(cardAdminPreviewUrl); cardAdminPreviewUrl = null; }
+  if(!cardAdminBlob){ box.innerHTML = ''; return; }
+  cardAdminPreviewUrl = URL.createObjectURL(cardAdminBlob);
+  const maxNum = albumAllCards.reduce((m, c) => Math.max(m, c.num || 0), 0);
+  box.innerHTML = cardHtml({
+    num: maxNum + 1,
+    title: cardAdminChosen ? cardAdminChosen.title : 'Titre du film',
+    year: cardAdminChosen ? cardAdminChosen.year : '',
+    image_url: cardAdminPreviewUrl,
+    rarity: document.getElementById('cardAdminRarity').value,
+    full_art: document.getElementById('cardAdminFullArt').checked
+  });
+}
+
+document.getElementById('cardAdminCreateBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('cardAdminCreateBtn');
+  if(!cardAdminChosen){ cardAdminSetMsg('Choisis d\'abord le film (étape 1).', '#ff8080'); return; }
+  if(!cardAdminBlob){ cardAdminSetMsg('Choisis l\'image de la carte (étape 2).', '#ff8080'); return; }
+  if(albumAllCards.find(c => c.tmdb_id === cardAdminChosen.tmdb_id && !!c.is_series === cardAdminChosen.is_series)){
+    cardAdminSetMsg('⚠️ Une carte existe déjà pour ce titre.', '#ff8080'); return;
+  }
+  btn.disabled = true;
+  cardAdminSetMsg('Envoi de l\'image...');
+  const ext = cardAdminBlob.type === 'image/webp' ? 'webp' : (cardAdminBlob.type === 'image/jpeg' ? 'jpg' : 'png');
+  const path = (cardAdminChosen.is_series ? 'tv-' : 'movie-') + cardAdminChosen.tmdb_id + '-' + Date.now() + '.' + ext;
+  const {error:upErr} = await sb.storage.from('cards').upload(path, cardAdminBlob, {contentType: cardAdminBlob.type, upsert:false});
+  if(upErr){ btn.disabled = false; cardAdminSetMsg('❌ Envoi impossible : ' + upErr.message, '#ff8080'); return; }
+  const {data:pub} = sb.storage.from('cards').getPublicUrl(path);
+  cardAdminSetMsg('Création de la carte...');
+  const {error} = await sb.from('cards').insert({
+    tmdb_id: cardAdminChosen.tmdb_id,
+    is_series: cardAdminChosen.is_series,
+    title: cardAdminChosen.title,
+    year: cardAdminChosen.year,
+    image_url: pub.publicUrl,
+    image_path: path,
+    rarity: document.getElementById('cardAdminRarity').value,
+    full_art: document.getElementById('cardAdminFullArt').checked
+  });
+  btn.disabled = false;
+  if(error){
+    await sb.storage.from('cards').remove([path]);
+    cardAdminSetMsg('❌ Carte non créée : ' + error.message, '#ff8080');
+    return;
+  }
+  cardAdminSetMsg('✓ Carte « ' + cardAdminChosen.title + ' » créée !', 'var(--cyan)');
+  cardAdminChosen = null;
+  cardAdminBlob = null;
+  document.getElementById('cardAdminFile').value = '';
+  document.getElementById('cardAdminSearch').value = '';
+  document.getElementById('cardAdminResults').innerHTML = '';
+  document.getElementById('cardAdminFullArt').checked = false;
+  cardAdminUpdatePreview();
+  await loadAlbum(); // recharge l'album (et te donne la carte si tu as le film !)
+  renderCardAdminList();
+});
+
+function renderCardAdminList(){
+  const box = document.getElementById('cardAdminList');
+  document.getElementById('cardAdminCount').textContent = albumAllCards.length;
+  if(!albumAllCards.length){ box.innerHTML = '<div class="hint">Aucune carte pour l\'instant.</div>'; return; }
+  box.innerHTML = albumAllCards.slice().reverse().map(c =>
+    '<div class="card-admin-item">' + cardHtml(c)
+    + '<button type="button" data-del="' + c.id + '">🗑️ Supprimer</button></div>'
+  ).join('');
+  box.querySelectorAll('[data-del]').forEach(b => {
+    b.addEventListener('click', async () => {
+      if(!b.classList.contains('confirm')){
+        b.classList.add('confirm');
+        b.textContent = 'Sûr ? Retouche';
+        setTimeout(() => { if(b.isConnected){ b.classList.remove('confirm'); b.textContent = '🗑️ Supprimer'; } }, 3000);
+        return;
+      }
+      b.disabled = true;
+      const card = albumAllCards.find(c => c.id === b.dataset.del);
+      const {error} = await sb.from('cards').delete().eq('id', b.dataset.del);
+      if(error){ b.disabled = false; cardAdminSetMsg('❌ Suppression impossible : ' + error.message, '#ff8080'); return; }
+      if(card && card.image_path) await sb.storage.from('cards').remove([card.image_path]);
+      cardAdminSetMsg('Carte supprimée.', 'var(--muted)');
+      await loadAlbum();
+      renderCardAdminList();
+    });
+  });
+}
 </script>
 </body>
 </html>
