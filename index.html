@@ -833,6 +833,12 @@
   .card-admin-item{display:flex;flex-direction:column;gap:6px;}
   .card-admin-item button{font-size:10px;padding:4px 6px;}
   .card-admin-item button.confirm{border-color:#ff8080;color:#ff8080;}
+  .card-admin-edit{flex-direction:column;gap:6px;}
+  .card-admin-edit select{font-size:11px;padding:4px;}
+  .card-admin-check{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text);cursor:pointer;line-height:1.2;}
+  .card-admin-check input{width:14px;height:14px;flex-shrink:0;}
+  .card-admin-file{display:block;text-align:center;font-family:'Space Mono',monospace;font-size:10px;padding:5px 4px;border:1px solid var(--card-border);border-radius:4px;cursor:pointer;color:var(--cyan);}
+  .card-admin-edit-msg{font-family:'Space Mono',monospace;font-size:9px;min-height:12px;line-height:1.3;}
 </style>
 </head>
 <body>
@@ -8179,9 +8185,89 @@ function renderCardAdminList(){
   document.getElementById('cardAdminCount').textContent = albumAllCards.length;
   if(!albumAllCards.length){ box.innerHTML = '<div class="hint">Aucune carte pour l\'instant.</div>'; return; }
   box.innerHTML = albumAllCards.slice().reverse().map(c =>
-    '<div class="card-admin-item">' + cardHtml(c)
-    + '<button type="button" data-del="' + c.id + '">🗑️ Supprimer</button></div>'
+    '<div class="card-admin-item" data-cid="' + c.id + '">'
+    + '<div class="card-admin-thumb">' + cardHtml(c) + '</div>'
+    + '<button type="button" data-edit="' + c.id + '">✏️ Modifier</button>'
+    + '<div class="card-admin-edit" style="display:none;">'
+    +   '<select data-f="rarity">'
+    +     '<option value="commune"' + (c.rarity === 'commune' ? ' selected' : '') + '>★ Commune</option>'
+    +     '<option value="rare"' + (c.rarity === 'rare' ? ' selected' : '') + '>★★ Rare</option>'
+    +     '<option value="legendaire"' + (c.rarity === 'legendaire' ? ' selected' : '') + '>★★★ Légendaire</option>'
+    +   '</select>'
+    +   '<label class="card-admin-check"><input type="checkbox" data-f="full"' + (c.full_art ? ' checked' : '') + '> Carte complète</label>'
+    +   '<label class="card-admin-file">🖼️ Changer l\'image<input type="file" accept="image/*" data-f="file" style="display:none;"></label>'
+    +   '<div class="card-admin-edit-msg"></div>'
+    +   '<button type="button" class="primary" data-save="' + c.id + '">Enregistrer</button>'
+    +   '<button type="button" data-del="' + c.id + '">🗑️ Supprimer</button>'
+    + '</div>'
+    + '</div>'
   ).join('');
+
+  // Ouvrir / fermer la zone de modification
+  box.querySelectorAll('[data-edit]').forEach(b => {
+    b.addEventListener('click', () => {
+      const item = b.closest('.card-admin-item');
+      const ed = item.querySelector('.card-admin-edit');
+      const opening = ed.style.display === 'none';
+      ed.style.display = opening ? 'flex' : 'none';
+      b.textContent = opening ? '✕ Fermer' : '✏️ Modifier';
+      if(!opening){ item._newBlob = null; cardAdminEditPreview(item); }
+    });
+  });
+
+  // Aperçu en direct pendant la modification
+  box.querySelectorAll('.card-admin-item').forEach(item => {
+    item.querySelector('[data-f="rarity"]').addEventListener('change', () => cardAdminEditPreview(item));
+    item.querySelector('[data-f="full"]').addEventListener('change', () => cardAdminEditPreview(item));
+    item.querySelector('[data-f="file"]').addEventListener('change', async e => {
+      const f = e.target.files && e.target.files[0];
+      const msg = item.querySelector('.card-admin-edit-msg');
+      item._newBlob = null;
+      if(f){
+        msg.style.color = 'var(--muted)'; msg.textContent = 'Préparation...';
+        try{ item._newBlob = await cardShrinkImage(f); msg.textContent = '✓ Nouvelle image prête'; msg.style.color = 'var(--cyan)'; }
+        catch(err){ msg.style.color = '#ff8080'; msg.textContent = '❌ ' + err.message; }
+      }
+      cardAdminEditPreview(item);
+    });
+  });
+
+  // Enregistrer les modifications
+  box.querySelectorAll('[data-save]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const item = b.closest('.card-admin-item');
+      const card = albumAllCards.find(c => c.id === b.dataset.save);
+      if(!card) return;
+      const msg = item.querySelector('.card-admin-edit-msg');
+      const updates = {
+        rarity: item.querySelector('[data-f="rarity"]').value,
+        full_art: item.querySelector('[data-f="full"]').checked
+      };
+      b.disabled = true;
+      msg.style.color = 'var(--muted)'; msg.textContent = 'Enregistrement...';
+      let newPath = null;
+      if(item._newBlob){
+        const blob = item._newBlob;
+        const ext = blob.type === 'image/webp' ? 'webp' : (blob.type === 'image/jpeg' ? 'jpg' : 'png');
+        newPath = (card.is_series ? 'tv-' : 'movie-') + card.tmdb_id + '-' + Date.now() + '.' + ext;
+        const {error:upErr} = await sb.storage.from('cards').upload(newPath, blob, {contentType: blob.type, upsert:false});
+        if(upErr){ b.disabled = false; msg.style.color = '#ff8080'; msg.textContent = '❌ Image non envoyée : ' + upErr.message; return; }
+        updates.image_url = sb.storage.from('cards').getPublicUrl(newPath).data.publicUrl;
+        updates.image_path = newPath;
+      }
+      const {error} = await sb.from('cards').update(updates).eq('id', card.id);
+      if(error){
+        if(newPath) await sb.storage.from('cards').remove([newPath]);
+        b.disabled = false; msg.style.color = '#ff8080'; msg.textContent = '❌ ' + error.message;
+        return;
+      }
+      if(newPath && card.image_path) await sb.storage.from('cards').remove([card.image_path]);
+      cardAdminSetMsg('✓ Carte ' + cardNumLabel(card) + ' modifiée.', 'var(--cyan)');
+      await loadAlbum();
+      renderCardAdminList();
+    });
+  });
+
   box.querySelectorAll('[data-del]').forEach(b => {
     b.addEventListener('click', async () => {
       if(!b.classList.contains('confirm')){
@@ -8200,6 +8286,19 @@ function renderCardAdminList(){
       renderCardAdminList();
     });
   });
+}
+
+function cardAdminEditPreview(item){
+  const card = albumAllCards.find(c => c.id === item.dataset.cid);
+  if(!card) return;
+  if(item._previewUrl){ URL.revokeObjectURL(item._previewUrl); item._previewUrl = null; }
+  if(item._newBlob) item._previewUrl = URL.createObjectURL(item._newBlob);
+  const preview = Object.assign({}, card, {
+    rarity: item.querySelector('[data-f="rarity"]').value,
+    full_art: item.querySelector('[data-f="full"]').checked,
+    image_url: item._previewUrl || card.image_url
+  });
+  item.querySelector('.card-admin-thumb').innerHTML = cardHtml(preview);
 }
 </script>
 </body>
